@@ -9,10 +9,9 @@ from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
 
 def create_panel(*args):
-    return ZCalibratePanel(*args)
+    return ZCalibrateProbePanel(*args)
 
-class ZCalibratePanel(ScreenPanel):
-    widgets = {}
+class ZCalibrateProbePanel(ScreenPanel):
     distances = ['0.01', '0.05', '0.1', '0.5', '1', '5']
     distance = distances[-2]
 
@@ -104,7 +103,7 @@ class ZCalibratePanel(ScreenPanel):
         return
         
     def update_position(self, position):
-        self.labels['zoffset'].set_label(f"Z: {position[2]:.2f}")
+        self.labels['zoffset'].set_label(f"Z: {position[2]:.3f}")
             
     def change_distance(self, widget, dist):
         if self.distance == dist:
