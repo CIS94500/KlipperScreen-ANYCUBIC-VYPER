@@ -45,7 +45,7 @@ gcode:
 	{% set offsets = printer.save_variables.variables.gcode_offsets %}
 	_SET_GCODE_OFFSET {% for axis, offset in offsets.items() if offsets[axis] %}{ "%s=%s " % (axis, offset) }{% endfor %}
 	{ action_respond_info("Loaded gcode offsets from saved variables [%s]" % (offsets)) }
-	{% endif %}|
+	{% endif %}
 ```
 ```
 [gcode_macro SET_GCODE_OFFSET]
