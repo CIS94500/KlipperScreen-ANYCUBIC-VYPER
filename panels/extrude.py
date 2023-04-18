@@ -22,7 +22,8 @@ class ExtrudePanel(ScreenPanel):
         macros = self._printer.get_gcode_macros()
         self.load_filament = any("LOAD_FILAMENT" in macro.upper() for macro in macros)
         self.unload_filament = any("UNLOAD_FILAMENT" in macro.upper() for macro in macros)
-
+        self.extrude_filament = any("_EXTRUDE" in macro.upper() for macro in macros) #VSYS
+        
         self.speeds = ['1', '2', '5', '25']
         self.distances = ['5', '10', '15', '25']
         if self.ks_printer_cfg is not None:
@@ -231,9 +232,15 @@ class ExtrudePanel(ScreenPanel):
         self.speed = speed
 
     def extrude(self, widget, direction):
-        self._screen._ws.klippy.gcode_script(KlippyGcodes.EXTRUDE_REL)
-        self._screen._ws.klippy.gcode_script(KlippyGcodes.extrude(f"{direction}{self.distance}", f"{self.speed * 60}"))
-
+        #START VSYS
+        if not self.extrude_filament:
+            self._screen.show_popup_message("Macro _EXTRUDE not found")
+        else:
+            self._screen._ws.klippy.gcode_script(f"_EXTRUDE DIR={direction} DIST={self.distance} SPEED={self.speed * 60}")
+        #END VSYS
+        #self._screen._ws.klippy.gcode_script(KlippyGcodes.EXTRUDE_REL)
+        #self._screen._ws.klippy.gcode_script(KlippyGcodes.extrude(f"{direction}{self.distance}", f"{self.speed * 60}"))
+        
     def load_unload(self, widget, direction):
         if direction == "-":
             if not self.unload_filament:

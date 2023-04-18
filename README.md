@@ -1,3 +1,15 @@
+# KlipperScreen
+
+KlipperScreen is a touchscreen GUI that interfaces with [Klipper](https://github.com/kevinOConnor/klipper) via [Moonraker](https://github.com/arksine/moonraker). It can switch between multiple printers to access them from a single location, and it doesn't even need to run on the same host, you can install it on another device and configure the IP address to access the printer.
+
+### Documentation [![Documentation Status](https://readthedocs.org/projects/klipperscreen/badge/?version=latest)](https://klipperscreen.readthedocs.io/en/latest/?badge=latest)
+
+[Click here to access the documentation.](https://klipperscreen.readthedocs.io/en/latest/)
+
+[![Main Menu](docs/img/panels/main_panel.png)](https://klipperscreen.readthedocs.io/en/latest/Panels/)
+
+[More Screenshots](https://klipperscreen.readthedocs.io/en/latest/Panels/)  
+
 # Macro à ajouter
 
 Si vous n'utilisez pas le pack de macros disponible [ici](https://github.com/CIS94500/Klipper-Config-ANYCUBIC-VYPER/), vous devez ajouter ces macros à votre configuration.
@@ -36,6 +48,35 @@ gcode:
       TURN_OFF_HEATERS  
       SAVE_CONFIG  
  {% endif %}  
+```
+```
+[gcode_macro _EXTRUDE]
+description: Extrusion du filament (KlipperScreen "VS")
+gcode:
+	{% set direction = params.DIR|default("+") %}
+	{% set distance = params.DIST|default(50)|float %}
+	{% set speed = params.SPEED|default(400)|float %}
+	{% if printer.idle_timeout.state == "Printing" and not printer.pause_resume.is_paused %}
+		RESPOND TYPE=error MSG="Impossible d'extruder le filament pendant une impression !"
+	{% else %}
+		{% if printer["filament_switch_sensor filament_sensor"].filament_detected == True or printer["filament_switch_sensor filament_sensor"].enabled == False %}
+			{% if printer.extruder.temperature < 220 %}
+				RESPOND MSG="Mise en chauffe de la buse..."
+				M109 S220
+			{% endif %}
+			{% if "xyz" in printer.toolhead.homed_axes %}
+				SAVE_GCODE_STATE NAME=EXTRUDE_state
+			{% endif %}
+			G91				
+			G0 E{direction}{distance} F{speed}
+			{% if "xyz" in printer.toolhead.homed_axes %}
+				M400
+				RESTORE_GCODE_STATE NAME=EXTRUDE_state MOVE=0
+			{% endif %}
+		{% else %}
+			RESPOND TYPE=error MSG="Veuillez insérer du filament !"
+		{% endif %}
+	{% endif %}
 ```
 ```
 [delayed_gcode LOAD_GCODE_OFFSETS]
@@ -78,19 +119,3 @@ filename: /home/pi/printer_data/config/var.cfg
 [Variables]
 gcode_offsets = {'x': None, 'y': None, 'z': 0.0}
 ```
-
-# KlipperScreen
-
-KlipperScreen is a touchscreen GUI that interfaces with [Klipper](https://github.com/kevinOConnor/klipper) via [Moonraker](https://github.com/arksine/moonraker). It can switch between multiple printers to access them from a single location, and it doesn't even need to run on the same host, you can install it on another device and configure the IP address to access the printer.
-
-### Documentation [![Documentation Status](https://readthedocs.org/projects/klipperscreen/badge/?version=latest)](https://klipperscreen.readthedocs.io/en/latest/?badge=latest)
-
-[Click here to access the documentation.](https://klipperscreen.readthedocs.io/en/latest/)
-
-### Inspiration
-KlipperScreen was inspired by [OctoScreen](https://github.com/Z-Bolt/OctoScreen/) and the need for a touchscreen GUI that
-will natively work with [Klipper](https://github.com/kevinOConnor/klipper) and [Moonraker](https://github.com/arksine/moonraker).
-
-[![Main Menu](docs/img/panels/main_panel.png)](https://klipperscreen.readthedocs.io/en/latest/Panels/)
-
-[More Screenshots](https://klipperscreen.readthedocs.io/en/latest/Panels/)
