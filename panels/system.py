@@ -43,7 +43,7 @@ class SystemPanel(ScreenPanel):
         self.refresh.set_vexpand(False)
 
         reboot = self._gtk.Button('refresh', _('Restart'), 'color3')
-        reboot.connect("clicked", self.reboot_poweroff, "reboot")
+        reboot.connect("clicked", self.reboot_choice) #VSYS
         reboot.set_vexpand(False)
         shutdown = self._gtk.Button('shutdown', _('Shutdown'), 'color4')
         shutdown.connect("clicked", self.reboot_poweroff, "poweroff")
@@ -330,13 +330,13 @@ class SystemPanel(ScreenPanel):
             {"name": _("Continue"), "response": Gtk.ResponseType.OK},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
         ]
-       #end VSYS
+        #end VSYS
         dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.reboot_poweroff_confirm, method)
         if method == "reboot":
             dialog.set_title(_("Restart"))
         else:
             dialog.set_title(_("Shutdown"))
-
+            
     def reboot_poweroff_confirm(self, dialog, response_id, method):
         self._gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:
@@ -349,3 +349,29 @@ class SystemPanel(ScreenPanel):
                 self._screen._ws.send_method("machine.reboot")
             else:
                 self._screen._ws.send_method("machine.shutdown")
+                
+    #begin VSYS
+    def reboot_choice(self, widget):
+        scroll = self._gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.set_halign(Gtk.Align.CENTER)
+        vbox.set_valign(Gtk.Align.CENTER)
+        vbox.add(Gtk.Label(label=_("Are you sure you wish to reboot?")))
+        scroll.add(vbox)
+        buttons = [
+            {"name": _("KlipperScreen"), "response": Gtk.ResponseType.OK},
+            {"name": _("mcu"), "response": Gtk.ResponseType.APPLY},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
+        ]
+        dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.reboot_choice_confirm)
+        dialog.set_title(_("Restart"))
+
+    def reboot_choice_confirm(self, dialog, response_id):
+        self._gtk.remove_dialog(dialog)
+
+        if response_id == Gtk.ResponseType.OK:
+            os.system("systemctl restart KlipperScreen.service")
+        elif response_id == Gtk.ResponseType.APPLY:
+            self._screen._ws.send_method("machine.reboot")
+    #end VSYS
