@@ -27,23 +27,27 @@ gcode:
   {% endif %}  
 ```
 ```
-[gcode_macro _BED_LEVELING]  
-description: Nivellement du plateau  
-gcode:  
-  {% if printer.idle_timeout.state == "Printing" %}  
-    RESPOND TYPE=error MSG="Interdiction de faire le leveling !"  
-  {% else %}  
-    {% if printer.heater_bed.temperature < 50 %}  
-      RESPOND MSG="Mise en chauffe du plateau..."  
-    {% endif %}  
-      M190 S50  
-      G28  
-      BED_MESH_CALIBRATE  
-      G1 Z20 F3600  
-      G1 X0 Y0 F6000  
-      TURN_OFF_HEATERS  
-      SAVE_CONFIG  
- {% endif %}  
+[gcode_macro _BED_LEVELING]
+description: Nivellement du plateau
+gcode:
+	{% if printer.idle_timeout.state == "Printing" %}
+		RESPOND TYPE=error MSG="Impossible de faire le leveling pendant une impression !"
+	{% else %}
+		{% set temp_bed = 60 %}
+		{% if printer.heater_bed.temperature < temp_bed %}
+			RESPOND MSG="Mise en chauffe du plateau à {temp_bed}°C"
+		{% endif %}
+		M190 S{temp_bed}
+		RESPOND MSG="Patientez 3 min supplémentaires pour un chauffe uniforme du plateau.."
+		G4 P180000
+		SET_GCODE_OFFSET Z=0
+		G28
+		BED_MESH_CALIBRATE
+		G1 Z20 F3600
+		G1 X0 Y0 F6000
+		TURN_OFF_HEATERS
+		SAVE_CONFIG
+	{% endif %} 
 ```
 ```
 [gcode_macro _EXTRUDE]
@@ -56,14 +60,21 @@ gcode:
 		RESPOND TYPE=error MSG="Impossible d'extruder le filament pendant une impression !"
 	{% else %}
 		{% if printer["filament_switch_sensor filament_sensor"].filament_detected == True or printer["filament_switch_sensor filament_sensor"].enabled == False %}
-			{% if printer.extruder.temperature < 220 %}
-				RESPOND MSG="Mise en chauffe de la buse..."
-				M109 S220
+			{% set temp_extruder = printer.extruder.temperature|int %}
+			{% set temp_min_extrude = printer.configfile.settings['extruder'].min_extrude_temp|int %}
+			{% set temp_cible = temp_min_extrude + 10 %}
+			{% if printer.extruder.target|int > temp_min_extrude  %}
+				{% set temp_cible = printer.extruder.target|int %}
+			{% elif temp_extruder < temp_min_extrude  %}
+				RESPOND MSG="Mise en chauffe de la buse à {temp_cible}°C"
 			{% endif %}
 			{% if "xyz" in printer.toolhead.homed_axes %}
 				SAVE_GCODE_STATE NAME=EXTRUDE_state
 			{% endif %}
-			G91				
+			G91
+			M106 S0
+			M104 S{temp_cible}
+			{% if temp_extruder < (temp_cible - 5) %} M109 S{temp_cible} {% endif %}
 			G0 E{direction}{distance} F{speed}
 			{% if "xyz" in printer.toolhead.homed_axes %}
 				M400
