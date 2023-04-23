@@ -22,7 +22,7 @@ gcode:
     probe_reset  
     SET_GCODE_OFFSET Z=0  
     G28  
-    G1 X{x_size} Y{y_size} F6000  
+    G0 X{x_size} Y{y_size} F6000  
     PROBE_CALIBRATE  
   {% endif %}  
 ```
@@ -43,8 +43,8 @@ gcode:
 		SET_GCODE_OFFSET Z=0
 		G28
 		BED_MESH_CALIBRATE
-		G1 Z20 F3600
-		G1 X0 Y0 F6000
+		G0 Z20 F3600
+		G0 X0 Y0 F6000
 		TURN_OFF_HEATERS
 		SAVE_CONFIG
 	{% endif %} 
@@ -68,18 +68,11 @@ gcode:
 			{% elif temp_extruder < temp_min_extrude  %}
 				RESPOND MSG="Mise en chauffe de la buse à {temp_cible}°C"
 			{% endif %}
-			{% if "xyz" in printer.toolhead.homed_axes %}
-				SAVE_GCODE_STATE NAME=EXTRUDE_state
-			{% endif %}
-			G91
+			M83
 			M106 S0
 			M104 S{temp_cible}
 			{% if temp_extruder < (temp_cible - 5) %} M109 S{temp_cible} {% endif %}
-			G0 E{direction}{distance} F{speed}
-			{% if "xyz" in printer.toolhead.homed_axes %}
-				M400
-				RESTORE_GCODE_STATE NAME=EXTRUDE_state MOVE=0
-			{% endif %}
+			G1 E{direction}{distance} F{speed}
 		{% else %}
 			RESPOND TYPE=error MSG="Veuillez insérer du filament !"
 		{% endif %}

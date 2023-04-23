@@ -371,7 +371,7 @@ class SystemPanel(ScreenPanel):
         self._gtk.remove_dialog(dialog)
 
         if response_id == Gtk.ResponseType.OK:
-            os.system("systemctl restart KlipperScreen.service")
+            os.system("sudo systemctl restart KlipperScreen.service")
         elif response_id == Gtk.ResponseType.APPLY:
             self._screen._ws.send_method("machine.reboot")
     #end VSYS
