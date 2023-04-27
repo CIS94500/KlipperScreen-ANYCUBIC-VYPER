@@ -100,7 +100,7 @@ scrollbar, scrollbar button, scrollbar trough {
 }
 
 scrollbar slider {
-    background-color: #1c1c1c;
+    background-color: #2f5631;
 }
 
 textview .time {
@@ -137,7 +137,7 @@ textview .time {
 }
 
 .distbutton_active {
-    background-color: #545454;
+    background-color: #2f5631;
 }
 
 .fan_slider {

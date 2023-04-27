@@ -122,7 +122,7 @@ scrollbar, scrollbar button, scrollbar trough {
 }
 
 scrollbar slider {
-    background-color: #2f2f2f;
+    background-color: #d81549;
 }
 
 textview .time {
@@ -153,7 +153,7 @@ textview .time {
 }
 
 .tempbutton_top, .tempbutton, .tempbutton_bottom, .distbutton_top, .distbutton, .distbutton_bottom  {
-    border-color: #121212;
+    border-color: gray;
     background-color: #090909;
 }
 
@@ -182,7 +182,7 @@ textview .time {
 }
 
 .numpad_tleft, .numpad_top, .numpad_tright, .numpad_left, .numpad_button, .numpad_right, .numpad_bleft, .numpad_bottom, .numpad_bright {
-    border-color: #121212;
+    border-color: gray;
     background-color: #090909;
 }
 

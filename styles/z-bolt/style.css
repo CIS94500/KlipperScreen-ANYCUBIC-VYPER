@@ -54,7 +54,7 @@ combobox box button {
 }
 
 switch {
-    background-color: #20292F;
+    background-color: #404E57;
 }
 
 switch:checked {
@@ -101,7 +101,7 @@ scrollbar, scrollbar button, scrollbar trough {
 }
 
 scrollbar slider {
-    background-color: #404E57;
+    background-color: #3584e4;
 }
 
 textview .time {
@@ -130,7 +130,7 @@ textview .time {
 }
 
 .distbutton_active {
-    background-color: #20303D;
+    background-color: #2196f3;
 }
 
 .distbutton_top {
