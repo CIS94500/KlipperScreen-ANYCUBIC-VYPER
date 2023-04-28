@@ -87,6 +87,7 @@ class KlipperScreen(Gtk.Window):
     updating = False
     _ws = None
     screensaver_timeout = None
+    popup_timeout = None #VSYS
     reinit_count = 0
     max_retries = 4
     initialized = False
@@ -340,8 +341,11 @@ class KlipperScreen(Gtk.Window):
         self.popup_message.show_all()
 
         if self._config.get_main_config().getboolean('autoclose_popups', True):
-            GLib.timeout_add_seconds(20, self.close_popup_message) #vsys
-
+            #begin VSYS
+            if self.popup_timeout is not None:
+                GLib.source_remove(self.popup_timeout)
+            self.popup_timeout = GLib.timeout_add_seconds(20, self.close_popup_message)
+            #end VSYS
         return False
 
     def close_popup_message(self, widget=None):
@@ -724,6 +728,10 @@ class KlipperScreen(Gtk.Window):
             if not (data.startswith("B:") or data.startswith("T:")):
                 if data.startswith("echo: "):
                     self.show_popup_message(data[6:], 1)
+                #begin VSYS
+                elif data.startswith("?! "):
+                    self.show_popup_message(data[3:], 2)
+                #end VSYS
                 elif data.startswith("!! "):
                     self.show_popup_message(data[3:], 3)
                 elif "unknown" in data.lower() and \

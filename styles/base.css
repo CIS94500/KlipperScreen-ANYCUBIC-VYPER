@@ -338,11 +338,13 @@ trough {
 }
 
 .message_popup_warning, .message_popup_warning button {
-    background-color: #f9a825;
+    background-color: #c98920;
+    font-weight: bold;
 }
 
 .message_popup_error, .message_popup_error button {
     background-color: #9e2f3a;
+    font-weight: bold;
 }
 
 .numpad{
