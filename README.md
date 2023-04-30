@@ -6,7 +6,39 @@
 
 [More Screenshots](https://klipperscreen.readthedocs.io/en/latest/Panels/)  
 
-# Macro à ajouter
+
+## Installation
+
+Supprimer votre ancienne installation de KlipperScren  
+
+```
+cd /home/pi/KlipperScreen/scripts && ./Uninstall.sh 
+cd /home/pi && sudo rm -Rf /home/pi/KlipperScreen
+```
+Installer la nouvelle version de KlipperScreen  
+
+```
+cd /home/pi
+git clone https://github.com/CIS94500/KlipperScreen-ANYCUBIC-VYPER.git && sudo mv /home/pi/KlipperScreen-ANYCUBIC-VYPER /home/pi/KlipperScreen
+cd /home/pi/KlipperScreen/scripts && ./KlipperScreen-install.sh
+```
+
+## Ne pas mettre à jour KlipperScreen depuis le dépôt officiel   
+
+>Dans le fichier "moonraker.conf" supprimez ce bloc de code :
+
+```
+[update_manager KlipperScreen]
+type: git_repo
+path: ~/KlipperScreen
+origin: https://github.com/jordanruthe/KlipperScreen.git
+env: ~/.KlipperScreen-env/bin/python
+requirements: scripts/KlipperScreen-requirements.txt
+install_script: scripts/KlipperScreen-install.sh
+managed_services: KlipperScreen
+```
+
+## Macro à ajouter
 
 Si vous n'utilisez pas le pack de macros disponible [ici](https://github.com/CIS94500/Klipper-Config-ANYCUBIC-VYPER/), vous devez ajouter ces macros à votre configuration.
 
@@ -33,13 +65,19 @@ gcode:
 	{% if printer.idle_timeout.state == "Printing" %}
 		RESPOND TYPE=error MSG="Impossible de faire le leveling pendant une impression !"
 	{% else %}
+		#---------------------------------------------------------
 		{% set temp_bed = 60 %}
-		{% if printer.heater_bed.temperature < temp_bed %}
+		{% set temp_target = printer.heater_bed.target|int %}
+		#---------------------------------------------------------
+		{% if temp_target < temp_bed  %}
 			RESPOND MSG="Mise en chauffe du plateau à {temp_bed}°C"
+		{% else %}
+			{% set temp_bed = temp_target %}
+			RESPOND MSG="Patientez pendant la chauffe du plateau à {temp_bed}°C"
 		{% endif %}
+		#---------------------------------------------------------
 		M190 S{temp_bed}
-		RESPOND MSG="Patientez 3 min supplémentaires pour un chauffe uniforme du plateau.."
-		G4 P180000
+		RESPOND MSG="Démarrage du maillage plateau.."
 		SET_GCODE_OFFSET Z=0
 		G28
 		BED_MESH_CALIBRATE
@@ -56,18 +94,24 @@ gcode:
 	{% set direction = params.DIR|default("+") %}
 	{% set distance = params.DIST|default(50)|float %}
 	{% set speed = params.SPEED|default(400)|float %}
+	#---------------------------------------------------------
 	{% if printer.idle_timeout.state == "Printing" and not printer.pause_resume.is_paused %}
 		RESPOND TYPE=error MSG="Impossible d'extruder le filament pendant une impression !"
 	{% else %}
-		{% if printer["filament_switch_sensor filament_sensor"].filament_detected == True or printer["filament_switch_sensor filament_sensor"].enabled == False %}
+		{% if printer["filament_switch_sensor filament_sensor"].filament_detected == True 
+						or printer["filament_switch_sensor filament_sensor"].enabled == False %}
+			#---------------------------------------------------------
 			{% set temp_extruder = printer.extruder.temperature|int %}
 			{% set temp_min_extrude = printer.configfile.settings['extruder'].min_extrude_temp|int %}
+			{% set temp_target = printer.extruder.target|int %}
 			{% set temp_cible = temp_min_extrude + 10 %}
-			{% if printer.extruder.target|int > temp_min_extrude  %}
-				{% set temp_cible = printer.extruder.target|int %}
+			#---------------------------------------------------------
+			{% if temp_target > temp_min_extrude  %}
+				{% set temp_cible = temp_target %}
 			{% elif temp_extruder < temp_min_extrude  %}
 				RESPOND MSG="Mise en chauffe de la buse à {temp_cible}°C"
 			{% endif %}
+			#---------------------------------------------------------
 			M83
 			M106 S0
 			M104 S{temp_cible}
