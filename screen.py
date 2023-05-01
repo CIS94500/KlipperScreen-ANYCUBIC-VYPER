@@ -308,13 +308,14 @@ class KlipperScreen(Gtk.Window):
 
     def show_popup_message(self, message, level=3):
         self.close_screensaver()
-        if self.popup_message is not None:
-            self.close_popup_message()
         #begin VSYS
         if message[0:10] == "GoToPanel:":
             self.show_panel(message[10:], message[10:], _(message[10:].replace("_", " ").capitalize()), 1, False)
             return
         #end VSYS
+        if self.popup_message is not None:
+            self.close_popup_message()
+
         msg = Gtk.Button(label=f"{message}")
         msg.set_hexpand(True)
         msg.set_vexpand(True)
