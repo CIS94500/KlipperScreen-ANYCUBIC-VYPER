@@ -38,7 +38,7 @@ install_script: scripts/KlipperScreen-install.sh
 managed_services: KlipperScreen
 ```
 
->Et remplacer la par :
+>Et remplacez le par :
 
 ```
 [update_manager KlipperScreen]
