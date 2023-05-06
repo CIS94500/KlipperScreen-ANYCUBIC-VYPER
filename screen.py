@@ -87,7 +87,7 @@ class KlipperScreen(Gtk.Window):
     updating = False
     _ws = None
     screensaver_timeout = None
-    popup_timeout = None #VSYS
+    popup_timeout = None
     reinit_count = 0
     max_retries = 4
     initialized = False
@@ -342,18 +342,18 @@ class KlipperScreen(Gtk.Window):
         self.popup_message.show_all()
 
         if self._config.get_main_config().getboolean('autoclose_popups', True):
-            #begin VSYS
             if self.popup_timeout is not None:
                 GLib.source_remove(self.popup_timeout)
-            self.popup_timeout = GLib.timeout_add_seconds(20, self.close_popup_message)
-            #end VSYS
+            self.popup_timeout = GLib.timeout_add_seconds(20, self.close_popup_message) #VSYS
+
         return False
 
     def close_popup_message(self, widget=None):
         if self.popup_message is None:
             return
         self.popup_message.popdown()
-        self.popup_message = None
+        GLib.source_remove(self.popup_timeout)
+        self.popup_message = self.popup_timeout = None
 
     def show_error_modal(self, err, e=""):
         logging.error(f"Showing error modal: {err} {e}")

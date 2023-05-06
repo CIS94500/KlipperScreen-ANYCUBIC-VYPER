@@ -361,7 +361,7 @@ class SystemPanel(ScreenPanel):
         scroll.add(vbox)
         buttons = [
             {"name": _("KlipperScreen"), "response": Gtk.ResponseType.OK},
-            {"name": _("mcu"), "response": Gtk.ResponseType.APPLY},
+            {"name": _("Computer"), "response": Gtk.ResponseType.APPLY},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
         ]
         dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.reboot_choice_confirm)

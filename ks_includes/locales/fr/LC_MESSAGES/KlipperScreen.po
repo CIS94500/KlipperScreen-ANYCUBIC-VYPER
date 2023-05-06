@@ -21,8 +21,8 @@ msgstr ""
 msgid "KlipperScreen"
 msgstr "Écran"
 
-msgid "mcu"
-msgstr "Ordinateur PI"
+msgid "Computer"
+msgstr "Ordinateur"
 
 msgid "Endstops Calibrate"
 msgstr "Calibration Endstops"
@@ -78,12 +78,12 @@ msgid "Apply"
 msgstr "Appliquer"
 
 #, python-format
-msgid "Apply %.2f offset to Endstop?"
-msgstr "Appliquer un décalage de %.2f au Endstop ?"
+msgid "Apply %s%.3f offset to Endstop?"
+msgstr "Appliquer un décalage de %s%.3f au Endstop ?"
 
 #, python-format
-msgid "Apply %s%.2f offset to Probe?"
-msgstr "Appliquer un décalage de %s%.2f au palpeur ?"
+msgid "Apply %s%.3f offset to Probe?"
+msgstr "Appliquer un décalage de %s%.3f au palpeur ?"
 
 msgid "Are you sure do you want to exclude the object?"
 msgstr "Êtes-vous sûr de vouloir exclure l’objet ?"
@@ -97,7 +97,7 @@ msgstr "Êtes-vous sûr de vouloir annuler cette impression ?"
 msgid "Are you sure you wish to disable motors?"
 msgstr "Voulez-vous vraiment désactiver les moteurs ?"
 
-msgid "Are you sure you wish to reboot?"
+msgid "Are you sure you wish to reboot the system?"
 msgstr "Êtes-vous sûr de vouloir redémarrer ?"
 
 msgid "Are you sure you wish to shutdown the system?"
@@ -130,11 +130,11 @@ msgstr "Calibration"
 msgid "Calibrated"
 msgstr "Calibré"
 
-msgid "Calibrated, save configuration to make it permanent"
-msgstr "Calibré, enregistrez la configuration pour la rendre permanente"
-
 msgid "Calibrating"
 msgstr "Calibration"
+
+msgid "Camera"
+msgstr "Caméra"
 
 msgid "Can't set above the maximum:"
 msgstr "Impossible de définir au-dessus du maximum:"
@@ -197,8 +197,8 @@ msgstr "Refroidir"
 msgid "Date"
 msgstr "Date"
 
-msgid "Decrease"
-msgstr "Diminuer"
+msgid "Delete Directory?"
+msgstr "Supprimer le dossier ?"
 
 msgid "Delete File?"
 msgstr "Supprimer le fichier ?"
@@ -291,6 +291,9 @@ msgstr "Taille de la police"
 msgid "Full Update"
 msgstr "Mettre à jour"
 
+msgid "Fullscreen"
+msgstr "Plein écran"
+
 msgid "Go Back"
 msgstr "Retour"
 
@@ -304,7 +307,7 @@ msgid "Hide"
 msgstr "Masquer"
 
 msgid "Hide sensors in Temp."
-msgstr "Masquer les capteurs de températures"
+msgstr "Masquer les capteurs de températures."
 
 msgid "Hide temp."
 msgstr "Masquer temp."
@@ -335,9 +338,6 @@ msgstr "Nom d’hôte"
 
 msgid "Icon Theme"
 msgstr "Thème"
-
-msgid "Increase"
-msgstr "Augmenter"
 
 msgid "Initializing printer..."
 msgstr "Démarrage de l'imprimante..."
@@ -539,7 +539,7 @@ msgid "Printer Connections"
 msgstr "Connexions aux imprimantes"
 
 msgid "Printer Select"
-msgstr "Sélectionner une Imprimante"
+msgstr "Sélectionnez une imprimante"
 
 msgid "Printing"
 msgstr "Impression"
@@ -573,6 +573,9 @@ msgstr "Référence"
 
 msgid "Refresh"
 msgstr "Rafraîchir"
+
+msgid "Rename/Move:"
+msgstr "Renommer/déplacer:"
 
 msgid "Restart"
 msgstr "Redémarrer"
@@ -632,10 +635,6 @@ msgstr "Sélectionner"
 msgid "Send"
 msgstr "Envoyer"
 
-#, python-format
-msgid "Sending Power ON signal to: %s"
-msgstr "Envoi du signal de mise sous tension à: %s"
-
 msgid "Set Temp"
 msgstr "Régler la température"
 
@@ -649,13 +648,13 @@ msgid "Show Heater Power"
 msgstr "Afficher la puissance des sondes"
 
 msgid "Size"
-msgstr "Dimension"
+msgstr "Taille"
 
 msgid "Slicer"
 msgstr "Slicer"
 
 msgid "Slicer Time correction (%)"
-msgstr "Correction du temps du slicer (%)"
+msgstr "Correction de l'estimation du slicer (%)"
 
 msgid "Slicer:"
 msgstr "Slicer:"
@@ -778,8 +777,10 @@ msgid_plural "hours"
 msgstr[0] "heure"
 msgstr[1] "heures"
 
-msgid "minutes"
-msgstr "minutes"
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] "minute"
+msgstr[1] "minutes"
 
 msgid "mm"
 msgstr "mm"
@@ -792,6 +793,19 @@ msgstr "mm/s²"
 
 msgid "mm³/s"
 msgstr "mm³/s"
+
+#~ msgid "Calibrated, save configuration to make it permanent"
+#~ msgstr "Calibré, enregistrez la configuration pour la rendre permanente"
+
+#~ msgid "Decrease"
+#~ msgstr "Diminuer"
+
+#~ msgid "Increase"
+#~ msgstr "Augmenter"
+
+#, python-format
+#~ msgid "Sending Power ON signal to: %s"
+#~ msgstr "Envoi du signal de mise sous tension à: %s"
 
 #~ msgid "Sort:"
 #~ msgstr "Trier:"
