@@ -44,7 +44,7 @@ managed_services: KlipperScreen
 [update_manager KlipperScreen]
 type: git_repo
 path: /home/pi/KlipperScreen
-origin: https://github.com/CIS94500/KlipperScreen-FLSUN-SR.git
+origin: https://github.com/CIS94500/KlipperScreen-ANYCUBIC-VYPER.git
 env: /home/pi/.KlipperScreen-env/bin/python
 requirements: /home/pi/KlipperScreen/scripts/KlipperScreen-requirements.txt
 install_script: /home/pi/KlipperScreen/scripts/KlipperScreen-install.sh
