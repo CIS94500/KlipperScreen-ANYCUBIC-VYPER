@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: 2022-09-04 14:53-0300\n"
+"Project-Id-Version: 2023-05-24 14:53-0300\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-07 07:02-0600\n"
-"PO-Revision-Date: 2023-03-10 20:26-0600\n"
+"POT-Creation-Date: 2023-05-17 07:58-0600\n"
+"PO-Revision-Date: 2023-05-24 22:02+0300\n"
 "Last-Translator: Andrii Komarovskyi\n"
 "Language-Team: Andrii Komarovskyi\n"
 "Language: uk\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
-"X-Generator: Poedit 2.4.2\n"
+"X-Generator: Poedit 3.1\n"
 
 #, python-format
 msgid "%s will be updated to version"
@@ -55,11 +55,11 @@ msgstr "Застосувати"
 
 #, python-format
 msgid "Apply %s%.3f offset to Endstop?"
-msgstr ""
+msgstr "Застосувати зміщення %s%.3f до кінцевика?"
 
 #, python-format
 msgid "Apply %s%.3f offset to Probe?"
-msgstr ""
+msgstr "Застосувати зміщення %s%.3f до зонда?"
 
 msgid "Are you sure do you want to exclude the object?"
 msgstr "Ви впевнені, що бажаєте виключити об’єкт?"
@@ -110,7 +110,7 @@ msgid "Calibrating"
 msgstr "Калібрування"
 
 msgid "Camera"
-msgstr ""
+msgstr "Камера"
 
 msgid "Can't set above the maximum:"
 msgstr "Не можна встановити вище максимум:"
@@ -174,7 +174,7 @@ msgid "Date"
 msgstr "Дата"
 
 msgid "Delete Directory?"
-msgstr ""
+msgstr "Видалити Теку?"
 
 msgid "Delete File?"
 msgstr "Видалити файл?"
@@ -272,7 +272,7 @@ msgstr ""
 "Оновлення"
 
 msgid "Fullscreen"
-msgstr ""
+msgstr "Повноекранний режим"
 
 msgid "Go Back"
 msgstr "Назад"
@@ -486,7 +486,7 @@ msgid "Pause"
 msgstr "Пауза"
 
 msgid "Paused"
-msgstr "ПАУЗА"
+msgstr "Зупинено"
 
 msgid "Perform a full upgrade?"
 msgstr "Виконати повне оновлення?"
@@ -562,7 +562,7 @@ msgstr ""
 "Оновлень"
 
 msgid "Rename/Move:"
-msgstr ""
+msgstr "Перейменувати/перемістити:"
 
 msgid "Restart"
 msgstr "Перезапуск"
@@ -688,7 +688,9 @@ msgid "System Restart"
 msgstr "Перезавантаження системи"
 
 msgid "System Shutdown"
-msgstr "Завершення роботи системи"
+msgstr ""
+"Завершення роботи\n"
+"системи"
 
 msgid "Temp (°C)"
 msgstr "Teмп (°C)"
@@ -764,9 +766,9 @@ msgstr[2] "години"
 
 msgid "minute"
 msgid_plural "minutes"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "хвилина"
+msgstr[1] "хвилин"
+msgstr[2] "хвилини"
 
 msgid "mm"
 msgstr "мм"

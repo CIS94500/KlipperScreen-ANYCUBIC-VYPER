@@ -19,6 +19,10 @@ def create_panel(*args):
 class JobStatusPanel(ScreenPanel):
     def __init__(self, screen, title):
         super().__init__(screen, title)
+        #Begin VSYS
+        macros = self._printer.get_gcode_macros()
+        self.macro_adaptatif_mesh = any("ADAPTATIF_MESH" in macro.upper() for macro in macros)
+        #End VSYS
         self.grid = self._gtk.HomogeneousGrid()
         self.grid.set_row_homogeneous(False)
         self.pos_z = 0
@@ -373,7 +377,7 @@ class JobStatusPanel(ScreenPanel):
             'pause': self._gtk.Button("pause", _("Pause"), "color1"),
             'restart': self._gtk.Button("refresh", _("Restart"), "color3"),
             'resume': self._gtk.Button("resume", _("Resume"), "color1"),
-            'save_offset_probe': self._gtk.Button("home-z", _("Save Z") + "-Offset", "color1"), #VSYS
+            'save_offset_probe': self._gtk.Button("home-z", _("Save Z") + "\n" + "Probe", "color1"),
             'save_offset_endstop': self._gtk.Button("home-z", _("Save Z") + "\n" + "Endstop", "color2"),
         }
         self.buttons['cancel'].connect("clicked", self.cancel)
@@ -422,15 +426,63 @@ class JobStatusPanel(ScreenPanel):
             if device == "endstop":
                 self._screen._ws.klippy.gcode_script("Z_OFFSET_APPLY_ENDSTOP")
             self._screen._ws.klippy.gcode_script("SAVE_CONFIG")
-
+    #---------------------------------------------------------------------
+    #Begin VSYS
     def restart(self, widget):
         if self.filename != "none":
             if self.state == "error":
                 script = {"script": "SDCARD_RESET_FILE"}
-                self._screen._send_action(None, "printer.gcode.script", script)
-            self._screen._ws.klippy.print_start(self.filename)
-            self.new_print()
+                self._screen._send_action(None, "printer.gcode.script", script)  
+                
+            if not self.macro_adaptatif_mesh:
+                self._screen._ws.klippy.print_start(self.filename, 2)
+                self.new_print()
+            else:  
+                buttons = [
+                    {"name": _("Mesh Default"), "response": Gtk.ResponseType.OK},
+                    {"name": _("Mesh Adaptive"), "response": Gtk.ResponseType.APPLY},
+                    {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
+                ]
 
+                label = Gtk.Label()
+                label.set_markup(f"<b>{self.filename}</b>\n")
+                label.set_hexpand(True)
+                label.set_halign(Gtk.Align.CENTER)
+                label.set_vexpand(True)
+                label.set_valign(Gtk.Align.CENTER)
+                label.set_line_wrap(True)
+                label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+
+                grid = Gtk.Grid()
+                grid.set_vexpand(True)
+                grid.set_halign(Gtk.Align.CENTER)
+                grid.set_valign(Gtk.Align.CENTER)
+                grid.add(label)
+
+                pixbuf = self.get_file_image(self.filename, self._screen.width * .9, self._screen.height * .6)
+                if pixbuf is not None:
+                    image = Gtk.Image.new_from_pixbuf(pixbuf)
+                    image.set_vexpand(False)
+                    grid.attach_next_to(image, label, Gtk.PositionType.BOTTOM, 1, 1)
+
+                dialog = self._gtk.Dialog(self._screen, buttons, grid, self.confirm_restart_response, self.filename)
+                dialog.set_title(_("Print"))
+
+    def confirm_restart_response(self, dialog, response_id, filename):
+        self._gtk.remove_dialog(dialog)
+        if response_id == Gtk.ResponseType.CANCEL:
+            return
+        logging.info(f"Restart print: {filename}")
+        if self.macro_adaptatif_mesh:
+            if response_id == Gtk.ResponseType.OK:
+                self._screen._ws.klippy.print_start(filename, 0)
+            elif response_id == Gtk.ResponseType.APPLY:
+                self._screen._ws.klippy.print_start(filename, 1)
+        else:
+            self._screen._ws.klippy.print_start(filename, 2)
+        self.new_print()
+    #End VSYS
+    #---------------------------------------------------------------------
     def resume(self, widget):
         self._screen._ws.klippy.print_resume(self._response_callback, "enable_button", "pause", "cancel")
         self._screen.show_all()

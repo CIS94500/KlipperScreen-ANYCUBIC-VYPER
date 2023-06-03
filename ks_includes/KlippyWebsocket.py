@@ -272,8 +272,12 @@ class MoonrakerApi:
             *args
         )
 
-    def print_start(self, filename, callback=None, *args):
+    def print_start(self, filename, status, callback=None, *args):
         logging.debug("Sending printer.print.start")
+        #Begin VSYS
+        if status < 2:
+            self.gcode_script(f"ADAPTATIF_MESH ENABLED={status}") 
+        #End VSYS
         return self._ws.send_method(
             "printer.print.start",
             {

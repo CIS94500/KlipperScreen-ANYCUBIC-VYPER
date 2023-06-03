@@ -87,10 +87,10 @@ class KlipperScreen(Gtk.Window):
     updating = False
     _ws = None
     screensaver_timeout = None
-    popup_timeout = None
     reinit_count = 0
     max_retries = 4
     initialized = False
+    popup_timeout = None
 
     def __init__(self, args, version):
         try:
@@ -344,6 +344,7 @@ class KlipperScreen(Gtk.Window):
         if self._config.get_main_config().getboolean('autoclose_popups', True):
             if self.popup_timeout is not None:
                 GLib.source_remove(self.popup_timeout)
+                self.popup_timeout = None
             self.popup_timeout = GLib.timeout_add_seconds(20, self.close_popup_message) #VSYS
 
         return False
@@ -352,7 +353,8 @@ class KlipperScreen(Gtk.Window):
         if self.popup_message is None:
             return
         self.popup_message.popdown()
-        GLib.source_remove(self.popup_timeout)
+        if self.popup_timeout is not None:
+            GLib.source_remove(self.popup_timeout)
         self.popup_message = self.popup_timeout = None
 
     def show_error_modal(self, err, e=""):
@@ -498,6 +500,7 @@ class KlipperScreen(Gtk.Window):
         if self._cur_panels[-1] in self.subscriptions:
             self.subscriptions.remove(self._cur_panels[-1])
         if pop:
+            del self.panels[self._cur_panels[-1]]
             del self._cur_panels[-1]
             self.attach_panel(self._cur_panels[-1])
 
@@ -684,7 +687,7 @@ class KlipperScreen(Gtk.Window):
     def toggle_macro_shortcut(self, value):
         self.base_panel.show_macro_shortcut(value)
 
-    def change_language(self, lang):
+    def change_language(self, widget, lang):
         self._config.install_language(lang)
         self.lang_ltr = set_text_direction(lang)
         self._config._create_configurable_options(self)
@@ -793,7 +796,6 @@ class KlipperScreen(Gtk.Window):
         self._ws.send_method(method, params)
 
     def printer_initializing(self, msg, remove=False):
-        self.close_popup_message()
         if 'splash_screen' not in self.panels or remove:
             self.show_panel('splash_screen', "splash_screen", None, 2)
         self.panels['splash_screen'].update_text(msg)
@@ -901,13 +903,11 @@ class KlipperScreen(Gtk.Window):
         self.base_panel.show_estop(True)
 
     def printer_ready(self):
-        self.close_popup_message()
         self.show_panel('main_panel', "main_menu", None, 2, items=self._config.get_menu_items("__main"))
         self.base_panel_show_all()
 
     def printer_printing(self):
         self.close_screensaver()
-        self.close_popup_message()
         self.base_panel_show_all()
         for dialog in self.dialogs:
             self.gtk.remove_dialog(dialog)

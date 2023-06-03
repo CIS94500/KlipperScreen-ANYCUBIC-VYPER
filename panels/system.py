@@ -336,7 +336,7 @@ class SystemPanel(ScreenPanel):
             dialog.set_title(_("Restart"))
         else:
             dialog.set_title(_("Shutdown"))
-            
+
     def reboot_poweroff_confirm(self, dialog, response_id, method):
         self._gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:

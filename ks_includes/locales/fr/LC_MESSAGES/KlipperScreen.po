@@ -34,14 +34,19 @@ msgid "Please plug in leveling switch before Delta Calibration."
 msgstr "Veuillez connecter le palpeur avant de démarrer la Calibration Delta."
 
 msgid "Please plug in leveling switch before auto-leveling."
-msgstr ""
-"Veuillez connecter le palpeur avant de démarrer le nivellement automatique."
+msgstr "Veuillez connecter le palpeur avant de démarrer le nivellement automatique."
 
 msgid "Please remove leveling switch before move Z0."
 msgstr "Veuillez déconnecter le palpeur avant le déplacement vers Z=0."
 
 msgid "Move Z0"
 msgstr "Aller à Z0"
+
+msgid "Mesh Default"
+msgstr "Maillage par défaut"
+
+msgid "Mesh Adaptive"
+msgstr "Maillage Adaptatif"
 
 #, python-format
 msgid "%s will be updated to version"
