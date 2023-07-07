@@ -164,15 +164,16 @@ class JobStatusPanel(ScreenPanel):
         n = 0
         self.buttons['extruder'] = {}
         if self._printer.get_tools():
+            self.current_extruder = self._printer.get_stat("toolhead", "extruder")
             for i, extruder in enumerate(self._printer.get_tools()):
                 self.labels[extruder] = Gtk.Label("-")
                 self.buttons['extruder'][extruder] = self._gtk.Button(f"extruder-{i}", "", None, self.bts,
                                                                       Gtk.PositionType.LEFT, 1)
                 self.buttons['extruder'][extruder].set_label(self.labels[extruder].get_text())
                 self.buttons['extruder'][extruder].connect("clicked", self.menu_item_clicked, "temperature",
-                                                           {"panel": "temperature", "name": _("Temperature")})
+                                                           {"panel": "temperature", "name": _("Temperature"),
+                                                            'extra': self.current_extruder})
                 self.buttons['extruder'][extruder].set_halign(Gtk.Align.START)
-            self.current_extruder = self._printer.get_stat("toolhead", "extruder")
             self.labels['temp_grid'].attach(self.buttons['extruder'][self.current_extruder], n, 0, 1, 1)
             n += 1
         else:
@@ -183,7 +184,8 @@ class JobStatusPanel(ScreenPanel):
             self.labels['heater_bed'] = Gtk.Label("-")
             self.buttons['heater']['heater_bed'].set_label(self.labels['heater_bed'].get_text())
             self.buttons['heater']['heater_bed'].connect("clicked", self.menu_item_clicked, "temperature",
-                                                         {"panel": "temperature", "name": _("Temperature")})
+                                                         {"panel": "temperature", "name": _("Temperature"),
+                                                          'extra': 'heater_bed'})
             self.buttons['heater']['heater_bed'].set_halign(Gtk.Align.START)
             self.labels['temp_grid'].attach(self.buttons['heater']['heater_bed'], n, 0, 1, 1)
             n += 1
@@ -195,7 +197,7 @@ class JobStatusPanel(ScreenPanel):
                 self.labels[dev] = Gtk.Label("-")
                 self.buttons['heater'][dev].set_label(self.labels[dev].get_text())
                 self.buttons['heater'][dev].connect("clicked", self.menu_item_clicked, "temperature",
-                                                    {"panel": "temperature", "name": _("Temperature")})
+                                                    {"panel": "temperature", "name": _("Temperature"), "extra": dev})
                 self.buttons['heater'][dev].set_halign(Gtk.Align.START)
                 self.labels['temp_grid'].attach(self.buttons['heater'][dev], n, 0, 1, 1)
                 n += 1
@@ -430,6 +432,7 @@ class JobStatusPanel(ScreenPanel):
     #Begin VSYS
     def restart(self, widget):
         if self.filename != "none":
+            self.disable_button("restart")
             if self.state == "error":
                 script = {"script": "SDCARD_RESET_FILE"}
                 self._screen._send_action(None, "printer.gcode.script", script)  
@@ -484,11 +487,12 @@ class JobStatusPanel(ScreenPanel):
     #End VSYS
     #---------------------------------------------------------------------
     def resume(self, widget):
-        self._screen._ws.klippy.print_resume(self._response_callback, "enable_button", "pause", "cancel")
+        self._screen._ws.klippy.print_resume()
         self._screen.show_all()
 
     def pause(self, widget):
-        self._screen._ws.klippy.print_pause(self._response_callback, "enable_button", "resume", "cancel")
+        self.disable_button("pause", "resume")
+        self._screen._ws.klippy.print_pause()
         self._screen.show_all()
 
     def cancel(self, widget):
@@ -521,17 +525,12 @@ class JobStatusPanel(ScreenPanel):
         logging.debug("Canceling print")
         self.set_state("cancelling")
         self.disable_button("pause", "resume", "cancel")
-        self._screen._ws.klippy.print_cancel(self._response_callback)
-
-    def _response_callback(self, response, method, params, func=None, *args):
-        if func == "enable_button":
-            self.enable_button(*args)
+        self._screen._ws.klippy.print_cancel()
 
     def close_panel(self, widget=None):
         if self.can_close:
             logging.debug("Closing job_status panel")
-            self._screen.printer_ready()
-            self._printer.change_state("ready")
+            self._screen.state_ready(wait=False)
 
     def enable_button(self, *args):
         for arg in args:
@@ -610,7 +609,7 @@ class JobStatusPanel(ScreenPanel):
                 self.req_speed = round(float(data["gcode_move"]["speed"]) / 60 * self.speed_factor)
                 self.labels['req_speed'].set_label(
                     f"{self.speed}% {self.vel:3.0f}/{self.req_speed:3.0f} "
-                    f"{f'{self.mms}' if self.vel < 1000 and self.req_speed < 1000 and self._screen.width > 480 else ''}"
+                    f"{f'{self.mms}' if self.vel < 1000 and self.req_speed < 1000 and self._screen.width > 500 else ''}"
                 )
                 self.buttons['speed'].set_label(self.labels['req_speed'].get_label())
             with contextlib.suppress(KeyError):
@@ -633,7 +632,7 @@ class JobStatusPanel(ScreenPanel):
                 self.vel = float(data["motion_report"]["live_velocity"])
                 self.labels['req_speed'].set_label(
                     f"{self.speed}% {self.vel:3.0f}/{self.req_speed:3.0f} "
-                    f"{f'{self.mms}' if self.vel < 1000 and self.req_speed < 1000 and self._screen.width > 480 else ''}"
+                    f"{f'{self.mms}' if self.vel < 1000 and self.req_speed < 1000 and self._screen.width > 500 else ''}"
                 )
                 self.buttons['speed'].set_label(self.labels['req_speed'].get_label())
             with contextlib.suppress(KeyError):
@@ -694,10 +693,9 @@ class JobStatusPanel(ScreenPanel):
 
         with contextlib.suppress(KeyError):
             if self.file_metadata['estimated_time'] > 0:
-                usrcomp = (self._config.get_config()['main'].getint('print_estimate_compensation', 100) / 100)
                 # speed_factor compensation based on empirical testing
                 spdcomp = sqrt(self.speed_factor)
-                slicer_time = ((self.file_metadata['estimated_time'] * usrcomp) / spdcomp) + non_printing
+                slicer_time = ((self.file_metadata['estimated_time']) / spdcomp) + non_printing
         self.labels["slicer_time"].set_label(self.format_time(slicer_time))
 
         with contextlib.suppress(Exception):
@@ -817,6 +815,9 @@ class JobStatusPanel(ScreenPanel):
 
             if self.filename is not None:
                 self.buttons['button_grid'].attach(self.buttons['restart'], 2, 0, 1, 1)
+                self.enable_button("restart")
+            else:
+                self.disable_button("restart")
             if self.state != "cancelling":
                 self.buttons['button_grid'].attach(self.buttons['menu'], 3, 0, 1, 1)
                 self.can_close = True

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KlipperScreen\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-07 07:02-0600\n"
+"POT-Creation-Date: 2023-07-02 16:32-0300\n"
 "PO-Revision-Date: 2022-11-30 18:10-0300\n"
 "Last-Translator: livinhack\n"
 "Language-Team: \n"
@@ -42,9 +42,6 @@ msgstr "Beschleunigung:"
 
 msgid "Accept"
 msgstr "OK"
-
-msgid "Actions"
-msgstr "Aktionen"
 
 msgid "Add profile"
 msgstr "Profil hinzufügen"
@@ -147,9 +144,6 @@ msgstr "Schließen"
 msgid "Complete"
 msgstr "Fertiggestellt"
 
-msgid "Configuration"
-msgstr "Einstellungen"
-
 msgid "Confirm Emergency Stop"
 msgstr "Not-Aus bestätigen"
 
@@ -183,9 +177,6 @@ msgstr "Abwählen"
 
 msgid "Disable Motors"
 msgstr "Motoren deaktivieren"
-
-msgid "Disable XY"
-msgstr "XY-Achse deaktivieren"
 
 msgid "Distance (mm)"
 msgstr "Entfernung (mm)"
@@ -287,6 +278,9 @@ msgstr "Sensoren in Temp ausblenden."
 msgid "Hide temp."
 msgstr "Temp. ausblenden"
 
+msgid "Home"
+msgstr "Grundposition"
+
 msgid "Home All"
 msgstr "Alle Achsen zurücksetzen"
 
@@ -302,9 +296,6 @@ msgstr "Achse Y neupositionieren"
 msgid "Home Z"
 msgstr "Achse Z neupositionieren"
 
-msgid "Homing"
-msgstr "Grundposition"
-
 msgid "Host"
 msgstr "Host"
 
@@ -316,6 +307,9 @@ msgstr "Icon Theme"
 
 msgid "Initializing printer..."
 msgstr "Drucker wird initialisiert..."
+
+msgid "Initiate a PID calibration for:"
+msgstr ""
 
 msgid "Input Shaper"
 msgstr "Input Shaper"
@@ -337,6 +331,9 @@ msgstr "Achse Y invertieren"
 
 msgid "Invert Z"
 msgstr "Achse Z invertieren"
+
+msgid "It may take more than 5 minutes depending on the heater power."
+msgstr ""
 
 msgid "Klipper Restart"
 msgstr "Klipper Neustart"
@@ -427,6 +424,9 @@ msgstr "Modifiziert"
 
 msgid "Moonraker: connected"
 msgstr "Moonraker: Verbunden"
+
+msgid "More"
+msgstr ""
 
 msgid "Move"
 msgstr "Bewegen"
@@ -631,9 +631,6 @@ msgstr "Größe"
 msgid "Slicer"
 msgstr "Slicer"
 
-msgid "Slicer Time correction (%)"
-msgstr "Slicer-Zeitkorrektur (%)"
-
 msgid "Slicer:"
 msgstr "Slicer:"
 
@@ -765,6 +762,21 @@ msgstr "mm/s²"
 msgid "mm³/s"
 msgstr "mm³/s"
 
+#~ msgid "Actions"
+#~ msgstr "Aktionen"
+
+#~ msgid "Configuration"
+#~ msgstr "Einstellungen"
+
+#~ msgid "Homing"
+#~ msgstr "Grundposition"
+
+#~ msgid "Disable XY"
+#~ msgstr "XY-Achse deaktivieren"
+
+#~ msgid "Slicer Time correction (%)"
+#~ msgstr "Slicer-Zeitkorrektur (%)"
+
 #~ msgid "Calibrated, save configuration to make it permanent"
 #~ msgstr "Kalibriert, Konfiguration dauerhaft speichern"
 
@@ -814,9 +826,6 @@ msgstr "mm³/s"
 
 #~ msgid "Delete"
 #~ msgstr "Löschen"
-
-#~ msgid "Home"
-#~ msgstr "Grundposition"
 
 #~ msgid "Off"
 #~ msgstr "Aus"
