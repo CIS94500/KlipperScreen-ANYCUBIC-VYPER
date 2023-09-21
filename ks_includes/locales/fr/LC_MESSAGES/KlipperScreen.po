@@ -39,6 +39,9 @@ msgstr "Veuillez connecter le palpeur avant de démarrer le nivellement automati
 msgid "Please remove leveling switch before move Z0."
 msgstr "Veuillez déconnecter le palpeur avant le déplacement vers Z=0."
 
+msgid "Do you want to run the bed leveling ?"
+msgstr "Voulez vous effectuez le maillage du plateau ?"
+
 msgid "Move Z0"
 msgstr "Aller à Z0"
 
@@ -47,6 +50,9 @@ msgstr "Maillage par défaut"
 
 msgid "Mesh Adaptive"
 msgstr "Maillage Adaptatif"
+
+msgid "Auto-open Extrude On Pause"
+msgstr "Afficher le menu Extrude à la pause"
 
 #, python-format
 msgid "%s will be updated to version"

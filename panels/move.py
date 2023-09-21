@@ -1,19 +1,13 @@
 import logging
-
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
-
 from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
 
 
-def create_panel(*args):
-    return MovePanel(*args)
-
-
-class MovePanel(ScreenPanel):
+class Panel(ScreenPanel):
     distances = ['.1', '.5', '1', '5', '10', '25', '50']
     distance = distances[-2]
 
@@ -114,8 +108,11 @@ class MovePanel(ScreenPanel):
         printer_cfg = self._printer.get_config_section("printer")
         # The max_velocity parameter is not optional in klipper config.
         max_velocity = int(float(printer_cfg["max_velocity"]))
+        if max_velocity <= 1:
+            logging.error(f"Error getting max_velocity\n{printer_cfg}")
+            max_velocity = 50
         if "max_z_velocity" in printer_cfg:
-            max_z_velocity = int(float(printer_cfg["max_z_velocity"]))
+            max_z_velocity = max(int(float(printer_cfg["max_z_velocity"])), 10)
         else:
             max_z_velocity = max_velocity
 
@@ -252,10 +249,11 @@ class MovePanel(ScreenPanel):
         return False
 
     def home(self, widget):
+        # self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
         if "delta" in self._printer.get_config_section("printer")['kinematics']:
             self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
             return
         name = "homing"
         disname = self._screen._config.get_menu_name("move", name)
         menuitems = self._screen._config.get_menu_items("move", name)
-        self._screen.show_panel(name, "menu", disname, 1, False, items=menuitems)
+        self._screen.show_panel("menu", disname, items=menuitems)

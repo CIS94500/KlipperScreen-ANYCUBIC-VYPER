@@ -1,20 +1,14 @@
 import logging
 import re
-
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
-
 from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
 
 
-def create_panel(*args):
-    return ExtrudePanel(*args)
-
-
-class ExtrudePanel(ScreenPanel):
+class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
         super().__init__(screen, title)
@@ -39,23 +33,29 @@ class ExtrudePanel(ScreenPanel):
                     self.speeds = vel
 
         self.distance = int(self.distances[1])
-        self.speed = int(self.speeds[1])
+        self.speed = int(self.speeds[2])
         self.buttons = {
             'extrude': self._gtk.Button("extrude", _("Extrude"), "color4"),
             'load': self._gtk.Button("arrow-down", _("Load"), "color3"),
             'unload': self._gtk.Button("arrow-up", _("Unload"), "color2"),
             'retract': self._gtk.Button("retract", _("Retract"), "color1"),
             'temperature': self._gtk.Button("heat-up", _("Temperature"), "color4"),
+            'spoolman': self._gtk.Button("spoolman", "Spoolman", "color3"),
         }
         self.buttons['extrude'].connect("clicked", self.extrude, "+")
         self.buttons['load'].connect("clicked", self.load_unload, "+")
         self.buttons['unload'].connect("clicked", self.load_unload, "-")
         self.buttons['retract'].connect("clicked", self.extrude, "-")
-        self.buttons['temperature'].connect("clicked", self.menu_item_clicked, "temperature", {
+        self.buttons['temperature'].connect("clicked", self.menu_item_clicked, {
             "name": "Temperature",
             "panel": "temperature"
         })
-
+        
+        self.buttons['spoolman'].connect("clicked", self.menu_item_clicked, {
+            "name": "Spoolman",
+            "panel": "spoolman"
+        })
+        
         extgrid = self._gtk.HomogeneousGrid()
         limit = 5
         i = 0
@@ -64,7 +64,8 @@ class ExtrudePanel(ScreenPanel):
                 self.labels[extruder] = self._gtk.Button(f"extruder-{i}", f"T{self._printer.get_tool_number(extruder)}")
             else:
                 self.labels[extruder] = self._gtk.Button("extruder", "")
-            self.labels[extruder].connect("clicked", self.change_extruder, extruder)
+            if len(self._printer.get_tools()) > 1:
+                self.labels[extruder].connect("clicked", self.change_extruder, extruder)
             if extruder == self.current_extruder:
                 self.labels[extruder].get_style_context().add_class("button_active")
             if i < limit:
@@ -72,7 +73,9 @@ class ExtrudePanel(ScreenPanel):
                 i += 1
         if i < (limit - 1):
             extgrid.attach(self.buttons['temperature'], i + 1, 0, 1, 1)
-
+        if i < (limit - 2) and self._printer.spoolman:
+            extgrid.attach(self.buttons['spoolman'], i + 2, 0, 1, 1)
+            
         distgrid = Gtk.Grid()
         for j, i in enumerate(self.distances):
             self.labels[f"dist{i}"] = self._gtk.Button(label=i)
@@ -118,6 +121,8 @@ class ExtrudePanel(ScreenPanel):
 
         filament_sensors = self._printer.get_filament_sensors()
         sensors = Gtk.Grid()
+#Begin VSYS
+        #sensors.set_size_request(self._gtk.content_width, -1) #VSYS
         if len(filament_sensors) > 0:
             sensors.set_column_spacing(5)
             sensors.set_row_spacing(5)
@@ -128,7 +133,7 @@ class ExtrudePanel(ScreenPanel):
                     break
                 name = x[23:].strip()
                 self.labels[x] = {
-                    'label': Gtk.Label(name.capitalize().replace('_', ' ')),
+                    'label': Gtk.Label(self.prettify(name)),
                     'switch': Gtk.Switch(),
                     'box': Gtk.Box()
                 }
@@ -138,12 +143,12 @@ class ExtrudePanel(ScreenPanel):
                 self.labels[x]['switch'].set_property("width-request", round(self._gtk.font_size * 2))
                 self.labels[x]['switch'].set_property("height-request", round(self._gtk.font_size))
                 self.labels[x]['switch'].connect("notify::active", self.enable_disable_fs, name, x)
-                self.labels[x]['box'].pack_start(self.labels[x]['label'], True, True, 5)
-                self.labels[x]['box'].pack_start(self.labels[x]['switch'], False, False, 5)
+                self.labels[x]['box'].pack_start(self.labels[x]['label'], True, True, 5) #VSYS
+                self.labels[x]['box'].pack_start(self.labels[x]['switch'], False, False, 0) #VSYS
                 self.labels[x]['box'].get_style_context().add_class("filament_sensor")
-                self.labels[x]['box'].set_hexpand(True)
+                self.labels[x]['box'].set_hexpand(True) #VSYS
                 sensors.attach(self.labels[x]['box'], s, 0, 1, 1)
-
+#End VSYS
         grid = Gtk.Grid()
         grid.set_column_homogeneous(True)
         grid.attach(extgrid, 0, 0, 4, 1)
@@ -169,7 +174,7 @@ class ExtrudePanel(ScreenPanel):
 
     def process_busy(self, busy):
         for button in self.buttons:
-            if button == "temperature":
+            if button in ("temperature", "spoolman"):
                 continue
             self.buttons[button].set_sensitive((not busy))
 
@@ -231,16 +236,15 @@ class ExtrudePanel(ScreenPanel):
         self.labels[f"speed{speed}"].get_style_context().add_class("distbutton_active")
         self.speed = speed
 
+#Begin VSYS
     def extrude(self, widget, direction):
-        #START VSYS
         if not self.extrude_filament:
-            self._screen.show_popup_message("Macro _EXTRUDE not found")
+            self._screen._ws.klippy.gcode_script(KlippyGcodes.EXTRUDE_REL)
+            self._screen._ws.klippy.gcode_script(KlippyGcodes.extrude(f"{direction}{self.distance}", f"{self.speed * 60}"))
         else:
             self._screen._ws.klippy.gcode_script(f"_EXTRUDE DIR={direction} DIST={self.distance} SPEED={self.speed * 60}")
-        #END VSYS
-        #self._screen._ws.klippy.gcode_script(KlippyGcodes.EXTRUDE_REL)
-        #self._screen._ws.klippy.gcode_script(KlippyGcodes.extrude(f"{direction}{self.distance}", f"{self.speed * 60}"))
-        
+#End VSYS
+
     def load_unload(self, widget, direction):
         if direction == "-":
             if not self.unload_filament:

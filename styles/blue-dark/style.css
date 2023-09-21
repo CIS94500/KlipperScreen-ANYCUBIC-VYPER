@@ -1,7 +1,8 @@
 * {
     color: white;
 }
-
+list row,
+treeview.view,
 window {
     background-color: #13181C;
     background-image: url("./styles/flsun/background.svg");
@@ -55,10 +56,12 @@ combobox box button {
     border-color: #cccccc;
 }
 
+treeview.view check,
 switch {
     background-color: #404E57;
 }
 
+treeview.view check:checked,
 switch:checked {
     background-color: #3584e4;
 }

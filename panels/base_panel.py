@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import contextlib
 import logging
 
 import gi
@@ -9,7 +8,7 @@ from gi.repository import GLib, Gtk, Pango
 from jinja2 import Environment
 from datetime import datetime
 from math import log
-
+from contextlib import suppress
 from ks_includes.screen_panel import ScreenPanel
 
 
@@ -39,7 +38,7 @@ class BasePanel(ScreenPanel):
             self.control['printer_select'].connect("clicked", self._screen.show_printer_select)
 
         self.control['macros_shortcut'] = self._gtk.Button('custom-script', scale=abscale)
-        self.control['macros_shortcut'].connect("clicked", self.menu_item_clicked, "gcode_macros", {
+        self.control['macros_shortcut'].connect("clicked", self.menu_item_clicked, {
             "name": "Macros",
             "panel": "gcode_macros"
         })
@@ -64,6 +63,7 @@ class BasePanel(ScreenPanel):
         self.action_bar.add(self.control['back'])
         self.action_bar.add(self.control['home'])
         self.show_back(False)
+        self.show_home(False)
         if self.buttons_showing['printer_select']:
             self.action_bar.add(self.control['printer_select'])
         self.show_macro_shortcut(self._config.get_main_config().getboolean('side_macro_shortcut', True))
@@ -81,7 +81,7 @@ class BasePanel(ScreenPanel):
         self.titlelbl.set_ellipsize(Pango.EllipsizeMode.END)
         self.set_title(title)
 
-        self.control['time'] = Gtk.Label("00:00 AM")
+        self.control['time'] = Gtk.Label(label="00:00 AM")
         self.control['time_box'] = Gtk.Box()
         self.control['time_box'].set_halign(Gtk.Align.END)
         self.control['time_box'].pack_end(self.control['time'], True, True, 10)
@@ -118,7 +118,7 @@ class BasePanel(ScreenPanel):
 
             img_size = self._gtk.img_scale * self.bts
             for device in self._printer.get_temp_store_devices():
-                self.labels[device] = Gtk.Label(label="100º")
+                self.labels[device] = Gtk.Label()
                 self.labels[device].set_ellipsize(Pango.EllipsizeMode.START)
 
                 self.labels[f'{device}_box'] = Gtk.Box()
@@ -208,11 +208,11 @@ class BasePanel(ScreenPanel):
         if action == "notify_update_response":
             if self.update_dialog is None:
                 self.show_update_dialog()
-            with contextlib.suppress(KeyError):
+            with suppress(KeyError):
                 self.labels['update_progress'].set_text(
                     f"{self.labels['update_progress'].get_text().strip()}\n"
                     f"{data['message']}\n")
-            with contextlib.suppress(KeyError):
+            with suppress(KeyError):
                 if data['complete']:
                     logging.info("Update complete")
                     if self.update_dialog is not None:
@@ -236,13 +236,13 @@ class BasePanel(ScreenPanel):
                     if not (device.startswith("extruder") or device.startswith("heater_bed")):
                         if self.titlebar_name_type == "full":
                             name = device.split()[1] if len(device.split()) > 1 else device
-                            name = f'{name.capitalize().replace("_", " ")}: '
+                            name = f'{self.prettify(name)}: '
                         elif self.titlebar_name_type == "short":
                             name = device.split()[1] if len(device.split()) > 1 else device
                             name = f"{name[:1].upper()}: "
                     self.labels[device].set_label(f"{name}{int(temp)}°")
 
-        with contextlib.suppress(Exception):
+        with suppress(Exception):
             if data["toolhead"]["extruder"] != self.current_extruder:
                 self.control['temp_box'].remove(self.labels[f"{self.current_extruder}_box"])
                 self.current_extruder = data["toolhead"]["extruder"]
@@ -256,12 +256,10 @@ class BasePanel(ScreenPanel):
         self.content.remove(widget)
 
     def show_back(self, show=True):
-        if show:
-            self.control['back'].set_sensitive(True)
-            self.control['home'].set_sensitive(True)
-            return
-        self.control['back'].set_sensitive(False)
-        self.control['home'].set_sensitive(False)
+        self.control['back'].set_sensitive(show)
+
+    def show_home(self, show=True):
+        self.control['home'].set_sensitive(show)
 
     def show_macro_shortcut(self, show=True):
         if show is True and self.buttons_showing['macros_shortcut'] is False:
@@ -340,7 +338,7 @@ class BasePanel(ScreenPanel):
         self.labels['update_progress'].set_halign(Gtk.Align.START)
         self.labels['update_progress'].set_valign(Gtk.Align.START)
         self.labels['update_progress'].set_ellipsize(Pango.EllipsizeMode.END)
-        self.labels['update_scroll'] = self._gtk.ScrolledWindow()
+        self.labels['update_scroll'] = self._gtk.ScrolledWindow(steppers=False)
         self.labels['update_scroll'].set_property("overlay-scrolling", True)
         self.labels['update_scroll'].add(self.labels['update_progress'])
         self.labels['update_scroll'].connect("size-allocate", self._autoscroll)

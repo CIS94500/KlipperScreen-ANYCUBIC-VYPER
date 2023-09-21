@@ -1,26 +1,25 @@
-import gi
 import logging
-import re
+import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, GLib
-
+from gi.repository import Gtk
 from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
 
-def create_panel(*args):
-    return ZCalibrateProbePanel(*args)
-
-class ZCalibrateProbePanel(ScreenPanel):
-    distances = ['0.01', '0.05', '0.1', '0.5', '1', '5']
+class Panel(ScreenPanel):
+    widgets = {}
+    distances = ['0.01', '0.05', '0.10', '0.50', '1.00', '5.00']
     distance = distances[-2]
+    mem_zoffset = 0
 
     def __init__(self, screen, title):
         super().__init__(screen, title)
-        
+        macros = self._printer.get_gcode_macros()
+        self.macro_calibrate = any("_START_CALIBRATE_PROBE" in macro.upper() for macro in macros)
+
         grid = self._gtk.HomogeneousGrid()
-        grid.set_row_homogeneous(False)        
-        self.buttons = {      
+        grid.set_row_homogeneous(False)
+        self.buttons = {
             'start': self._gtk.Button('arrow-down', _("Calibrate"), 'color3'),
             'z+': self._gtk.Button('z-farther', _("Raise Nozzle"), 'color4'),
             'z-': self._gtk.Button('z-closer', _("Lower Nozzle"), 'color1'),
@@ -32,118 +31,104 @@ class ZCalibrateProbePanel(ScreenPanel):
         self.buttons['z-'].connect("clicked", self.move, "-")
         self.buttons['accept'].connect("clicked", self.accept_calibrate)
         self.buttons['cancel'].connect("clicked", self.abort)
-        self.labels['zoffset'] = Gtk.Label("Z: ?") 
-        
-        self.labels['blank'] = Gtk.Label()        
-        self.labels['distance'] = Gtk.Label("Distance (mm) :")    
-        
-        grid.attach(self.buttons['start'], 0, 0, 1, 1)
-        grid.attach(self.labels['zoffset'], 0, 1, 1, 1)
-        grid.attach(self.buttons['z+'], 1, 0, 1, 1)
-        grid.attach(self.buttons['z-'],  1, 1, 1, 1)        
-        grid.attach(self.buttons['accept'], 2, 0, 1, 1)
-        grid.attach(self.buttons['cancel'], 2, 1, 1, 1)
-        
-        grid.attach(self.labels['blank'], 0, 3, 1, 1)
-        grid.attach(self.labels['distance'], 0, 4, 1, 1)
-        
+        self.labels['zoffset'] = Gtk.Label("Z: ?")
+        # self.labels['distance'] = Gtk.Label(f'Z Offset : {float(self._printer.data["gcode_move"]["homing_origin"][2]):.3f}mm')
+        self.labels['distance'] = Gtk.Label("Distance (mm) :")
+
         distgrid = Gtk.Grid()
-        j = 0
-        for i in self.distances:
-            self.labels[i] = self._gtk.ToggleButton(i)
-            self.labels[i].connect("clicked", self.change_distance, i)
-            ctx = self.labels[i].get_style_context()
-            if j == 0:
+        for j, i in enumerate(self.distances):
+            self.widgets[i] = self._gtk.Button(label=i)
+            self.widgets[i].set_direction(Gtk.TextDirection.LTR)
+            self.widgets[i].connect("clicked", self.change_distance, i)
+            ctx = self.widgets[i].get_style_context()
+            if (self._screen.lang_ltr and j == 0) or (not self._screen.lang_ltr and j == len(self.distances) - 1):
                 ctx.add_class("distbutton_top")
-            elif j == len(self.distances)-1:
+            elif (not self._screen.lang_ltr and j == 0) or (self._screen.lang_ltr and j == len(self.distances) - 1):
                 ctx.add_class("distbutton_bottom")
             else:
                 ctx.add_class("distbutton")
             if i == self.distance:
                 ctx.add_class("distbutton_active")
-            distgrid.attach(self.labels[i], j, 0, 1, 1)
-            j += 1
-        grid.attach(distgrid, 1, 4, 2, 1)
+            distgrid.attach(self.widgets[i], j, 0, 1, 1)
 
+        grid.attach(self.buttons['start'], 0, 0, 1, 1)
+        grid.attach(self.labels['zoffset'], 0, 1, 1, 1)
+        grid.attach(self.buttons['z+'], 1, 0, 1, 1)
+        grid.attach(self.buttons['z-'],  1, 1, 1, 1)
+        grid.attach(self.buttons['accept'], 2, 0, 1, 1)
+        grid.attach(self.buttons['cancel'], 2, 1, 1, 1)
+
+        grid.attach(self.labels['distance'], 0, 2, 1, 1)
+        grid.attach(distgrid, 1, 2, 2, 1)
+        # nb bloc de decalage a partir de la gauche, nb bloc de decalage a partir du haut, longueur du nombre de bloc, ?? visible
         self.content.add(grid)
-                
+
     def process_busy(self, busy):
-        for button in self.buttons:
-            if button != "start":
-                self.buttons[button].set_sensitive(not busy)
-            else:
+        if busy:
+            for button in self.buttons:
                 self.buttons[button].set_sensitive(False)
-                
+        elif self._printer.get_stat("manual_probe", "is_active"):
+            self.buttons_calibrating()
+        else:
+            self.buttons_not_calibrating()
+
     def process_update(self, action, data):
         if action == "notify_busy":
             self.process_busy(data)
             return
         if action == "notify_status_update":
             if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
-                self.labels['zoffset'].set_label("Z: ?")
+                self.labels['zoffset'].set_label(f'Z: {float(self._printer.get_config_section("stepper_z")["position_max"]):.3f}')
+                # self.labels['distance'].set_label(f'Z Offset : {float(self._printer.data["gcode_move"]["homing_origin"][2]):.3f}mm')
             elif "gcode_move" in data and "gcode_position" in data['gcode_move']:
                 self.update_position(data['gcode_move']['gcode_position'])
         elif action == "notify_gcode_response":
-            data = data.lower()
-            if "unknown" in data:
-                self.buttons_not_calibrating()
-                logging.info(data)
-            elif "save_config" in data:
-                self.buttons_not_calibrating()
-            elif "out of range" in data:
+            if "out of range" in data.lower():
                 self._screen.show_popup_message(data)
-                self.buttons_not_calibrating()
                 logging.info(data)
-            elif "fail" in data and "use testz" in data:
+            elif "fail" in data.lower() and "use testz" in data.lower():
                 self._screen.show_popup_message(_("Failed, adjust position first"))
-                self.buttons_not_calibrating()
                 logging.info(data)
-            elif "use testz" in data or "use abort" in data or "z position" in data:
-                self.buttons_calibrating()
         return
-        
+
     def update_position(self, position):
         self.labels['zoffset'].set_label(f"Z: {position[2]:.3f}")
-            
-    def change_distance(self, widget, dist):
-        if self.distance == dist:
-            return
-        logging.info("### TestZ " + str(dist))
 
-        ctx = self.labels[str(self.distance)].get_style_context()
-        ctx.remove_class("distbutton_active")
+    def change_distance(self, widget, distance):
+        #logging.info(f"### Distance {distance}")
+        self.widgets[f"{self.distance}"].get_style_context().remove_class("distbutton_active")
+        self.widgets[f"{distance}"].get_style_context().add_class("distbutton_active")
+        self.distance = distance
 
-        self.distance = dist
-        ctx = self.labels[self.distance].get_style_context()
-        ctx.add_class("distbutton_active")
-        for i in self.distances:
-            if i == self.distance:
-                continue
-            self.labels[i].set_active(False)
-            
     def move(self, widget, direction):
         self._screen._ws.klippy.gcode_script(KlippyGcodes.testz_move(f"{direction}{self.distance}"))
-        
+
     def abort(self, widget):
         logging.info("Aborting calibration")
-        self._screen._ws.klippy.gcode_script("G1 Z10 F3600\nM84")        
-        self._screen._ws.klippy.gcode_script(KlippyGcodes.ABORT)
+        self._screen._ws.klippy.gcode_script(f"G1 Z10 F3600\nSET_GCODE_OFFSET Z={self.mem_zoffset}\nABORT")
         self.buttons_not_calibrating()
         self._screen._menu_go_back()
-       
+
     def home(self, widget):
         self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
-        
+
     def start_calibration(self, widget):
-        self._screen._ws.klippy.gcode_script("_START_CALIBRATE_PROBE")
-        
+        self.mem_zoffset = self._printer.data["gcode_move"]["homing_origin"][2]
+        self._screen._ws.klippy.gcode_script(f"SET_GCODE_OFFSET Z=0")
+
+        if not self.macro_calibrate:
+            self._screen._ws.klippy.gcode_script(f"G28\nPROBE_CALIBRATE")
+        else:
+            self._screen._ws.klippy.gcode_script(f"_START_CALIBRATE_PROBE")
+
     def accept_calibrate(self, widget):
-        self._screen._ws.klippy.gcode_script("ACCEPT\nG90\nG1 Z10 F3600\nSAVE_CONFIG")
-        
+        self.mem_zoffset = 0
+        self._screen._ws.klippy.gcode_script(f"ACCEPT\nG90\nG1 Z10 F3600\nSAVE_CONFIG")
+
     def buttons_calibrating(self):
         self.buttons['start'].get_style_context().remove_class('color3')
         self.buttons['start'].set_sensitive(False)
-        
+
         self.buttons['z+'].set_sensitive(True)
         self.buttons['z+'].get_style_context().add_class('color4')
         self.buttons['z-'].set_sensitive(True)
@@ -152,11 +137,11 @@ class ZCalibrateProbePanel(ScreenPanel):
         self.buttons['accept'].get_style_context().add_class('color3')
         self.buttons['cancel'].set_sensitive(True)
         self.buttons['cancel'].get_style_context().add_class('color2')
-        
+
     def buttons_not_calibrating(self):
         self.buttons['start'].get_style_context().add_class('color3')
         self.buttons['start'].set_sensitive(True)
-        
+
         self.buttons['z+'].set_sensitive(False)
         self.buttons['z+'].get_style_context().remove_class('color4')
         self.buttons['z-'].set_sensitive(False)
@@ -165,7 +150,7 @@ class ZCalibrateProbePanel(ScreenPanel):
         self.buttons['accept'].get_style_context().remove_class('color3')
         self.buttons['cancel'].set_sensitive(False)
         self.buttons['cancel'].get_style_context().remove_class('color2')
-        
-    def activate(self):
-        # This is only here because klipper doesn't provide a method to detect if it's calibrating
-        self._screen._ws.klippy.gcode_script(KlippyGcodes.testz_move("+0.001"))
+
+    # def activate(self):
+        # # This is only here because klipper doesn't provide a method to detect if it's calibrating
+        # self._screen._ws.klippy.gcode_script(KlippyGcodes.testz_move("+0.001"))

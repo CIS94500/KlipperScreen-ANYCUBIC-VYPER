@@ -1,16 +1,10 @@
 import logging
 import os
-
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango, GLib
-
 from ks_includes.screen_panel import ScreenPanel
-
-
-def create_panel(*args):
-    return SystemPanel(*args)
 
 
 # Same as ALLOWED_SERVICES in moonraker
@@ -27,7 +21,7 @@ ALLOWED_SERVICES = (
 )
 
 
-class SystemPanel(ScreenPanel):
+class Panel(ScreenPanel):
     def __init__(self, screen, title):
         super().__init__(screen, title)
         self.refresh = None
@@ -65,7 +59,7 @@ class SystemPanel(ScreenPanel):
             items = sorted(list(vi))
             i = 0
             for prog in items:
-                self.labels[prog] = Gtk.Label("")
+                self.labels[prog] = Gtk.Label()
                 self.labels[prog].set_hexpand(True)
                 self.labels[prog].set_halign(Gtk.Align.START)
 
@@ -126,7 +120,7 @@ class SystemPanel(ScreenPanel):
     def show_update_info(self, widget, program):
         info = self.update_status['version_info'][program] if program in self.update_status['version_info'] else {}
 
-        scroll = self._gtk.ScrolledWindow()
+        scroll = self._gtk.ScrolledWindow(steppers=False)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -325,12 +319,12 @@ class SystemPanel(ScreenPanel):
             label = Gtk.Label(label=_("Are you sure you wish to shutdown the system?"))
         vbox.add(label)
         scroll.add(vbox)
-        #begin VSYS
+#begin VSYS
         buttons = [
             {"name": _("Continue"), "response": Gtk.ResponseType.OK},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
         ]
-        #end VSYS
+#end VSYS
         dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.reboot_poweroff_confirm, method)
         if method == "reboot":
             dialog.set_title(_("Restart"))
@@ -341,23 +335,23 @@ class SystemPanel(ScreenPanel):
         self._gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:
             if method == "reboot":
-                os.system("systemctl reboot")
+                os.system("systemctl reboot -i")
             else:
-                os.system("systemctl poweroff")
+                os.system("systemctl poweroff -i")
         elif response_id == Gtk.ResponseType.APPLY:
             if method == "reboot":
                 self._screen._ws.send_method("machine.reboot")
             else:
                 self._screen._ws.send_method("machine.shutdown")
-                
-    #begin VSYS
+
+#begin VSYS
     def reboot_choice(self, widget):
         scroll = self._gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.set_halign(Gtk.Align.CENTER)
         vbox.set_valign(Gtk.Align.CENTER)
-        vbox.add(Gtk.Label(label=_("Are you sure you wish to reboot?")))
+        vbox.add(Gtk.Label(label=_("Are you sure you wish to reboot the system?")))
         scroll.add(vbox)
         buttons = [
             {"name": _("KlipperScreen"), "response": Gtk.ResponseType.OK},
@@ -371,7 +365,7 @@ class SystemPanel(ScreenPanel):
         self._gtk.remove_dialog(dialog)
 
         if response_id == Gtk.ResponseType.OK:
-            os.system("sudo systemctl restart KlipperScreen.service")
+            self._screen.restart_ks()
         elif response_id == Gtk.ResponseType.APPLY:
             self._screen._ws.send_method("machine.reboot")
-    #end VSYS
+#end VSYS

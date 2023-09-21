@@ -1,74 +1,102 @@
 import logging
-import contextlib
-
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
-
 from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
 from ks_includes.widgets.bedmap import BedMap
 
 
-def create_panel(*args):
-    return BedMeshPanel(*args)
-
-
-class BedMeshPanel(ScreenPanel):
+class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
         super().__init__(screen, title)
-        self.show_create = False
-        self.active_mesh = None
-        self.profiles = {}
-        self.buttons = {
-            'add': self._gtk.Button("increase", " " + _("Add profile"), "color1", self.bts, Gtk.PositionType.LEFT, 1),
-            'calib': self._gtk.Button("refresh", " " + _("Calibrate"), "color3", self.bts, Gtk.PositionType.LEFT, 1),
-            'clear': self._gtk.Button("cancel", " " + _("Clear"), "color2", self.bts, Gtk.PositionType.LEFT, 1),
-        }
-        self.buttons['add'].connect("clicked", self.show_create_profile)
-        self.buttons['add'].set_hexpand(True)
-        self.buttons['clear'].connect("clicked", self.send_clear_mesh)
-        self.buttons['clear'].set_hexpand(True)
-        self.buttons['calib'].connect("clicked", self.calibrate_mesh)
-        self.buttons['calib'].set_hexpand(True)
+#Begin VSYS
+        macros = self._printer.get_gcode_macros()
+        self.macro_mesh_exist = any("_BED_LEVELING" in macro.upper() for macro in macros)
+        if not self.macro_mesh_exist:
+#End VSYS
+            self.show_create = False
+            self.active_mesh = None
+            self.profiles = {}
+            self.buttons = {
+                'add': self._gtk.Button("increase", " " + _("Add profile"), "color1", self.bts, Gtk.PositionType.LEFT, 1),
+                'calib': self._gtk.Button("refresh", " " + _("Calibrate"), "color3", self.bts, Gtk.PositionType.LEFT, 1),
+                'clear': self._gtk.Button("cancel", " " + _("Clear"), "color2", self.bts, Gtk.PositionType.LEFT, 1),
+            }
+            self.buttons['add'].connect("clicked", self.show_create_profile)
+            self.buttons['add'].set_hexpand(True)
+            self.buttons['clear'].connect("clicked", self.send_clear_mesh)
+            self.buttons['clear'].set_hexpand(True)
+            self.buttons['calib'].connect("clicked", self.calibrate_mesh)
+            self.buttons['calib'].set_hexpand(True)
 
-        topbar = Gtk.Box(spacing=5)
-        topbar.set_hexpand(True)
-        topbar.set_vexpand(False)
-        topbar.add(self.buttons['add'])
-        topbar.add(self.buttons['clear'])
-        topbar.add(self.buttons['calib'])
+            topbar = Gtk.Box(spacing=5)
+            topbar.set_hexpand(True)
+            topbar.set_vexpand(False)
+            topbar.add(self.buttons['add'])
+            topbar.add(self.buttons['clear'])
+            #topbar.add(self.buttons['calib'])
 
-        # Create a grid for all profiles
-        self.labels['profiles'] = Gtk.Grid()
-        self.labels['profiles'].set_valign(Gtk.Align.CENTER)
+            # Create a grid for all profiles
+            self.labels['profiles'] = Gtk.Grid()
+            self.labels['profiles'].set_valign(Gtk.Align.CENTER)
 
-        scroll = self._gtk.ScrolledWindow()
-        scroll.add(self.labels['profiles'])
-        scroll.set_vexpand(True)
+            scroll = self._gtk.ScrolledWindow()
+            scroll.add(self.labels['profiles'])
+            scroll.set_vexpand(True)
 
-        self.load_meshes()
+            self.load_meshes()
 
-        grid = self._gtk.HomogeneousGrid()
-        grid.set_row_homogeneous(False)
-        grid.attach(topbar, 0, 0, 2, 1)
-        self.labels['map'] = BedMap(self._gtk.font_size, self.active_mesh)
-        if self._screen.vertical_mode:
-            grid.attach(self.labels['map'], 0, 2, 2, 1)
-            grid.attach(scroll, 0, 3, 2, 1)
-            self.labels['map'].set_size_request(self._gtk.content_width, self._gtk.content_height * .4)
+            grid = self._gtk.HomogeneousGrid()
+            grid.set_row_homogeneous(False)
+            grid.attach(topbar, 0, 0, 2, 1)
+            self.labels['map'] = BedMap(self._gtk.font_size, self.active_mesh)
+            if self._screen.vertical_mode:
+                grid.attach(self.labels['map'], 0, 2, 2, 1)
+                grid.attach(scroll, 0, 3, 2, 1)
+                self.labels['map'].set_size_request(self._gtk.content_width, self._gtk.content_height * .4)
+            else:
+                grid.attach(self.labels['map'], 0, 2, 1, 1)
+                grid.attach(scroll, 1, 2, 1, 1)
+            self.labels['main_grid'] = grid
+            self.content.add(self.labels['main_grid'])
+#Begin VSYS
         else:
-            grid.attach(self.labels['map'], 0, 2, 1, 1)
-            grid.attach(scroll, 1, 2, 1, 1)
-        self.labels['main_grid'] = grid
-        self.content.add(self.labels['main_grid'])
+            self.macro_mesh(self)
 
+    def macro_mesh(self, widget):
+        scroll = self._gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.set_halign(Gtk.Align.CENTER)
+        vbox.set_valign(Gtk.Align.CENTER)
+        if "delta" in self._printer.get_config_section("printer")['kinematics']:
+            vbox.add(Gtk.Label(label=_("Please plug in leveling switch before auto-leveling.")))
+        else:
+            vbox.add(Gtk.Label(label=_("Do you want to run the bed leveling ?")))
+        scroll.add(vbox)
+        buttons = [
+            {"name": _("Continue"), "response": Gtk.ResponseType.OK},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
+        ]
+        dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.mesh_choice_confirm)
+        dialog.set_title(_("Bed Mesh"))
+
+    def mesh_choice_confirm(self, dialog, response_id):
+        self._gtk.remove_dialog(dialog)
+        if response_id == Gtk.ResponseType.OK:
+            self._screen._ws.klippy.gcode_script(f"_BED_LEVELING")
+            self._screen._menu_go_back(home=True)
+        elif response_id == Gtk.ResponseType.CANCEL:
+            self._screen._menu_go_back()
+#End VSYS
     def activate(self):
-        self.load_meshes()
-        if not self._printer.get_stat('bed_mesh', 'profile_name') and 'default' in self.profiles:
-            self.send_load_mesh(None, 'default')  # this is not the default behaviour of klipper anymore
+        if not self.macro_mesh_exist: #VSYS
+            self.load_meshes()
+            if not self._printer.get_stat('bed_mesh', 'profile_name') and 'default' in self.profiles:
+                self.send_load_mesh(None, 'default')  # this is not the default behaviour of klipper anymore
 
     def activate_mesh(self, profile):
         if self.active_mesh is not None:
@@ -193,9 +221,10 @@ class BedMeshPanel(ScreenPanel):
         if action == "notify_busy":
             self.process_busy(data)
             return
-        if action == "notify_status_update":
-            with contextlib.suppress(KeyError):
-                self.activate_mesh(data['bed_mesh']['profile_name'])
+        if action != "notify_status_update":
+            return
+        if 'bed_mesh' in data and 'profile_name' in data['bed_mesh']:
+            self.activate_mesh(data['bed_mesh']['profile_name'])
 
     def remove_create(self):
         if self.show_create is False:
@@ -275,7 +304,7 @@ class BedMeshPanel(ScreenPanel):
 
         # Load zcalibrate to do a manual mesh
         if not self._printer.get_probe():
-            self.menu_item_clicked(widget, "refresh", {"name": _("Mesh calibrate"), "panel": "zcalibrate"})
+            self.menu_item_clicked(widget, {"name": _("Mesh calibrate"), "panel": "zcalibrate"})
 
     def send_clear_mesh(self, widget):
         self._screen._ws.klippy.gcode_script("BED_MESH_CLEAR")

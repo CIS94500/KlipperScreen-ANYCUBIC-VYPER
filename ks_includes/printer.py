@@ -1,5 +1,4 @@
 import logging
-import contextlib
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -25,7 +24,10 @@ class Printer:
         self.busy_cb = busy_cb
         self.busy = False
         self.tempstore_size = 1200
-
+        self.cameras = []
+        self.spoolman = False
+        self.available_commands = {}
+        
     def reinit(self, printer_info, data):
         self.config = data['configfile']['config']
         self.data = data
@@ -40,6 +42,7 @@ class Printer:
         if not self.store_timeout:
             self.store_timeout = GLib.timeout_add_seconds(1, self._update_temp_store)
         self.tempstore_size = 1200
+        self.available_commands = {}
 
         for x in self.config.keys():
             if x[:8] == "extruder":
@@ -74,14 +77,17 @@ class Printer:
             if x.startswith('output_pin ') and not x.split()[1].startswith("_"):
                 self.output_pin_count += 1
             if x.startswith('bed_mesh '):
-                r = self.config[x]
-                r['x_count'] = int(r['x_count'])
-                r['y_count'] = int(r['y_count'])
-                r['max_x'] = float(r['max_x'])
-                r['min_x'] = float(r['min_x'])
-                r['max_y'] = float(r['max_y'])
-                r['min_y'] = float(r['min_y'])
-                r['points'] = [[float(j.strip()) for j in i.split(",")] for i in r['points'].strip().split("\n")]
+                try:
+                    r = self.config[x]
+                    r['x_count'] = int(r['x_count'])
+                    r['y_count'] = int(r['y_count'])
+                    r['max_x'] = float(r['max_x'])
+                    r['min_x'] = float(r['min_x'])
+                    r['max_y'] = float(r['max_y'])
+                    r['min_y'] = float(r['min_y'])
+                    r['points'] = [[float(j.strip()) for j in i.split(",")] for i in r['points'].strip().split("\n")]
+                except KeyError:
+                    logging.debug(f"Couldn't load mesh {x}: {self.config[x]}")
         self.process_update(data)
 
         logging.info(f"Klipper version: {printer_info['software_version']}")
@@ -112,14 +118,14 @@ class Printer:
         # webhooks states: startup, ready, shutdown, error
         # print_stats: standby, printing, paused, error, complete
         # idle_timeout: Idle, Printing, Ready
-        if self.data['webhooks']['state'] == "ready":
-            with contextlib.suppress(KeyError):
-                if self.data['print_stats']['state'] == 'paused':
-                    return "paused"
-                if self.data['print_stats']['state'] == 'printing':
-                    return "printing"
-                if self.data['idle_timeout']['state'].lower() == "printing":
-                    return "busy"
+        if self.data['webhooks']['state'] == "ready" and (
+                'print_stats' in self.data and 'state' in self.data['print_stats']):
+            if self.data['print_stats']['state'] == 'paused':
+                return "paused"
+            if self.data['print_stats']['state'] == 'printing':
+                return "printing"
+            if self.data['idle_timeout']['state'].lower() == "printing":
+                return "busy"
         return self.data['webhooks']['state']
 
     def process_status_update(self):
@@ -157,7 +163,11 @@ class Printer:
                 "status": "on" if x['status'] == "on" else "off"
             }
         logging.debug(f"Power devices: {self.power_devices}")
-
+        
+    def configure_cameras(self, data):
+        self.cameras = data
+        logging.debug(f"Cameras: {self.cameras}")
+        
     def get_config_section_list(self, search=""):
         if self.config is not None:
             return [i for i in list(self.config) if i.startswith(search)] if hasattr(self, "config") else []
@@ -216,6 +226,14 @@ class Printer:
         return None
 
     def get_printer_status_data(self):
+#Begin VSYS
+        is_delta = False
+        is_cartesian = False
+        if "delta" in self.get_config_section("printer")['kinematics'].lower():
+            is_delta = True
+        else:
+            is_cartesian = True
+#End VSYS
         data = {
             "printer": {
                 "extruders": {"count": self.extrudercount},
@@ -226,6 +244,10 @@ class Printer:
                 "idle_timeout": self.get_stat("idle_timeout").copy(),
                 "pause_resume": {"is_paused": self.state == "paused"},
                 "power_devices": {"count": len(self.get_power_devices())},
+                "cameras": {"count": len(self.cameras)},
+                "spoolman": self.spoolman,
+                "is_delta": is_delta, #VSYS
+                "is_cartesian": is_cartesian, #VSYS
             }
         }
 
@@ -237,8 +259,6 @@ class Printer:
         sections = ["firmware_retraction", "input_shaper", "bed_screws", "screws_tilt_adjust"]
         for section in sections:
             data["printer"][section] = self.config_section_exists(section)
-
-        data["printer"]["kinematics"] = self.get_config_section("printer")['kinematics'] #VSYS
 
         return data
 
@@ -322,14 +342,12 @@ class Printer:
             return True
 
     def init_temp_store(self, tempstore):
-        if not tempstore or 'result' not in tempstore:
-            return
-        if self.tempstore and list(self.tempstore) != list(tempstore['result']):
+        if self.tempstore and list(self.tempstore) != list(tempstore):
             logging.debug("Tempstore has changed")
-            self.tempstore = tempstore['result']
+            self.tempstore = tempstore
             self.change_state(self.state)
         else:
-            self.tempstore = tempstore['result']
+            self.tempstore = tempstore
         for device in self.tempstore:
             for x in self.tempstore[device]:
                 length = len(self.tempstore[device][x])
@@ -358,3 +376,7 @@ class Printer:
                     temp = 0
                 self.tempstore[device][x].append(temp)
         return True
+
+    def enable_spoolman(self):
+        logging.info("Enabling Spoolman")
+        self.spoolman = True

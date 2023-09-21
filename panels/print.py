@@ -1,31 +1,25 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
-
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Pango
 from datetime import datetime
-
 from ks_includes.screen_panel import ScreenPanel
 
 
-def create_panel(*args):
-    return PrintPanel(*args)
-
-
-class PrintPanel(ScreenPanel):
+class Panel(ScreenPanel):
     cur_directory = "gcodes"
     dir_panels = {}
     filelist = {'gcodes': {'directories': [], 'files': []}}
 
     def __init__(self, screen, title):
         super().__init__(screen, title)
-        #Begin VSYS
+#Begin VSYS
         macros = self._printer.get_gcode_macros()
         self.macro_adaptatif_mesh = any("ADAPTATIF_MESH" in macro.upper() for macro in macros)
-        #End VSYS
+#End VSYS
         sortdir = self._config.get_main_config().get("print_sort_dir", "name_asc")
         sortdir = sortdir.split('_')
         if sortdir[0] not in ["name", "date"] or sortdir[1] not in ["asc", "desc"]:
@@ -299,7 +293,7 @@ class PrintPanel(ScreenPanel):
         self._config.save_user_config_options()
 
     def confirm_print(self, widget, filename):
-        #Begin VSYS
+#Begin VSYS
         if self.macro_adaptatif_mesh:
             buttons = [
                 {"name": _("Mesh Default"), "response": Gtk.ResponseType.OK},
@@ -311,7 +305,7 @@ class PrintPanel(ScreenPanel):
                 {"name": _("Print"), "response": Gtk.ResponseType.OK},
                 {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
             ] 
-        #End VSYS
+#End VSYS
         label = Gtk.Label()
         label.set_markup(f"<b>{filename}</b>\n")
         label.set_hexpand(True)
@@ -341,15 +335,15 @@ class PrintPanel(ScreenPanel):
         if response_id == Gtk.ResponseType.CANCEL:
             return
         logging.info(f"Starting print: {filename}")
-        #Begin VSYS
+#Begin VSYS
         if self.macro_adaptatif_mesh:
             if response_id == Gtk.ResponseType.OK:
-                self._screen._ws.klippy.print_start(filename, 0)
-            elif response_id == Gtk.ResponseType.APPLY:
                 self._screen._ws.klippy.print_start(filename, 1)
+            elif response_id == Gtk.ResponseType.APPLY:
+                self._screen._ws.klippy.print_start(filename, 2)
         else:
-            self._screen._ws.klippy.print_start(filename, 2)
-        #End VSYS
+            self._screen._ws.klippy.print_start(filename, 0)
+#End VSYS
         
     def delete_file(self, filename):
         directory = os.path.join("gcodes", os.path.dirname(filename)) if os.path.dirname(filename) else "gcodes"

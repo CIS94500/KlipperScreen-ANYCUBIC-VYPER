@@ -1,18 +1,12 @@
 import logging
 import re
 import math
-
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
-
 from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
-
-
-def create_panel(*args):
-    return BedLevelPanel(*args)
 
 
 # Find the screw closest to the point,
@@ -38,7 +32,7 @@ def find_closest(screws, point, max_distance, remove=False):
     return closest
 
 
-class BedLevelPanel(ScreenPanel):
+class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
         super().__init__(screen, title)
@@ -171,7 +165,7 @@ class BedLevelPanel(ScreenPanel):
         self.buttons['rm'] = self._gtk.Button("bed-level-r-m", scale=button_scale)
         self.buttons['fm'] = self._gtk.Button("bed-level-b-m", scale=button_scale)
         self.buttons['bm'] = self._gtk.Button("bed-level-t-m", scale=button_scale)
-        self.buttons['center'] = self._gtk.Button("increase", scale=button_scale)
+        self.buttons['center'] = self._gtk.Button("increase", scale=button_scale / 2)
 
         bedgrid = Gtk.Grid()
 
@@ -296,12 +290,15 @@ class BedLevelPanel(ScreenPanel):
                 'lm': lm
             }
         self.screw_dict['center'] = center
+        remove_list = []
+        for screw in self.screw_dict:
+            if screw not in screw_positions:
+                remove_list.append(screw)
+        for screw in remove_list:
+            self.screw_dict.pop(screw)
+        
         grid.attach(bedgrid, 1, 0, 3, 2)
         self.content.add(grid)
-
-    def activate(self):
-        for key, value in self.screw_dict.items():
-            self.buttons[key].set_label(f"{value}")
 
     def home(self):
         # Test if all axes have been homed. Home if necessary.
