@@ -366,7 +366,7 @@ class KlipperScreen(Gtk.Window):
 
         message = Gtk.Label(label=f"{e}")
         message.set_line_wrap(True)
-        scroll = self.gtk.ScrolledWindow(steppers=False)
+        scroll = self.gtk.ScrolledWindow()
         scroll.set_vexpand(True)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.add(message)
