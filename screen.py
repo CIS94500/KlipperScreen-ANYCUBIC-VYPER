@@ -92,7 +92,7 @@ class KlipperScreen(Gtk.Window):
     initialized = initializing = False
     popup_timeout = None
     wayland = False
-    
+
     def __init__(self, args, version):
         try:
             super().__init__(title="KlipperScreen")
@@ -656,11 +656,11 @@ class KlipperScreen(Gtk.Window):
             msg += _("Please recompile and flash the micro-controller.") + "\n"
         self.printer_initializing(msg + "\n" + state, remove=True)
 
-    def state_paused(self):  
+    def state_paused(self):
         self.state_printing()
         if self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
             self.show_panel("extrude", _("Extrude"))
-        
+
     def state_printing(self):
         self.close_screensaver()
         self.base_panel_show_all()
@@ -866,7 +866,7 @@ class KlipperScreen(Gtk.Window):
                 self.printer.configure_cameras(cameras['result']['webcams'])
         if "spoolman" in server_info["components"]:
             self.printer.enable_spoolman()
-            
+
         if state['result']['klippy_connected'] is False:
             logging.info("Klipper not connected")
             msg = _("Moonraker: connected") + "\n\n"
@@ -883,7 +883,7 @@ class KlipperScreen(Gtk.Window):
         # Reinitialize printer, in case the printer was shut down and anything has changed.
         self.printer.reinit(printer_info['result'], config['result']['status'])
         self.printer.available_commands = self.apiclient.get_gcode_help()['result']
-        
+
         self.ws_subscribe()
         extra_items = (self.printer.get_tools()
                        + self.printer.get_heaters()
@@ -901,7 +901,7 @@ class KlipperScreen(Gtk.Window):
 
         self.files.initialize()
         self.files.refresh_files()
-        
+
         logging.info("Printer initialized")
         self.initialized = True
         self.reinit_count = 0
@@ -927,7 +927,7 @@ class KlipperScreen(Gtk.Window):
             except KeyError:
                 logging.error("Couldn't get the temperature store size")
         return False
-        
+
     def base_panel_show_all(self):
         self.base_panel.show_macro_shortcut(self._config.get_main_config().getboolean('side_macro_shortcut', True))
         self.base_panel.show_heaters(True)

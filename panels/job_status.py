@@ -690,7 +690,7 @@ class Panel(ScreenPanel):
         if progress >= 1:
             estimated = file_time
             progress = min(max(print_duration / estimated, 0), 1)
-            
+
         self.labels["est_time"].set_label(self.format_time(estimated))
         self.labels["time_left"].set_label(self.format_eta(estimated, print_duration))
         remaining_label = f"{self.labels['left'].get_text()}  {self.labels['time_left'].get_text()}"
@@ -839,4 +839,3 @@ class Panel(ScreenPanel):
             logging.debug("Cannot find file metadata. Listening for updated metadata")
             self._screen.files.add_file_callback(self._callback_metadata)
         self.show_file_thumbnail()
-

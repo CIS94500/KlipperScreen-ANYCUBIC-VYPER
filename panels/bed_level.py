@@ -296,7 +296,7 @@ class Panel(ScreenPanel):
                 remove_list.append(screw)
         for screw in remove_list:
             self.screw_dict.pop(screw)
-        
+
         grid.attach(bedgrid, 1, 0, 3, 2)
         self.content.add(grid)
 

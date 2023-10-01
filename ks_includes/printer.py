@@ -27,7 +27,7 @@ class Printer:
         self.cameras = []
         self.spoolman = False
         self.available_commands = {}
-        
+
     def reinit(self, printer_info, data):
         self.config = data['configfile']['config']
         self.data = data
@@ -163,11 +163,11 @@ class Printer:
                 "status": "on" if x['status'] == "on" else "off"
             }
         logging.debug(f"Power devices: {self.power_devices}")
-        
+
     def configure_cameras(self, data):
         self.cameras = data
         logging.debug(f"Cameras: {self.cameras}")
-        
+
     def get_config_section_list(self, search=""):
         if self.config is not None:
             return [i for i in list(self.config) if i.startswith(search)] if hasattr(self, "config") else []

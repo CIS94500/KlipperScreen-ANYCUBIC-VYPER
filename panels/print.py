@@ -300,11 +300,11 @@ class Panel(ScreenPanel):
                 {"name": _("Mesh Adaptive"), "response": Gtk.ResponseType.APPLY},
                 {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
             ]
-        else:  
+        else:
             buttons = [
                 {"name": _("Print"), "response": Gtk.ResponseType.OK},
                 {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
-            ] 
+            ]
 #End VSYS
         label = Gtk.Label()
         label.set_markup(f"<b>{filename}</b>\n")
@@ -344,7 +344,7 @@ class Panel(ScreenPanel):
         else:
             self._screen._ws.klippy.print_start(filename, 0)
 #End VSYS
-        
+
     def delete_file(self, filename):
         directory = os.path.join("gcodes", os.path.dirname(filename)) if os.path.dirname(filename) else "gcodes"
         if directory not in self.filelist or os.path.basename(filename).startswith("."):

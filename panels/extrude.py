@@ -50,12 +50,12 @@ class Panel(ScreenPanel):
             "name": "Temperature",
             "panel": "temperature"
         })
-        
+
         self.buttons['spoolman'].connect("clicked", self.menu_item_clicked, {
             "name": "Spoolman",
             "panel": "spoolman"
         })
-        
+
         extgrid = self._gtk.HomogeneousGrid()
         limit = 5
         i = 0
@@ -75,7 +75,7 @@ class Panel(ScreenPanel):
             extgrid.attach(self.buttons['temperature'], i + 1, 0, 1, 1)
         if i < (limit - 2) and self._printer.spoolman:
             extgrid.attach(self.buttons['spoolman'], i + 2, 0, 1, 1)
-            
+
         distgrid = Gtk.Grid()
         for j, i in enumerate(self.distances):
             self.labels[f"dist{i}"] = self._gtk.Button(label=i)

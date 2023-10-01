@@ -293,7 +293,7 @@ class Panel(MenuPanel):
         self.main_menu.show_all()
         self.numpad_visible = True
         self._screen.base_panel.show_back(True)
-        
+
     def update_graph(self):
         self.labels['da'].queue_draw()
         return True
