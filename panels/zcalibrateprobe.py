@@ -17,6 +17,11 @@ class Panel(ScreenPanel):
         macros = self._printer.get_gcode_macros()
         self.macro_calibrate = any("_START_CALIBRATE_PROBE" in macro.upper() for macro in macros)
 
+        self.z_offset = None
+        self.probe = self._printer.get_probe()
+        if self.probe:
+            self.z_offset = float(self.probe['z_offset'])
+
         grid = self._gtk.HomogeneousGrid()
         grid.set_row_homogeneous(False)
         self.buttons = {
@@ -92,10 +97,12 @@ class Panel(ScreenPanel):
         return
 
     def update_position(self, position):
-        self.labels['zoffset'].set_label(f"Z: {position[2]:.3f}")
+        if self.z_offset is not None:
+            self.labels['zoffset'].set_label(f"Z: {position[2] - self.z_offset:.3f}")
+        else:
+            self.labels['zoffset'].set_label(f"Z: {position[2]:.3f}")
 
     def change_distance(self, widget, distance):
-        #logging.info(f"### Distance {distance}")
         self.widgets[f"{self.distance}"].get_style_context().remove_class("distbutton_active")
         self.widgets[f"{distance}"].get_style_context().add_class("distbutton_active")
         self.distance = distance
@@ -105,7 +112,7 @@ class Panel(ScreenPanel):
 
     def abort(self, widget):
         logging.info("Aborting calibration")
-        self._screen._ws.klippy.gcode_script(f"G1 Z10 F3600\nSET_GCODE_OFFSET Z={self.mem_zoffset}\nABORT")
+        self._screen._ws.klippy.gcode_script(f"G0 Z10 F3600\nSET_GCODE_OFFSET Z={self.mem_zoffset}\nABORT")
         self.buttons_not_calibrating()
         self._screen._menu_go_back()
 
@@ -117,9 +124,82 @@ class Panel(ScreenPanel):
         self._screen._ws.klippy.gcode_script(f"SET_GCODE_OFFSET Z=0")
 
         if not self.macro_calibrate:
-            self._screen._ws.klippy.gcode_script(f"G28\nPROBE_CALIBRATE")
+            self._screen.show_popup_message("veuillez patienter pendant la chauffe des éléments...", 1)
+            self._screen._ws.klippy.gcode_script(f"M104 S210\nM140 S60\nM109 S210\nM190 S60")
+            if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
+                self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
+            self._move_to_position()
+            self._screen._ws.klippy.gcode_script(f"PROBE_CALIBRATE")
         else:
             self._screen._ws.klippy.gcode_script(f"_START_CALIBRATE_PROBE")
+
+    def _move_to_position(self):
+        x_position = y_position = None
+        z_hop = speed = None
+        # Get position from config
+        if self.ks_printer_cfg is not None:
+            x_position = self.ks_printer_cfg.getfloat("calibrate_x_position", None)
+            y_position = self.ks_printer_cfg.getfloat("calibrate_y_position", None)
+
+        if "sample_retract_dist" in self.probe:
+            z_hop = self.probe['sample_retract_dist']
+        if "speed" in self.probe:
+            speed = self.probe['speed']
+
+        # Use safe_z_home position
+        if "safe_z_home" in self._printer.get_config_section_list():
+            safe_z = self._printer.get_config_section("safe_z_home")
+            safe_z_xy = safe_z['home_xy_position']
+            safe_z_xy = [str(i.strip()) for i in safe_z_xy.split(',')]
+            if x_position is None:
+                x_position = float(safe_z_xy[0])
+                logging.debug(f"Using safe_z x:{x_position}")
+            if y_position is None:
+                y_position = float(safe_z_xy[1])
+                logging.debug(f"Using safe_z y:{y_position}")
+            if 'z_hop' in safe_z:
+                z_hop = safe_z['z_hop']
+            if 'z_hop_speed' in safe_z:
+                speed = safe_z['z_hop_speed']
+
+        speed = 15 if speed is None else speed
+        z_hop = 5 if z_hop is None else z_hop
+        self._screen._ws.klippy.gcode_script(f"G91\nG0 Z{z_hop} F{float(speed) * 60}")
+        if self._printer.get_stat("gcode_move", "absolute_coordinates"):
+            self._screen._ws.klippy.gcode_script("G90")
+
+        if x_position is not None and y_position is not None:
+            logging.debug(f"Configured probing position X: {x_position} Y: {y_position}")
+            self._screen._ws.klippy.gcode_script(f'G0 X{x_position} Y{y_position} F3000')
+        else:
+            self._calculate_position()
+
+    def _calculate_position(self):
+        logging.debug("Position not configured, probing the middle of the bed")
+        try:
+            xmax = float(self._printer.get_config_section("stepper_x")['position_max'])
+            ymax = float(self._printer.get_config_section("stepper_y")['position_max'])
+        except KeyError:
+            logging.error("Couldn't get max position from stepper_x and stepper_y")
+            return
+        x_position = xmax / 2
+        y_position = ymax / 2
+        logging.info(f"Center position X:{x_position} Y:{y_position}")
+
+        # Find probe offset
+        x_offset = y_offset = None
+        if "x_offset" in self.probe:
+            x_offset = float(self.probe['x_offset'])
+        if "y_offset" in self.probe:
+            y_offset = float(self.probe['y_offset'])
+        logging.info(f"Offset X:{x_offset} Y:{y_offset}")
+        if x_offset is not None:
+            x_position = x_position - x_offset
+        if y_offset is not None:
+            y_position = y_position - y_offset
+
+        logging.info(f"Moving to X:{x_position} Y:{y_position}")
+        self._screen._ws.klippy.gcode_script(f'G0 X{x_position} Y{y_position} F3000')
 
     def accept_calibrate(self, widget):
         self.mem_zoffset = 0
@@ -140,7 +220,10 @@ class Panel(ScreenPanel):
 
     def buttons_not_calibrating(self):
         self.buttons['start'].get_style_context().add_class('color3')
-        self.buttons['start'].set_sensitive(True)
+        if self.probe:
+            self.buttons['start'].set_sensitive(True)
+        else:
+            self.buttons['start'].set_sensitive(False)
 
         self.buttons['z+'].set_sensitive(False)
         self.buttons['z+'].get_style_context().remove_class('color4')
@@ -152,5 +235,5 @@ class Panel(ScreenPanel):
         self.buttons['cancel'].get_style_context().remove_class('color2')
 
     # def activate(self):
-        # # This is only here because klipper doesn't provide a method to detect if it's calibrating
+        # This is only here because klipper doesn't provide a method to detect if it's calibrating
         # self._screen._ws.klippy.gcode_script(KlippyGcodes.testz_move("+0.001"))

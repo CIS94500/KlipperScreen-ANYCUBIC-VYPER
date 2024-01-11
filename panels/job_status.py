@@ -405,8 +405,8 @@ class Panel(ScreenPanel):
         grid = self._gtk.HomogeneousGrid()
         grid.attach(label, 0, 0, 1, 1)
         buttons = [
-            {"name": _("Apply"), "response": Gtk.ResponseType.APPLY},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
+            {"name": _("Apply"), "response": Gtk.ResponseType.APPLY, "style": 'dialog-default'},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
         dialog = self._gtk.Dialog(self._screen, buttons, grid, self.save_confirm, device)
         dialog.set_title(_("Save Z"))
@@ -447,8 +447,8 @@ class Panel(ScreenPanel):
 
     def cancel(self, widget):
         buttons = [
-            {"name": _("Cancel Print"), "response": Gtk.ResponseType.OK},
-            {"name": _("Go Back"), "response": Gtk.ResponseType.CANCEL}
+            {"name": _("Cancel Print"), "response": Gtk.ResponseType.OK, "style": 'dialog-error'},
+            {"name": _("Go Back"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-info'}
         ]
         if len(self._printer.get_stat("exclude_object", "objects")) > 1:
             buttons.insert(0, {"name": _("Exclude Object"), "response": Gtk.ResponseType.APPLY})
@@ -480,6 +480,7 @@ class Panel(ScreenPanel):
     def close_panel(self, widget=None):
         if self.can_close:
             logging.debug("Closing job_status panel")
+            self._screen._remove_all_panels() #VSYS ajout pour respond -> GoToPanel:
             self._screen.state_ready(wait=False)
 
     def enable_button(self, *args):

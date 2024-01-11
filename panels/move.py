@@ -1,3 +1,4 @@
+import re
 import logging
 import gi
 
@@ -13,6 +14,15 @@ class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
         super().__init__(screen, title)
+
+        if self.ks_printer_cfg is not None:
+            dis = self.ks_printer_cfg.get("move_distances", 'None')
+            if re.match(r'^[0-9,\.\s]+$', dis):
+                dis = [str(i.strip()) for i in dis.split(',')]
+                if 1 < len(dis) <= 7:
+                    self.distances = dis
+                    self.distance = self.distances[-2]
+
         self.settings = {}
         self.menu = ['move_menu']
         self.buttons = {
@@ -79,7 +89,7 @@ class Panel(ScreenPanel):
                 ctx.add_class("distbutton_bottom")
             else:
                 ctx.add_class("distbutton")
-            if i == self.distance:
+            if float(i) == float(self.distance):
                 ctx.add_class("distbutton_active")
             distgrid.attach(self.labels[i], j, 0, 1, 1)
 

@@ -16,6 +16,7 @@ from gi.repository import Gtk, Gdk, GLib, Pango
 from importlib import import_module
 from jinja2 import Environment
 from signal import SIGTERM
+from datetime import datetime
 
 from ks_includes import functions
 from ks_includes.KlippyWebsocket import KlippyWebsocket
@@ -24,6 +25,7 @@ from ks_includes.files import KlippyFiles
 from ks_includes.KlippyGtk import KlippyGtk
 from ks_includes.printer import Printer
 from ks_includes.widgets.keyboard import Keyboard
+from ks_includes.widgets.prompts import Prompt
 from ks_includes.config import KlipperScreenConfig
 from panels.base_panel import BasePanel
 
@@ -92,6 +94,8 @@ class KlipperScreen(Gtk.Window):
     initialized = initializing = False
     popup_timeout = None
     wayland = False
+    notification_log = []
+    prompt = None
 
     def __init__(self, args, version):
         try:
@@ -105,6 +109,7 @@ class KlipperScreen(Gtk.Window):
         self.version = version
         self.dialogs = []
         self.confirm = None
+        self.last_popup_time = datetime.now()
 
         configfile = os.path.normpath(os.path.expanduser(args.configfile))
 
@@ -154,6 +159,7 @@ class KlipperScreen(Gtk.Window):
             self.dialogs = []
         self.set_screenblanking_timeout(self._config.get_main_config().get('screen_blanking'))
 
+        self.log_notification("KlipperScreen Started", 1)
         self.initial_connection()
 
     def initial_connection(self):
@@ -300,17 +306,33 @@ class KlipperScreen(Gtk.Window):
             self.panels[panel].activate()
         self.show_all()
 
+    def log_notification(self, message, level=0):
+        time = datetime.now().strftime("%H:%M:%S")
+        log_entry = {"message": message, "level": level, "time": time}
+        if len(self.notification_log) > 999:
+            del self.notification_log[0]
+        self.notification_log.append(log_entry)
+        self.process_update("notify_log", log_entry)
+
     def show_popup_message(self, message, level=3):
+        if (datetime.now() - self.last_popup_time).seconds < 1:
+            return
+        self.last_popup_time = datetime.now()
         self.close_screensaver()
 #begin VSYS
         if message[0:10] == "GoToPanel:":
-            if not self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
-                self.show_panel(message[10:], _(message[10:].replace("_", " ").capitalize()))
+            if message[10:].lower() == "extrude":
+                if not self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
+                    self.show_panel("extrude", _("Extrude"))            
+            else:
+                self.show_panel(message[10:].lower(), _(message[10:].replace("_", " ").capitalize()))  
             return
 #end VSYS
         if self.popup_message is not None:
             self.close_popup_message()
 
+        self.log_notification(message, level)
+        
         msg = Gtk.Button(label=f"{message}")
         msg.set_hexpand(True)
         msg.set_vexpand(True)
@@ -340,8 +362,9 @@ class KlipperScreen(Gtk.Window):
             if self.popup_timeout is not None:
                 GLib.source_remove(self.popup_timeout)
                 self.popup_timeout = None
-            self.popup_timeout = GLib.timeout_add_seconds(20, self.close_popup_message) #VSYS
-
+            timeout = 300 if level == 2 else 20 #VSYS
+            self.popup_timeout = GLib.timeout_add_seconds(timeout, self.close_popup_message)
+            
         return False
 
     def close_popup_message(self, widget=None):
@@ -493,8 +516,6 @@ class KlipperScreen(Gtk.Window):
     def _menu_go_back(self, widget=None, home=False):
         logging.info(f"#### Menu go {'home' if home else 'back'}")
         self.remove_keyboard()
-        if self._config.get_main_config().getboolean('autoclose_popups', True):
-            self.close_popup_message()
         while len(self._cur_panels) > 1:
             self._remove_current_panel()
             del self._cur_panels[-1]
@@ -517,6 +538,7 @@ class KlipperScreen(Gtk.Window):
         if self.screensaver is not None:
             self.close_screensaver()
         self.remove_keyboard()
+        self.close_popup_message()
         for dialog in self.dialogs:
             logging.debug("Hiding dialog")
             dialog.hide()
@@ -656,11 +678,24 @@ class KlipperScreen(Gtk.Window):
             msg += _("Please recompile and flash the micro-controller.") + "\n"
         self.printer_initializing(msg + "\n" + state, remove=True)
 
+    # def state_paused(self):
+        # self.state_printing()
+        # if self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
+            # self.show_panel("extrude", _("Extrude"))
+            
+#Begin VSYS
     def state_paused(self):
-        self.state_printing()
         if self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
+            self.state_printing()
             self.show_panel("extrude", _("Extrude"))
-
+        else:
+            if "job_status" not in self._cur_panels:
+                self.state_printing()
+            else:
+                self.close_screensaver()
+                self.panels["job_status"].set_state("paused")
+#End VSYS
+    
     def state_printing(self):
         self.close_screensaver()
         self.base_panel_show_all()
@@ -733,7 +768,8 @@ class KlipperScreen(Gtk.Window):
         elif action == "notify_update_response":
             if 'message' in data and 'Error' in data['message']:
                 logging.error(f"{action}:{data['message']}")
-                self.show_popup_message(data['message'], 3)
+                if not "repo not valid" in data['message']: #VSYS
+                    self.show_popup_message(data['message'], 3)
                 if "KlipperScreen" in data['message']:
                     self.restart_ks()
         elif action == "notify_power_changed":
@@ -742,7 +778,16 @@ class KlipperScreen(Gtk.Window):
             self.panels['splash_screen'].check_power_status()
         elif action == "notify_gcode_response" and self.printer.state not in ["error", "shutdown"]:
             if not (data.startswith("B:") or data.startswith("T:")):
-                if data.startswith("echo: "):
+                if data.startswith("// action:"):
+                    action = data[10:]
+                    if action.startswith('prompt_begin'):
+                        if self.prompt is not None:
+                            self.prompt.end()
+                        self.prompt = Prompt(self)
+                    if self.prompt is None:
+                        return
+                    self.prompt.decode(action)
+                elif data.startswith("echo: "):
                     self.show_popup_message(data[6:], 1)
 #begin VSYS
                 elif data.startswith("?! "):
@@ -770,8 +815,8 @@ class KlipperScreen(Gtk.Window):
 
     def _confirm_send_action(self, widget, text, method, params=None):
         buttons = [
-            {"name": _("Continue"), "response": Gtk.ResponseType.OK},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
+            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
 
         try:
@@ -809,6 +854,7 @@ class KlipperScreen(Gtk.Window):
         if 'splash_screen' not in self.panels or remove:
             self.show_panel("splash_screen", None, remove_all=True)
         self.panels['splash_screen'].update_text(msg)
+        self.log_notification(msg, 0)
 
     def search_power_devices(self, devices):
         found_devices = []
@@ -854,7 +900,7 @@ class KlipperScreen(Gtk.Window):
         # Moonraker is ready, set a loop to init the printer
         self.reinit_count += 1
 
-        server_info = self.apiclient.get_server_info()["result"]
+        server_info = state["result"]
         logging.info(f"Moonraker info {server_info}")
         if "power" in server_info["components"]:
             powerdevs = self.apiclient.send_request("machine/device_power/devices")
@@ -867,10 +913,10 @@ class KlipperScreen(Gtk.Window):
         if "spoolman" in server_info["components"]:
             self.printer.enable_spoolman()
 
-        if state['result']['klippy_connected'] is False:
+        if server_info['klippy_connected'] is False:
             logging.info("Klipper not connected")
             msg = _("Moonraker: connected") + "\n\n"
-            msg += f"Klipper: {state['result']['klippy_state']}" + "\n\n"
+            msg += f"Klipper: {server_info['klippy_state']}" + "\n\n"
             if self.reinit_count <= self.max_retries:
                 msg += _("Retrying") + f' #{self.reinit_count}'
             return self._init_printer(msg)
@@ -907,6 +953,7 @@ class KlipperScreen(Gtk.Window):
         self.reinit_count = 0
         self.initializing = False
         self.printer.process_update(data['result']['status'])
+        self.log_notification("Printer Initialized", 1)
         return False
 
     def init_tempstore(self):

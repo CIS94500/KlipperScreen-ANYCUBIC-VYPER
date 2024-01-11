@@ -48,13 +48,12 @@ class Panel(ScreenPanel):
         sw.set_vexpand(True)
 
         tb = Gtk.TextBuffer()
-        tv = Gtk.TextView()
+        tv = Gtk.TextView(editable=False, cursor_visible=False)
         tv.set_buffer(tb)
-        tv.set_editable(False)
-        tv.set_cursor_visible(False)
         tv.connect("size-allocate", self._autoscroll)
+        tv.connect("button-press-event", self._screen.remove_keyboard) #VSYS
         tv.connect("focus-in-event", self._screen.remove_keyboard)
-
+        
         sw.add(tv)
 
         ebox = Gtk.Box()

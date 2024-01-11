@@ -78,8 +78,8 @@ class Panel(ScreenPanel):
             vbox.add(Gtk.Label(label=_("Do you want to run the bed leveling ?")))
         scroll.add(vbox)
         buttons = [
-            {"name": _("Continue"), "response": Gtk.ResponseType.OK},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
+            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
         dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.mesh_choice_confirm)
         dialog.set_title(_("Bed Mesh"))

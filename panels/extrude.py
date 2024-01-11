@@ -20,13 +20,14 @@ class Panel(ScreenPanel):
 
         self.speeds = ['1', '2', '5', '25']
         self.distances = ['5', '10', '15', '25']
+        
         if self.ks_printer_cfg is not None:
-            dis = self.ks_printer_cfg.get("extrude_distances", '5, 10, 15, 25')
+            dis = self.ks_printer_cfg.get("extrude_distances", 'None')
             if re.match(r'^[0-9,\s]+$', dis):
                 dis = [str(i.strip()) for i in dis.split(',')]
                 if 1 < len(dis) < 5:
                     self.distances = dis
-            vel = self.ks_printer_cfg.get("extrude_speeds", '1, 2, 5, 25')
+            vel = self.ks_printer_cfg.get("extrude_speeds", 'None')
             if re.match(r'^[0-9,\s]+$', vel):
                 vel = [str(i.strip()) for i in vel.split(',')]
                 if 1 < len(vel) < 5:
@@ -78,9 +79,10 @@ class Panel(ScreenPanel):
 
         distgrid = Gtk.Grid()
         for j, i in enumerate(self.distances):
-            self.labels[f"dist{i}"] = self._gtk.Button(label=i)
-            self.labels[f"dist{i}"].connect("clicked", self.change_distance, int(i))
-            ctx = self.labels[f"dist{i}"].get_style_context()
+            x = int(i)
+            self.labels[f"dist{x}"] = self._gtk.Button(label=i)
+            self.labels[f"dist{x}"].connect("clicked", self.change_distance, int(x))
+            ctx = self.labels[f"dist{x}"].get_style_context()
             if ((self._screen.lang_ltr is True and j == 0) or
                     (self._screen.lang_ltr is False and j == len(self.distances) - 1)):
                 ctx.add_class("distbutton_top")
@@ -89,15 +91,16 @@ class Panel(ScreenPanel):
                 ctx.add_class("distbutton_bottom")
             else:
                 ctx.add_class("distbutton")
-            if int(i) == self.distance:
+            if x == int(self.distance):
                 ctx.add_class("distbutton_active")
-            distgrid.attach(self.labels[f"dist{i}"], j, 0, 1, 1)
+            distgrid.attach(self.labels[f"dist{x}"], j, 0, 1, 1)
 
         speedgrid = Gtk.Grid()
         for j, i in enumerate(self.speeds):
-            self.labels[f"speed{i}"] = self._gtk.Button(label=i)
-            self.labels[f"speed{i}"].connect("clicked", self.change_speed, int(i))
-            ctx = self.labels[f"speed{i}"].get_style_context()
+            x = int(i)
+            self.labels[f"speed{x}"] = self._gtk.Button(label=i)
+            self.labels[f"speed{x}"].connect("clicked", self.change_speed, int(x))
+            ctx = self.labels[f"speed{x}"].get_style_context()
             if ((self._screen.lang_ltr is True and j == 0) or
                     (self._screen.lang_ltr is False and j == len(self.speeds) - 1)):
                 ctx.add_class("distbutton_top")
@@ -106,9 +109,9 @@ class Panel(ScreenPanel):
                 ctx.add_class("distbutton_bottom")
             else:
                 ctx.add_class("distbutton")
-            if int(i) == self.speed:
+            if x == int(self.speed):
                 ctx.add_class("distbutton_active")
-            speedgrid.attach(self.labels[f"speed{i}"], j, 0, 1, 1)
+            speedgrid.attach(self.labels[f"speed{x}"], j, 0, 1, 1)
 
         distbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.labels['extrude_dist'] = Gtk.Label(_("Distance (mm)"))

@@ -144,16 +144,7 @@ textview .time {
 
 .dialog button {
     background-color: #090909;
-    border-bottom-color: #1f1f1f;
     border-radius: .75em;
-}
-
-.dialog button:nth-child(1) {
-    border-bottom-color: #849900;
-}
-
-.dialog button:nth-child(2) {
-    border-bottom-color: #B71C1C;
 }
 
 .tempbutton_top, .tempbutton, .tempbutton_bottom, .distbutton_top, .distbutton, .distbutton_bottom  {
@@ -223,4 +214,28 @@ textview .time {
 
 .keyboard_pad {
     background-color: #090909; /*base02*/
+}
+
+.dialog-error {
+    border-bottom-color: #B71C1C;
+}
+
+.dialog-warning {
+    border-bottom-color: #EF6C00;
+}
+
+.dialog-info {
+    border-bottom-color: #007db4;
+}
+
+.dialog-default {
+    border-bottom-color: #849900;
+}
+
+.dialog-secondary {
+     border-bottom-color: #ed3c63;
+}
+
+.dialog-primary {
+     border-bottom-color: #d46900;
 }

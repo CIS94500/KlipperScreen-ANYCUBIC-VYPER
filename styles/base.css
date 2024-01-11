@@ -196,9 +196,15 @@ scale trough slider {
     min-width: 2em;
 }
 
-scrollbar, scrollbar button, scrollbar trough {
+scrollbar, scrollbar button {
     border: none;
     background-color: #13181C;
+}
+
+scrollbar trough {
+    border: none;
+    background-color: #13181C;
+    min-height: 1em;
 }
 
 scrollbar slider {
@@ -251,17 +257,9 @@ trough {
 
 .dialog button {
     padding: 1.5em;
-    border-bottom: .4em solid #009384;
     margin-top: 1em;
 }
 
-.dialog button:nth-child(1) {
-    border-bottom-color: green;
-}
-
-.dialog button:nth-child(2) {
-    border-bottom-color: red;
-}
 
 .distbutton_active {
     background-color: #20303D;
@@ -309,6 +307,10 @@ trough {
     min-height: 350px;
 }
 
+.heater-list scrollbar slider{
+    min-width: 1.5em;
+}
+
 .heater-grid {
     margin-right: .1em;
 }
@@ -326,6 +328,10 @@ trough {
 }
 
 .heater-grid-temp {
+    min-width: 5.5em;
+}
+
+.heater-grid-temp-power {
     min-width: 8em;
 }
 
@@ -584,6 +590,30 @@ popover button {
     margin-bottom: 0;
     padding-top: 0;
     padding-bottom: 0;
+}
+
+.dialog-error {
+    border-bottom: .4em solid #981E1F;
+}
+
+.dialog-warning {
+    border-bottom: .4em solid #f9a825;
+}
+
+.dialog-info {
+    border-bottom: .4em solid #A7E100;
+}
+
+.dialog-default {
+    border-bottom: .4em solid #009384;
+}
+
+.dialog-secondary {
+    border-bottom: .4em solid #B10080;
+}
+
+.dialog-primary {
+    border-bottom: .4em solid #ED6500;
 }
 
 /* Hardcoded values until creation of dynamic CSS updates */

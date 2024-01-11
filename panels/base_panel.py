@@ -333,7 +333,7 @@ class BasePanel(ScreenPanel):
     def show_update_dialog(self):
         if self.update_dialog is not None:
             return
-        button = [{"name": _("Finish"), "response": Gtk.ResponseType.OK}]
+        button = [{"name": _("Finish"), "response": Gtk.ResponseType.OK, "style": 'dialog-default'}]
         self.labels['update_progress'] = Gtk.Label()
         self.labels['update_progress'].set_halign(Gtk.Align.START)
         self.labels['update_progress'].set_valign(Gtk.Align.START)
@@ -349,7 +349,7 @@ class BasePanel(ScreenPanel):
         dialog.set_title(_("Updating"))
         self.update_dialog = dialog
         self._screen.updating = True
-
+                
     def finish_updating(self, dialog, response_id):
         if response_id != Gtk.ResponseType.OK:
             return

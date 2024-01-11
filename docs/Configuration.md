@@ -99,6 +99,9 @@ screw_rotation: 0
 extrude_distances: 5, 10, 15, 25
 extrude_speeds: 1, 2, 5, 25
 
+# Define distances for the move panel. comma-separated list with 2 to 7 floats and/or integers
+# move_distances: 0.1, 0.5, 1, 5, 10, 25, 50
+
 # Camera needs to be configured in moonraker:
 # https://moonraker.readthedocs.io/en/latest/configuration/#webcam
 ```
@@ -204,16 +207,19 @@ name: Preheat
 icon: heat-up
 panel: preheat
 
-[menu __main print]
-name: Print
-icon: print
-panel: print
-
 [menu __main homing homeall]
 name: Home All
 icon: home
 method: printer.gcode.script
 params: {"script":"G28"}
+
+[menu __main homing mymacro]
+name: My Macro
+icon: home
+method: printer.gcode.script
+params: {"script":"MY_MACRO"}
+enable: {{ 'MY_MACRO' in printer.gcode_macros.list }}
+
 ```
 
 ## KlipperScreen behaviour towards configuration

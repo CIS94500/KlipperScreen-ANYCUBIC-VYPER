@@ -151,17 +151,9 @@ textview .time {
 
 .dialog button {
     background-color: #073642; /*base02*/
-    border-bottom-color: #268bd2; /*solarized-cyan*/
     border-radius: .75em;
 }
 
-.dialog button:nth-child(1) {
-    border-bottom-color: #859900; /*solarized-green*/
-}
-
-.dialog button:nth-child(2) {
-    border-bottom-color: #dc322f; /*solarazed-red*/
-}
 .tempbutton_top, .tempbutton, .tempbutton_bottom, .distbutton_top, .distbutton, .distbutton_bottom  {
     border-color: gray; /*base03*/
     background-color: #073642; /*base02*/
@@ -233,4 +225,29 @@ textview .time {
 
 .keyboard_pad {
     background-color: #073642; /*base02*/
+}
+
+
+.dialog-error {
+    border-bottom-color: #dc322f;
+}
+
+.dialog-warning {
+    border-bottom-color: #b58900;
+}
+
+.dialog-info {
+    border-bottom-color: #2aa198;
+}
+
+.dialog-default {
+    border-bottom-color: #859900;
+}
+
+.dialog-secondary {
+     border-bottom-color: #d33682;
+}
+
+.dialog-primary {
+     border-bottom-color: #cb4b16;
 }

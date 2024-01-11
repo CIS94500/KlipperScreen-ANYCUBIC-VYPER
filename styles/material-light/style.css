@@ -170,26 +170,6 @@ textview .time {
     background-color: #FAFAFA;
 }
 
-.dialog button {
-    background-color: #80CBC4;
-    border-bottom-color: #80CBC4;
-    border-radius: .75em;
-}
-
-.dialog button:nth-child(1) {
-    background-color: #C5E1A5;
-    border-bottom-color: #C5E1A5;
-}
-
-.dialog button:nth-child(2) {
-    background-color: #EF9A9A;
-    border-bottom-color: #EF9A9A;
-}
-
-.dialog button:nth-child(1) label , .dialog button:nth-child(2) label {
-    color: black;
-}
-
 .tempbutton_top, .tempbutton, .tempbutton_bottom, .distbutton_top, .distbutton, .distbutton_bottom  {
     border-color: #BDBDBD;
     background-color: #F5F5F5;
@@ -261,4 +241,39 @@ textview .time {
 
 .keyboard_pad {
     background-color: #BDBDBD;
+}
+
+
+.dialog button {
+    border-radius: .75em;
+}
+
+.dialog-error {
+    background-color: #EF9A9A;
+    border-bottom-color: #EF9A9A;
+}
+
+.dialog-warning {
+    background-color: #FFE082;
+    border-bottom-color: #FFE082;
+}
+
+.dialog-info {
+    background-color: #80DEEA;
+    border-bottom-color: #80DEEA;
+}
+
+.dialog-default {
+    background-color: #C5E1A5;
+    border-bottom-color: #C5E1A5;
+}
+
+.dialog-secondary {
+    background-color: #F48FB1;
+    border-bottom-color: #F48FB1;
+}
+
+.dialog-primary {
+    background-color: #FFF59D;
+    border-bottom-color: #FFF59D;
 }
