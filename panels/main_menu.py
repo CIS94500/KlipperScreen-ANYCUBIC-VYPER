@@ -218,12 +218,11 @@ class Panel(MenuPanel):
 
     def create_left_panel(self):
 
-        self.labels['devices'] = Gtk.Grid()
+        self.labels['devices'] = Gtk.Grid(vexpand=False)
         self.labels['devices'].get_style_context().add_class('heater-grid')
-        self.labels['devices'].set_vexpand(False)
 
         name = Gtk.Label()
-        temp = Gtk.Label(_("Temp (°C)"))
+        temp = Gtk.Label(label=_("Temp (°C)"))
         temp.get_style_context().add_class("heater-grid-temp")
 
         self.labels['devices'].attach(name, 0, 0, 1, 1)
@@ -280,7 +279,7 @@ class Panel(MenuPanel):
 
         if "keypad" not in self.labels:
             self.labels["keypad"] = Keypad(self._screen, self.change_target_temp, self.pid_calibrate, self.hide_numpad)
-        can_pid = self._printer.state not in ["printing", "paused"] \
+        can_pid = self._printer.state not in ("printing", "paused") \
             and self._screen.printer.config[self.active_heater]['control'] == 'pid'
         self.labels["keypad"].show_pid(can_pid)
         self.labels["keypad"].clear()

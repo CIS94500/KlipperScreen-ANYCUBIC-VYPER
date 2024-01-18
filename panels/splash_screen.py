@@ -12,11 +12,9 @@ class Panel(ScreenPanel):
     def __init__(self, screen, title):
         super().__init__(screen, title)
         image = self._gtk.Image("klipper", self._gtk.content_width * .2, self._gtk.content_height * .5)
-        self.labels['text'] = Gtk.Label(_("Initializing printer..."))
-        self.labels['text'].set_line_wrap(True)
-        self.labels['text'].set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.labels['text'].set_halign(Gtk.Align.CENTER)
-        self.labels['text'].set_valign(Gtk.Align.CENTER)
+        self.labels['text'] = Gtk.Label(
+            label=_("Initializing printer..."), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+            halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
 
         self.labels['menu'] = self._gtk.Button("settings", _("Menu"), "color4")
         self.labels['menu'].connect("clicked", self._screen._go_to_submenu, "")
@@ -31,11 +29,8 @@ class Panel(ScreenPanel):
         self.labels['retry'] = self._gtk.Button("load", _('Retry'), "color3")
         self.labels['retry'].connect("clicked", self.retry)
 
-        self.labels['actions'] = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.labels['actions'].set_hexpand(True)
-        self.labels['actions'].set_vexpand(False)
-        self.labels['actions'].set_halign(Gtk.Align.CENTER)
-        self.labels['actions'].set_homogeneous(True)
+        self.labels['actions'] = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True,
+						vexpand=False, homogeneous=True, halign=Gtk.Align.CENTER)
         self.labels['actions'].set_size_request(self._gtk.content_width, -1)
 
         scroll = self._gtk.ScrolledWindow()
@@ -120,7 +115,7 @@ class Panel(ScreenPanel):
             self._screen.reinit_count = 0
             self._screen.init_printer()
         self.show_restart_buttons()
-        
+
     def reboot_poweroff(self, widget, method):
         label = Gtk.Label(wrap=True, hexpand=True, vexpand=True)
         if method == "reboot":

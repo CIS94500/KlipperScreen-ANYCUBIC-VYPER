@@ -65,9 +65,7 @@ class Panel(ScreenPanel):
         reload_networks.connect("clicked", self.reload_networks)
         reload_networks.set_hexpand(False)
 
-        sbox = Gtk.Box()
-        sbox.set_hexpand(True)
-        sbox.set_vexpand(False)
+        sbox = Gtk.Box(hexpand=True, vexpand=False)
         sbox.add(self.labels['interface'])
         if ip is not None:
             self.labels['ip'].set_text(f"IP: {ip}  ")
@@ -76,8 +74,8 @@ class Panel(ScreenPanel):
 
         scroll = self._gtk.ScrolledWindow()
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        box.set_vexpand(True)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0, vexpand=True)
+
 
         self.labels['networklist'] = Gtk.Grid()
 
@@ -281,9 +279,8 @@ class Panel(ScreenPanel):
         ]
 
         scroll = self._gtk.ScrolledWindow()
-        self.labels['connecting_info'] = Gtk.Label(_("Starting WiFi Association"))
-        self.labels['connecting_info'].set_halign(Gtk.Align.START)
-        self.labels['connecting_info'].set_valign(Gtk.Align.START)
+        self.labels['connecting_info'] = Gtk.Label(
+            label=_("Starting WiFi Association"), halign=Gtk.Align.START, valign=Gtk.Align.START, wrap=True)
         scroll.add(self.labels['connecting_info'])
         dialog = self._gtk.Dialog(self._screen, buttons, scroll, self._gtk.remove_dialog)
         dialog.set_title(_("Starting WiFi Association"))
@@ -337,6 +334,7 @@ class Panel(ScreenPanel):
         label = self._gtk.Label(_("PSK for") + ' ssid')
         label.set_hexpand(False)
         self.labels['network_psk'] = Gtk.Entry()
+
         self.labels['network_psk'].set_text('')
         self.labels['network_psk'].set_hexpand(True)
         self.labels['network_psk'].connect("activate", self.add_new_network, ssid, True)
@@ -350,10 +348,8 @@ class Panel(ScreenPanel):
         box.pack_start(self.labels['network_psk'], True, True, 5)
         box.pack_start(save, False, False, 5)
 
-        self.labels['add_network'] = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-        self.labels['add_network'].set_valign(Gtk.Align.CENTER)
-        self.labels['add_network'].set_hexpand(True)
-        self.labels['add_network'].set_vexpand(True)
+        self.labels['add_network'] = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5, valign=Gtk.Align.CENTER,
+                                             hexpand=True, vexpand=True)
         self.labels['add_network'].pack_start(label, True, True, 5)
         self.labels['add_network'].pack_start(box, True, True, 5)
 

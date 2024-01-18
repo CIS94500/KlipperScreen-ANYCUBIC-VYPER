@@ -201,7 +201,13 @@ class Printer:
         return output_pins
 
     def get_gcode_macros(self):
-        return self.get_config_section_list("gcode_macro ")
+        macros = []
+        for macro in self.get_config_section_list("gcode_macro "):
+            macro = macro[12:].strip()
+            if self.get_macro(macro) and "rename_existing" in self.get_macro(macro):
+                continue
+            macros.append(macro)
+        return macros
 
     def get_heaters(self):
         heaters = []
@@ -229,10 +235,11 @@ class Printer:
 #Begin VSYS
         is_delta = False
         is_cartesian = False
-        if "delta" in self.get_config_section("printer")['kinematics'].lower():
-            is_delta = True
-        else:
-            is_cartesian = True
+        if self.config_section_exists("printer"):
+            if "delta" in self.get_config_section("printer")['kinematics'].lower():
+                is_delta = True
+            else:
+                is_cartesian = True
 #End VSYS
         data = {
             "printer": {

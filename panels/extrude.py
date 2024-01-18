@@ -20,7 +20,7 @@ class Panel(ScreenPanel):
 
         self.speeds = ['1', '2', '5', '25']
         self.distances = ['5', '10', '15', '25']
-        
+
         if self.ks_printer_cfg is not None:
             dis = self.ks_printer_cfg.get("extrude_distances", 'None')
             if re.match(r'^[0-9,\s]+$', dis):

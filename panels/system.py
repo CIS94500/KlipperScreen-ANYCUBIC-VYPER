@@ -78,7 +78,7 @@ class Panel(ScreenPanel):
         self.scroll.add(self.update_msg)
         logging.info('Sending machine.update.refresh')
         self._screen._ws.send_method('machine.update.refresh', callback=self.get_updates)
-            
+
     def get_updates(self, response, method, params):
         logging.info(response)
         self.refresh.set_sensitive(True)
@@ -96,7 +96,7 @@ class Panel(ScreenPanel):
         self.scroll.show_all()
 
     def restart(self, widget, program):
-        if self._printer.state in ["printing", "paused"]:
+        if self._printer.state in ("printing", "paused"):
             self._screen._confirm_send_action(widget, f'{_("Are you sure?")}\n\n'
                                                       f'{_("Restart")}: {program}',
                                               "machine.services.restart", {"service": program})
@@ -105,7 +105,7 @@ class Panel(ScreenPanel):
 
     def show_update_info(self, widget, program):
         info = self.update_status['version_info'][program] if program in self.update_status['version_info'] else {}
-        
+
         scroll = self._gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 

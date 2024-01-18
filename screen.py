@@ -332,10 +332,8 @@ class KlipperScreen(Gtk.Window):
             self.close_popup_message()
 
         self.log_notification(message, level)
-        
-        msg = Gtk.Button(label=f"{message}")
-        msg.set_hexpand(True)
-        msg.set_vexpand(True)
+
+        msg = Gtk.Button(label=f"{message}", hexpand=True, vexpand=True)
         msg.get_child().set_line_wrap(True)
         msg.get_child().set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         msg.get_child().set_max_width_chars(40)
@@ -379,16 +377,13 @@ class KlipperScreen(Gtk.Window):
     def show_error_modal(self, err, e=""):
         logging.error(f"Showing error modal: {err} {e}")
 
-        title = Gtk.Label()
+        title = Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.CHAR, hexpand=True, halign=Gtk.Align.START)
         title.set_markup(f"<b>{err}</b>\n")
-        title.set_line_wrap(True)
-        title.set_halign(Gtk.Align.START)
-        title.set_hexpand(True)
         version = Gtk.Label(label=f"{self.version}")
         version.set_halign(Gtk.Align.END)
 
-        message = Gtk.Label(label=f"{e}")
-        message.set_line_wrap(True)
+        message = Gtk.Label(label=f"{e}", wrap=True)
+
         scroll = self.gtk.ScrolledWindow()
         scroll.set_vexpand(True)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -419,6 +414,7 @@ class KlipperScreen(Gtk.Window):
     def restart_ks(self, *args):
         logging.debug(f"Restarting {sys.executable} {' '.join(sys.argv)}")
         os.execv(sys.executable, ['python'] + sys.argv)
+        # noinspection PyUnreachableCode
         self._ws.send_method("machine.services.restart", {"service": "KlipperScreen"})  # Fallback
 
     def init_style(self):
@@ -546,10 +542,8 @@ class KlipperScreen(Gtk.Window):
         close = Gtk.Button()
         close.connect("clicked", self.close_screensaver)
 
-        box = Gtk.Box()
-        box.set_size_request(self.width, self.height)
+        box = Gtk.Box(halign=Gtk.Align.CENTER, width_request=self.width, height_request=self.height)
         box.pack_start(close, True, True, 0)
-        box.set_halign(Gtk.Align.CENTER)
         box.get_style_context().add_class("screensaver")
         self.remove(self.base_panel.main_grid)
         self.add(box)
@@ -751,11 +745,14 @@ class KlipperScreen(Gtk.Window):
             return
         elif action == "notify_klippy_shutdown":
             self.printer.process_update({'webhooks': {'state': "shutdown"}})
+            return
         elif action == "notify_klippy_ready":
             if not self.initialized:
-                logging.debug("Still not initialized")
+                self.reinit_count = 0
+                self._init_printer("Reconnecting", klipper=True)
                 return
             self.printer.process_update({'webhooks': {'state': "ready"}})
+            return
         elif action == "notify_status_update" and self.printer.state != "shutdown":
             self.printer.process_update(data)
             #if 'manual_probe' in data and data['manual_probe']['is_active'] and 'zcalibrate' not in self._cur_panels: #VSYS
@@ -763,8 +760,10 @@ class KlipperScreen(Gtk.Window):
         elif action == "notify_filelist_changed":
             if self.files is not None:
                 self.files.process_update(data)
+            return
         elif action == "notify_metadata_update":
             self.files.request_metadata(data['filename'])
+            return
         elif action == "notify_update_response":
             if 'message' in data and 'Error' in data['message']:
                 logging.error(f"{action}:{data['message']}")
@@ -825,14 +824,9 @@ class KlipperScreen(Gtk.Window):
         except Exception as e:
             logging.debug(f"Error parsing jinja for confirm_send_action\n{e}\n\n{traceback.format_exc()}")
 
-        label = Gtk.Label()
+        label = Gtk.Label(hexpand=True, vexpand=True, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER,
+                          wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
         label.set_markup(text)
-        label.set_hexpand(True)
-        label.set_halign(Gtk.Align.CENTER)
-        label.set_vexpand(True)
-        label.set_valign(Gtk.Align.CENTER)
-        label.set_line_wrap(True)
-        label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
 
         if self.confirm is not None:
             self.gtk.remove_dialog(self.confirm)

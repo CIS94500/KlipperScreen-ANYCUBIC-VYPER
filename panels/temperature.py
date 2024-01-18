@@ -29,7 +29,7 @@ class Panel(ScreenPanel):
 
         # When printing start in temp_delta mode and only select tools
         selection = []
-        if self._printer.state not in ["printing", "paused"]:
+        if self._printer.state not in ("printing", "paused"):
             selection.extend(iter(self._printer.get_tools()))
             self.show_preheat = True
             selection.extend(self._printer.get_heaters())
@@ -434,9 +434,8 @@ class Panel(ScreenPanel):
 
     def create_left_panel(self):
 
-        self.labels['devices'] = Gtk.Grid()
+        self.labels['devices'] = Gtk.Grid(vexpand=False)
         self.labels['devices'].get_style_context().add_class('heater-grid')
-        self.labels['devices'].set_vexpand(False)
 
         name = Gtk.Label()
         temp = Gtk.Label(_("Temp (°C)"))
@@ -532,7 +531,7 @@ class Panel(ScreenPanel):
 
         if "keypad" not in self.labels:
             self.labels["keypad"] = Keypad(self._screen, self.change_target_temp, self.pid_calibrate, self.hide_numpad)
-        can_pid = self._printer.state not in ["printing", "paused"] \
+        can_pid = self._printer.state not in ("printing", "paused") \
             and self._screen.printer.config[self.active_heater]['control'] == 'pid'
         self.labels["keypad"].show_pid(can_pid)
         self.labels["keypad"].clear()

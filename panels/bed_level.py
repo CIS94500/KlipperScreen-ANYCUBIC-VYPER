@@ -83,6 +83,7 @@ class Panel(ScreenPanel):
         elif "bed_screws" in self._printer.get_config_section_list():
             self.screws = self._get_screws("bed_screws")
             logging.info(f"bed_screws: {self.screws}")
+
         nscrews = len(self.screws)
         # KS config
         valid_positions = True
@@ -190,12 +191,11 @@ class Panel(ScreenPanel):
                 bedgrid.attach(self.buttons['center'], 2, 1, 1, 1)
                 self.buttons['center'].connect("clicked", self.go_to_position, center)
         else:
-            label = Gtk.Label(
+            label = Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+            label.set_text(
                 _("Bed screw configuration:") + f" {nscrews}\n\n"
                 + _("Not supported for auto-detection, it needs to be configured in klipperscreen.conf")
             )
-            label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-            label.set_line_wrap(True)
             grid.attach(label, 1, 0, 3, 2)
             self.content.add(grid)
             return

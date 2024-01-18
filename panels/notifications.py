@@ -28,9 +28,8 @@ class Panel(ScreenPanel):
         clean_button.connect("clicked", self.clean)
         clean_button.set_hexpand(True)
 
-        topbar = Gtk.Box()
-        topbar.set_hexpand(False)
-        topbar.set_vexpand(False)
+        topbar = Gtk.Box(hexpand=False, vexpand=False)
+
         topbar.add(clean_button)
 
         tv = Gtk.TextView(editable=False, cursor_visible=False, wrap_mode=Gtk.WrapMode.WORD)
@@ -38,9 +37,7 @@ class Panel(ScreenPanel):
         tv.connect("button-press-event", self.tvClicked)
         tv.connect("size-allocate", self._autoscroll)
 
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_hexpand(True)
-        scroll.set_vexpand(True)
+        scroll = Gtk.ScrolledWindow(hexpand=True, vexpand=True)
         scroll.add(tv)
 
         grid = self._gtk.HomogeneousGrid()

@@ -202,32 +202,22 @@ class Panel(ScreenPanel):
             self._screen._ws.klippy.gcode_script("G90")
 
     def add_option(self, boxname, opt_array, opt_name, option):
-        name = Gtk.Label()
+        name = Gtk.Label(hexpand=True, vexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.CENTER, wrap=True)
         name.set_markup(f"<big><b>{option['name']}</b></big>")
-        name.set_hexpand(True)
-        name.set_vexpand(True)
-        name.set_halign(Gtk.Align.START)
-        name.set_valign(Gtk.Align.CENTER)
-        name.set_line_wrap(True)
         name.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
 
-        dev = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        dev = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5,
+                      hexpand=True, vexpand=False, valign=Gtk.Align.CENTER)
         dev.get_style_context().add_class("frame-item")
-        dev.set_hexpand(True)
-        dev.set_vexpand(False)
-        dev.set_valign(Gtk.Align.CENTER)
         dev.add(name)
 
         if option['type'] == "binary":
-            box = Gtk.Box()
-            box.set_vexpand(False)
-            switch = Gtk.Switch()
-            switch.set_hexpand(False)
-            switch.set_vexpand(False)
-            switch.set_active(self._config.get_config().getboolean(option['section'], opt_name))
+            box = Gtk.Box(vexpand=False)
+            switch = Gtk.Switch(hexpand=False, vexpand=False,
+                                width_request=round(self._gtk.font_size * 7),
+                                height_request=round(self._gtk.font_size * 3.5),
+                                active=self._config.get_config().getboolean(option['section'], opt_name))
             switch.connect("notify::active", self.switch_config_option, option['section'], opt_name)
-            switch.set_property("width-request", round(self._gtk.font_size * 7))
-            switch.set_property("height-request", round(self._gtk.font_size * 3.5))
             box.add(switch)
             dev.add(box)
         elif option['type'] == "scale":

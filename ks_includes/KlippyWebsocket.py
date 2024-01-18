@@ -210,7 +210,7 @@ class MoonrakerApi:
             callback,
             *args
         )
-        
+
     def get_dir_info(self, callback=None, directory='gcodes', *args):
         logging.debug(f"Sending server.files.get_directory  {directory}")
         return self._ws.send_method(
@@ -219,7 +219,7 @@ class MoonrakerApi:
             callback,
             *args
         )
-        
+
     def get_file_metadata(self, filename, callback=None, *args):
         return self._ws.send_method(
             "server.files.metadata",

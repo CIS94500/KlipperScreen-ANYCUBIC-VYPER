@@ -17,7 +17,7 @@ class Prompt:
 
     def _key_press_event(self, widget, event):
         keyval_name = Gdk.keyval_name(event.keyval)
-        if keyval_name == "Escape" or keyval_name == "BackSpace":
+        if keyval_name in ["Escape", "BackSpace"]:
             self.close()
 
     def decode(self, data):
@@ -80,7 +80,7 @@ class Prompt:
             # content.attach(title, 0, 0, 1, 1)
             # content.attach(close, 1, 0, 1, 1)
         content.attach(scroll, 0, 1, 2, 1)
-             
+
         self.prompt = self.gtk.Dialog(self.screen, self.buttons, content, self.response)
         self.prompt.set_title(self.window_title)
         self.prompt.connect("key-press-event", self._key_press_event)

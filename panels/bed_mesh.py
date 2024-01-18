@@ -31,17 +31,16 @@ class Panel(ScreenPanel):
             self.buttons['clear'].set_hexpand(True)
             self.buttons['calib'].connect("clicked", self.calibrate_mesh)
             self.buttons['calib'].set_hexpand(True)
+            topbar = Gtk.Box(spacing=5, hexpand=True, vexpand=False)
 
-            topbar = Gtk.Box(spacing=5)
-            topbar.set_hexpand(True)
-            topbar.set_vexpand(False)
+
             topbar.add(self.buttons['add'])
             topbar.add(self.buttons['clear'])
             #topbar.add(self.buttons['calib'])
 
             # Create a grid for all profiles
-            self.labels['profiles'] = Gtk.Grid()
-            self.labels['profiles'].set_valign(Gtk.Align.CENTER)
+            self.labels['profiles'] = Gtk.Grid(valign=Gtk.Align.CENTER)
+
 
             scroll = self._gtk.ScrolledWindow()
             scroll.add(self.labels['profiles'])
@@ -276,10 +275,8 @@ class Panel(ScreenPanel):
             box.pack_start(self.labels['profile_name'], True, True, 5)
             box.pack_start(save, False, False, 5)
 
-            self.labels['create_profile'] = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-            self.labels['create_profile'].set_valign(Gtk.Align.CENTER)
-            self.labels['create_profile'].set_hexpand(True)
-            self.labels['create_profile'].set_vexpand(True)
+            self.labels['create_profile'] = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5,
+                                                    valign=Gtk.Align.CENTER, hexpand=True, vexpand=True)
             self.labels['create_profile'].pack_start(pl, True, True, 5)
             self.labels['create_profile'].pack_start(box, True, True, 5)
 
