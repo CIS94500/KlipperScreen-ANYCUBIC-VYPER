@@ -680,7 +680,7 @@ class Panel(ScreenPanel):
             self.labels["time_left"].set_label(self.format_eta(estimated, print_duration))
             remaining_label = f"{self.labels['left'].get_text()}  {self.labels['time_left'].get_text()}"
             self.buttons['left'].set_label(remaining_label)
-            self.update_progress(progress)
+        self.update_progress(progress)
 
     def update_progress(self, progress: float):
         self.progress = progress
