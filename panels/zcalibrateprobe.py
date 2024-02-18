@@ -124,7 +124,7 @@ class Panel(ScreenPanel):
         self._screen._ws.klippy.gcode_script(f"SET_GCODE_OFFSET Z=0")
 
         if not self.macro_calibrate:
-            self._screen.show_popup_message("veuillez patienter pendant la chauffe des éléments...", 1)
+            self._screen.show_popup_message("Please wait while the elements heat up...", 1)
             self._screen._ws.klippy.gcode_script(f"M104 S210\nM140 S60\nM109 S210\nM190 S60")
             if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
                 self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)

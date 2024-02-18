@@ -42,6 +42,12 @@ msgstr "Veuillez déconnecter le palpeur avant le déplacement vers Z=0."
 msgid "Do you want to run the bed leveling ?"
 msgstr "Voulez vous effectuez le maillage du plateau ?"
 
+msgid "Do you want to start endstop calibration ?"
+msgstr "Voulez vous effectuez la calibration des endstop ?"
+
+msgid "Please wait while the elements heat up..."
+msgstr "Veuillez patienter pendant la chauffe des éléments..."
+
 msgid "Move Z0"
 msgstr "Aller à Z0"
 
@@ -269,6 +275,9 @@ msgstr "Fichier"
 msgid "File:"
 msgstr "Fichier:"
 
+msgid "Filter"
+msgstr "Filtre"
+
 msgid "Finding ADXL"
 msgstr "Recherche de l’ADXL"
 
@@ -341,6 +350,9 @@ msgstr "Hôte"
 msgid "Hostname"
 msgstr "Nom d’hôte"
 
+msgid "ID"
+msgstr "ID"
+
 msgid "Icon Theme"
 msgstr "Thème"
 
@@ -348,7 +360,7 @@ msgid "Initializing printer..."
 msgstr "Démarrage de l'imprimante..."
 
 msgid "Initiate a PID calibration for:"
-msgstr ""
+msgstr "Lancer un étalonnage PID pour :"
 
 msgid "Input Shaper"
 msgstr "Input Shaper"
@@ -360,7 +372,7 @@ msgid "Invalid"
 msgstr "Invalide"
 
 msgid "Invalid password"
-msgstr "Mauvais mot de passe"
+msgstr "Mot de passe invalide"
 
 msgid "Invert X"
 msgstr "Inverser l'axe X"
@@ -373,6 +385,7 @@ msgstr "Inverser l'axe Z"
 
 msgid "It may take more than 5 minutes depending on the heater power."
 msgstr ""
+"Cela peut prendre plus de 5 minutes en fonction de la puissance du chauffage."
 
 msgid "Klipper Restart"
 msgstr "Redémarrer Klipper"
@@ -401,8 +414,14 @@ msgstr "Langue"
 msgid "Large"
 msgstr "Grande"
 
+msgid "Last Used"
+msgstr "Dernière utilisation"
+
 msgid "Layer:"
 msgstr "Couche:"
+
+msgid "Leds"
+msgstr "Leds"
 
 msgid "Left:"
 msgstr "Restant:"
@@ -412,6 +431,9 @@ msgstr "Limites"
 
 msgid "Load"
 msgstr "Charger"
+
+msgid "Loading..."
+msgstr "Chargement en cours..."
 
 msgid "Lower Nozzle"
 msgstr "Rapprocher la buse"
@@ -424,6 +446,9 @@ msgstr "Macros"
 
 msgid "Main Menu"
 msgstr "Menu principal"
+
+msgid "Material"
+msgstr "Matériau"
 
 msgid "Max"
 msgstr "Max"
@@ -465,7 +490,7 @@ msgid "Moonraker: connected"
 msgstr "Moonraker: connecté"
 
 msgid "More"
-msgstr ""
+msgstr "Plus"
 
 msgid "Move"
 msgstr "Mouvement"
@@ -485,6 +510,15 @@ msgstr "Jamais"
 msgid "New"
 msgstr "Nouveau"
 
+msgid "No elegible macros:"
+msgstr "Macros non éligibles :"
+
+msgid "No mesh has been loaded"
+msgstr ""
+
+msgid "No wireless interface has been found"
+msgstr "Aucune interface sans fil n'a été trouvée"
+
 msgid ""
 "Not supported for auto-detection, it needs to be configured in klipperscreen."
 "conf"
@@ -492,8 +526,17 @@ msgstr ""
 "Non pris en charge pour la détection automatique, il doit être configuré "
 "dans klipperscreen.conf"
 
+msgid "Not working or not configured"
+msgstr ""
+
 msgid "Nothing selected"
 msgstr "Rien de sélectionné"
+
+msgid "Notification log empty"
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
 
 #, python-format
 msgid "Outdated by %d"
@@ -613,7 +656,7 @@ msgid "Retry"
 msgstr "Réessayez"
 
 msgid "Retrying"
-msgstr "Réessayez"
+msgstr "Réessaye"
 
 msgid "Save"
 msgstr "Enregistrer"
@@ -688,6 +731,9 @@ msgstr "Vitesse:"
 msgid "Square Corner Velocity"
 msgstr "Vélocité des angles droits"
 
+msgid "Standby"
+msgstr "En attente"
+
 msgid "Start"
 msgstr "Démarrer"
 
@@ -754,6 +800,12 @@ msgstr "Mise à jour"
 msgid "Uploaded"
 msgstr "Envoyé"
 
+msgid "Warning"
+msgstr ""
+
+msgid "WebRTC is not supported by the backend trying Stream"
+msgstr ""
+
 msgid "XY Move Speed (mm/s)"
 msgstr "Vitesse de déplacement XY (mm/s)"
 
@@ -787,6 +839,12 @@ msgid "hour"
 msgid_plural "hours"
 msgstr[0] "heure"
 msgstr[1] "heures"
+
+msgid "macros that use 'rename_existing' are hidden"
+msgstr "les macros qui utilisent 'rename_existing' sont cachées"
+
+msgid "macros with a name starting with '_' are hidden"
+msgstr "les macros dont le nom commence par '_' sont cachées"
 
 msgid "minute"
 msgid_plural "minutes"

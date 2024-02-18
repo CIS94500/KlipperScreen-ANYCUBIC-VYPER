@@ -5,12 +5,11 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk, Pango
-from contextlib import suppress
 from math import pi, sqrt, trunc
 from statistics import median
 from time import time
 from ks_includes.screen_panel import ScreenPanel
-
+from ks_includes.KlippyGtk import find_widget
 
 class Panel(ScreenPanel):
     def __init__(self, screen, title):
@@ -29,7 +28,7 @@ class Panel(ScreenPanel):
         self.f_layer_h = self.layer_h = 1
         self.oheight = 0.0
         self.current_extruder = None
-        self.fila_section = 0.0
+        self.fila_section = pi * ((1.75 / 2) ** 2)
         self.filename_label = self.filename = self.prev_pos = self.prev_gpos = None
         self.can_close = False
         self.flow_timeout = self.animation_timeout = None
@@ -114,7 +113,10 @@ class Panel(ScreenPanel):
         overlay.add_overlay(box)
         self.grid.attach(overlay, 0, 0, 1, 1)
 
-        self.labels['thumbnail'] = self._gtk.Image()
+        self.labels['thumbnail'] = self._gtk.Button("file")
+        self.labels['thumbnail'].connect("clicked", self.show_fullscreen_thumbnail)
+        self.labels['thumbnail'].set_hexpand(False)
+        
         self.labels['info_grid'] = Gtk.Grid()
         self.labels['info_grid'].attach(self.labels['thumbnail'], 0, 0, 1, 1)
         if self._printer.get_tools():
@@ -346,6 +348,7 @@ class Panel(ScreenPanel):
         if self.flow_timeout is not None:
             GLib.source_remove(self.flow_timeout)
             self.flow_timeout = None
+        self._files.remove_file_callback(self._callback_metadata)
 
     def create_buttons(self):
 
@@ -395,9 +398,7 @@ class Panel(ScreenPanel):
             {"name": _("Apply"), "response": Gtk.ResponseType.APPLY, "style": 'dialog-default'},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
-        dialog = self._gtk.Dialog(self._screen, buttons, grid, self.save_confirm, device)
-        dialog.set_title(_("Save Z"))
-
+        self._gtk.Dialog(_("Save Z"), buttons, grid, self.save_confirm, device)
     def save_confirm(self, dialog, response_id, device):
         self._gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.APPLY:
@@ -447,9 +448,7 @@ class Panel(ScreenPanel):
         label.set_valign(Gtk.Align.CENTER)
         label.set_line_wrap(True)
         label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-
-        dialog = self._gtk.Dialog(self._screen, buttons, label, self.cancel_confirm)
-        dialog.set_title(_("Cancel"))
+        self._gtk.Dialog(_("Cancel"), buttons, label, self.cancel_confirm)
 
     def cancel_confirm(self, dialog, response_id):
         self._gtk.remove_dialog(dialog)
@@ -479,12 +478,15 @@ class Panel(ScreenPanel):
             self.buttons[arg].set_sensitive(False)
 
     def _callback_metadata(self, newfiles, deletedfiles, modifiedfiles):
-        if not bool(self.file_metadata) and self.filename in modifiedfiles:
+        if self.filename in modifiedfiles:
             self.update_file_metadata()
             self._files.remove_file_callback(self._callback_metadata)
 
     def new_print(self):
         self._screen.close_screensaver()
+        if "virtual_sdcard" in self._printer.data:
+            # logging.info("reseting progress")
+            self._printer.data["virtual_sdcard"]["progress"] = 0
         self.update_progress(0.0)
 
     def process_update(self, action, data):
@@ -523,41 +525,41 @@ class Panel(ScreenPanel):
                 f"{data['display_status']['message'] if data['display_status']['message'] is not None else ''}"
             )
 
-        with suppress(KeyError):
-            if data["toolhead"]["extruder"] != self.current_extruder:
+        if 'toolhead' in data:
+            if 'extruder' in data['toolhead'] and data['toolhead']['extruder'] != self.current_extruder:
                 self.labels['temp_grid'].remove_column(0)
                 self.labels['temp_grid'].insert_column(0)
                 self.current_extruder = data["toolhead"]["extruder"]
                 self.labels['temp_grid'].attach(self.buttons['extruder'][self.current_extruder], 0, 0, 1, 1)
                 self._screen.show_all()
-        with suppress(KeyError):
-            self.labels['max_accel'].set_label(f"{data['toolhead']['max_accel']:.0f} {self.mms2}")
-        with suppress(KeyError):
+            if "max_accel" in data["toolhead"]:
+                self.labels['max_accel'].set_label(f"{data['toolhead']['max_accel']:.0f} {self.mms2}")
+        if 'extruder' in data and 'pressure_advance' in data['extruder']:
             self.labels['advance'].set_label(f"{data['extruder']['pressure_advance']:.2f}")
 
-        if "gcode_move" in data:
-            with suppress(KeyError):
+        if 'gcode_move' in data:
+            if 'gcode_position' in data['gcode_move']:
                 self.pos_z = round(float(data['gcode_move']['gcode_position'][2]), 2)
                 self.buttons['z'].set_label(f"Z: {self.pos_z:6.2f}{f'/{self.oheight}' if self.oheight > 0 else ''}")
-            with suppress(KeyError):
-                self.extrusion = round(float(data["gcode_move"]["extrude_factor"]) * 100)
+            if 'extrude_factor' in data['gcode_move']:
+                self.extrusion = round(float(data['gcode_move']['extrude_factor']) * 100)
                 self.labels['extrude_factor'].set_label(f"{self.extrusion:3}%")
-            with suppress(KeyError):
-                self.speed = round(float(data["gcode_move"]["speed_factor"]) * 100)
-                self.speed_factor = float(data["gcode_move"]["speed_factor"])
+            if 'speed_factor' in data['gcode_move']:
+                self.speed = round(float(data['gcode_move']['speed_factor']) * 100)
+                self.speed_factor = float(data['gcode_move']['speed_factor'])
                 self.labels['speed_factor'].set_label(f"{self.speed:3}%")
-            with suppress(KeyError):
+            if 'speed' in data['gcode_move']:
                 self.req_speed = round(float(data["gcode_move"]["speed"]) / 60 * self.speed_factor)
                 self.labels['req_speed'].set_label(
                     f"{self.speed}% {self.vel:3.0f}/{self.req_speed:3.0f} "
                     f"{f'{self.mms}' if self.vel < 1000 and self.req_speed < 1000 and self._screen.width > 500 else ''}"
                 )
                 self.buttons['speed'].set_label(self.labels['req_speed'].get_label())
-            with suppress(KeyError):
-                self.zoffset = float(data["gcode_move"]["homing_origin"][2])
+            if 'homing_origin' in data['gcode_move']:
+                self.zoffset = float(data['gcode_move']['homing_origin'][2])
                 self.labels['zoffset'].set_label(f"{self.zoffset:.3f} {self.mm}")
-        if "motion_report" in data:
-            with suppress(KeyError):
+        if 'motion_report' in data:
+            if 'live_position' in data['motion_report']:
                 self.labels['pos_x'].set_label(f"X: {data['motion_report']['live_position'][0]:6.2f}")
                 self.labels['pos_y'].set_label(f"Y: {data['motion_report']['live_position'][1]:6.2f}")
                 self.labels['pos_z'].set_label(f"Z: {data['motion_report']['live_position'][2]:6.2f}")
@@ -569,14 +571,14 @@ class Panel(ScreenPanel):
                     evelocity = (pos[3] - self.prev_pos[0][3]) / interval
                     self.flowstore.append(self.fila_section * evelocity)
                 self.prev_pos = [pos, now]
-            with suppress(KeyError):
+            if 'live_velocity' in data['motion_report']:
                 self.vel = float(data["motion_report"]["live_velocity"])
                 self.labels['req_speed'].set_label(
                     f"{self.speed}% {self.vel:3.0f}/{self.req_speed:3.0f} "
                     f"{f'{self.mms}' if self.vel < 1000 and self.req_speed < 1000 and self._screen.width > 500 else ''}"
                 )
                 self.buttons['speed'].set_label(self.labels['req_speed'].get_label())
-            with suppress(KeyError):
+            if 'live_extruder_velocity' in data['motion_report']:
                 self.flowstore.append(self.fila_section * float(data["motion_report"]["live_extruder_velocity"]))
         fan_label = ""
         for fan in self.fans:
@@ -585,28 +587,26 @@ class Panel(ScreenPanel):
         if fan_label:
             self.buttons['fan'].set_label(fan_label[:12])
         if "print_stats" in data:
-            with suppress(KeyError):
+            if 'state' in data['print_stats']:
                 self.set_state(
                     data["print_stats"]["state"],
                     msg=f'{data["print_stats"]["message"] if "message" in data["print_stats"] else ""}'
                 )
-            with suppress(KeyError):
+            if 'filename' in data['print_stats']:
                 self.update_filename(data['print_stats']["filename"])
-            with suppress(KeyError):
-                if 'filament_used' in data["print_stats"]:
-                    self.labels['filament_used'].set_label(
-                        f"{float(data['print_stats']['filament_used']) / 1000:.1f} m"
+            if 'filament_used' in data['print_stats']:
+                self.labels['filament_used'].set_label(
+                    f"{float(data['print_stats']['filament_used']) / 1000:.1f} m"
+                )
+                if ('total_layer' in data['print_stats']['info']
+                        and data["print_stats"]['info']['total_layer'] is not None):
+                    self.labels['total_layers'].set_label(f"{data['print_stats']['info']['total_layer']}")
+                if ('current_layer' in data['print_stats']['info']
+                        and data['print_stats']['info']['current_layer'] is not None):
+                    self.labels['layer'].set_label(
+                        f"{data['print_stats']['info']['current_layer']} / "
+                        f"{self.labels['total_layers'].get_text()}"
                     )
-            if 'info' in data["print_stats"]:
-                with suppress(KeyError):
-                    if data["print_stats"]['info']['total_layer'] is not None:
-                        self.labels['total_layers'].set_label(f"{data['print_stats']['info']['total_layer']}")
-                with suppress(KeyError):
-                    if data["print_stats"]['info']['current_layer'] is not None:
-                        self.labels['layer'].set_label(
-                            f"{data['print_stats']['info']['current_layer']} / "
-                            f"{self.labels['total_layers'].get_text()}"
-                        )
             elif "layer_height" in self.file_metadata and "object_height" in self.file_metadata:
                 self.labels['layer'].set_label(
                     f"{1 + round((self.pos_z - self.f_layer_h) / self.layer_h)} / "
@@ -630,25 +630,26 @@ class Panel(ScreenPanel):
         if not self.file_metadata.get('filament_total'):  # No-extrusion
             print_duration = total_duration
         fila_used = float(self._printer.get_stat('print_stats', 'filament_used'))
-        progress = float(self._printer.get_stat("virtual_sdcard", "progress"))
+        if "gcode_start_byte" in self.file_metadata:
+            progress = (max(self._printer.get_stat('virtual_sdcard', 'file_position') -
+                        self.file_metadata['gcode_start_byte'], 0) / (self.file_metadata['gcode_end_byte'] -
+                        self.file_metadata['gcode_start_byte']))
+        else:
+            progress = self._printer.get_stat('virtual_sdcard', 'progress')
         self.labels["duration"].set_label(self.format_time(total_duration))
         elapsed_label = f"{self.labels['elapsed'].get_text()}  {self.labels['duration'].get_text()}"
         self.buttons['elapsed'].set_label(elapsed_label)
         estimated = slicer_time = filament_time = file_time = 0
         timeleft_type = self._config.get_config()['main'].get('print_estimate_method', 'auto')
 
-        with suppress(KeyError):
-            if self.file_metadata['estimated_time'] > 1:
-                # speed_factor compensation based on empirical testing
-                spdcomp = sqrt(self.speed_factor)
-                slicer_time = ((self.file_metadata['estimated_time']) / spdcomp)
-                self.labels["slicer_time"].set_label(self.format_time(slicer_time))
-
-        with suppress(Exception):
-            if self.file_metadata['filament_total'] >= fila_used:
-                filament_time = (print_duration / (fila_used / self.file_metadata['filament_total']))
-                self.labels["filament_time"].set_label(self.format_time(filament_time))
-        with suppress(ZeroDivisionError):
+        if 'estimated_time' in self.file_metadata and self.file_metadata['estimated_time'] > 1:
+            spdcomp = sqrt(self.speed_factor)
+            slicer_time = ((self.file_metadata['estimated_time']) / spdcomp)
+            self.labels["slicer_time"].set_label(self.format_time(slicer_time))
+        if 'filament_total' in self.file_metadata and self.file_metadata['filament_total'] >= fila_used > 0:
+            filament_time = (print_duration / (fila_used / self.file_metadata['filament_total']))
+            self.labels["filament_time"].set_label(self.format_time(filament_time))
+        if progress > 0:
             file_time = (print_duration / progress)
             self.labels["file_time"].set_label(self.format_time(file_time))
 
@@ -675,7 +676,6 @@ class Panel(ScreenPanel):
                 estimated = file_time
         if estimated > 1:
             progress = min(max(print_duration / estimated, 0), 1)
-
             self.labels["est_time"].set_label(self.format_time(estimated))
             self.labels["time_left"].set_label(self.format_eta(estimated, print_duration))
             remaining_label = f"{self.labels['left'].get_text()}  {self.labels['time_left'].get_text()}"
@@ -766,14 +766,30 @@ class Panel(ScreenPanel):
             width = self._screen.width * 0.9
             height = self._screen.height / 4
         else:
-            width = self._screen.width / 3
+            width = self._screen.width * .25
             height = self._gtk.content_height * 0.47
         pixbuf = self.get_file_image(self.filename, width, height)
         logging.debug(self.filename)
         if pixbuf is None:
             logging.debug("no pixbuf")
-            pixbuf = self._gtk.PixbufFromIcon("file", width / 2, height / 2)
-        self.labels['thumbnail'].set_from_pixbuf(pixbuf)
+            return
+        image = find_widget(self.labels['thumbnail'], Gtk.Image)
+        if image:
+            image.set_from_pixbuf(pixbuf)
+
+    def show_fullscreen_thumbnail(self, widget):
+        buttons = [
+            {"name": _("Close"), "response": Gtk.ResponseType.CANCEL}
+        ]
+        pixbuf = self.get_file_image(self.filename, self._screen.width * .9, self._screen.height * .75)
+        if pixbuf is None:
+            return
+        image = Gtk.Image.new_from_pixbuf(pixbuf)
+        image.set_vexpand(True)
+        self._gtk.Dialog(self.filename, buttons, image, self.close_fullscreen_thumbnail)
+
+    def close_fullscreen_thumbnail(self, dialog, response_id):
+        self._gtk.remove_dialog(dialog)
 
     def update_filename(self, filename):
         if not filename:
@@ -820,7 +836,7 @@ class Panel(ScreenPanel):
             if "filament_total" in self.file_metadata:
                 self.labels['filament_total'].set_label(f"{float(self.file_metadata['filament_total']) / 1000:.1f} m")
         else:
-            self.file_metadata = {}
             logging.debug("Cannot find file metadata. Listening for updated metadata")
             self._screen.files.add_file_callback(self._callback_metadata)
+            self._files.request_metadata(self.filename)
         self.show_file_thumbnail()

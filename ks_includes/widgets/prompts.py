@@ -81,8 +81,12 @@ class Prompt:
             # content.attach(close, 1, 0, 1, 1)
         content.attach(scroll, 0, 1, 2, 1)
 
-        self.prompt = self.gtk.Dialog(self.screen, self.buttons, content, self.response)
-        self.prompt.set_title(self.window_title)
+        self.prompt = self.gtk.Dialog(
+            self.window_title,
+            self.buttons,
+            content,
+            self.response,
+        )
         self.prompt.connect("key-press-event", self._key_press_event)
         self.prompt.connect("delete-event", self.close)
         self.screen.wake_screen()

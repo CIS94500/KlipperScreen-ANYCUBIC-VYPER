@@ -125,8 +125,7 @@ class Panel(ScreenPanel):
                     {"name": _("Recover Soft"), "response": Gtk.ResponseType.APPLY, "style": 'dialog-info'},
                     {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
                 ]
-                dialog = self._gtk.Dialog(self._screen, recoverybuttons, scroll, self.reset_confirm, program)
-                dialog.set_title(_("Recover"))
+                self._gtk.Dialog(_("Recover"), recoverybuttons, scroll, self.reset_confirm, program)
                 return
             else:
                 if info['version'] == info['remote_version']:
@@ -181,8 +180,7 @@ class Panel(ScreenPanel):
             {"name": _("Update"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
-        dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.update_confirm, program)
-        dialog.set_title(_("Update"))
+        self._gtk.Dialog(_("Update"), buttons, scroll, self.update_confirm, program)
 
     def update_confirm(self, dialog, response_id, program):
         self._gtk.remove_dialog(dialog)
@@ -288,8 +286,10 @@ class Panel(ScreenPanel):
         vbox.set_valign(Gtk.Align.CENTER)
         if method == "reboot":
             label = Gtk.Label(label=_("Are you sure you wish to reboot the system?"))
+            title = _("Restart")
         else:
             label = Gtk.Label(label=_("Are you sure you wish to shutdown the system?"))
+            title = _("Shutdown")
         vbox.add(label)
         scroll.add(vbox)
 #begin VSYS
@@ -298,11 +298,8 @@ class Panel(ScreenPanel):
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
 #end VSYS
-        dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.reboot_poweroff_confirm, method)
-        if method == "reboot":
-            dialog.set_title(_("Restart"))
-        else:
-            dialog.set_title(_("Shutdown"))
+
+        self._gtk.Dialog(title, buttons, scroll, self.reboot_poweroff_confirm, method)
 
     def reboot_poweroff_confirm(self, dialog, response_id, method):
         self._gtk.remove_dialog(dialog)
@@ -331,8 +328,8 @@ class Panel(ScreenPanel):
             {"name": _("Computer"), "response": Gtk.ResponseType.APPLY, "style": 'dialog-warning'},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
-        dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.reboot_choice_confirm)
-        dialog.set_title(_("Restart"))
+        self._gtk.Dialog(_("Restart"), buttons, scroll, self.reboot_choice_confirm)
+
 
     def reboot_choice_confirm(self, dialog, response_id):
         self._gtk.remove_dialog(dialog)

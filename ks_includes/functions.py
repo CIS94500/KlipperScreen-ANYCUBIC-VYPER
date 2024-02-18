@@ -99,6 +99,8 @@ def get_software_version():
         logging.exception("Error runing git describe")
     return "?"
 
+def parse_bool(value):
+    return value.lower() == "true"
 
 def patch_threading_excepthook():
     """Installs our exception handler into the threading modules Thread object

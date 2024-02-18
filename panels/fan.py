@@ -82,10 +82,7 @@ class Panel(ScreenPanel):
             fan_col.add(scale)
             fan_col.add(max_btn)
         else:
-            scale = Gtk.ProgressBar()
-            scale.set_fraction(speed)
-            scale.set_show_text(True)
-            scale.set_hexpand(True)
+            scale = Gtk.ProgressBar(hexpand=True, show_text=True, fraction=speed)
             fan_col.pack_start(scale, True, True, 10)
 
         fan_row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

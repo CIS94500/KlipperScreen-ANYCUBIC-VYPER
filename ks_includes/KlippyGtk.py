@@ -8,18 +8,25 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, GdkPixbuf, Gio, Gtk, Pango
 
 
-def format_label(widget, lines=2):
-    if type(widget) == Gtk.Label:
+def find_widget(widget, wanted_type):
+    # Returns a widget of wanted_type or None
+    if isinstance(widget, wanted_type):
         return widget
-    if type(widget) in (Gtk.Container, Gtk.Bin, Gtk.Button, Gtk.Alignment, Gtk.Box):
+    if isinstance(widget, (Gtk.Container, Gtk.Bin, Gtk.Button, Gtk.Alignment, Gtk.Box)):
         for _ in widget.get_children():
-            lbl = format_label(_)
-            if lbl is not None:
-                lbl.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                lbl.set_line_wrap(True)
-                lbl.set_ellipsize(True)
-                lbl.set_ellipsize(Pango.EllipsizeMode.END)
-                lbl.set_lines(lines)
+            result = find_widget(_, wanted_type)
+            if result is not None:
+                return result
+
+
+def format_label(widget, lines=2):
+    label = find_widget(widget, Gtk.Label)
+    if label is not None:
+        label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        label.set_line_wrap(True)
+        label.set_ellipsize(True)
+        label.set_ellipsize(Pango.EllipsizeMode.END)
+        label.set_lines(lines)
 
 
 class KlippyGtk:
@@ -153,14 +160,9 @@ class KlippyGtk:
     def Button(self, image_name=None, label=None, style=None, scale=None, position=Gtk.PositionType.TOP, lines=2):
         if self.font_size_type == "max" and label is not None and scale is None:
             image_name = None
-        b = Gtk.Button()
+        b = Gtk.Button(hexpand=True, vexpand=True, can_focus=False, image_position=position, always_show_image=True)
         if label is not None:
             b.set_label(label.replace("\n", " "))
-        b.set_hexpand(True)
-        b.set_vexpand(True)
-        b.set_can_focus(False)
-        b.set_image_position(position)
-        b.set_always_show_image(True)
         if image_name is not None:
             if scale is None:
                 scale = self.button_image_scale
@@ -175,12 +177,10 @@ class KlippyGtk:
         b.connect("clicked", self.screen.reset_screensaver_timeout)
         return b
 
-    def Dialog(self, screen, buttons, content, callback=None, *args):
-        dialog = Gtk.Dialog()
-        dialog.set_default_size(screen.width, screen.height)
-        dialog.set_resizable(False)
-        dialog.set_transient_for(screen)
-        dialog.set_modal(True)
+    def Dialog(self, title, buttons, content, callback=None, *args):
+        dialog = Gtk.Dialog(title=title, modal=True, transient_for=self.screen,
+                            default_width=self.width, default_height=self.height, resizable=False)
+        dialog.fullscreen()
 
         max_buttons = 3 if self.screen.vertical_mode else 4
         if len(buttons) > max_buttons:
@@ -209,7 +209,7 @@ class KlippyGtk:
         content_area.set_margin_start(5)
         content_area.set_margin_end(5)
         content_area.set_margin_top(5)
-        content_area.set_margin_bottom(0)
+        content_area.set_margin_bottom(5)
         # content.set_valign(Gtk.Align.CENTER)
         content_area.add(content)
 

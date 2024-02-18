@@ -80,8 +80,7 @@ class Panel(ScreenPanel):
             {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
-        dialog = self._gtk.Dialog(self._screen, buttons, scroll, self.mesh_choice_confirm)
-        dialog.set_title(_("Bed Mesh"))
+        self._gtk.Dialog(_("Bed Mesh"), buttons, scroll, self.mesh_choice_confirm)
 
     def mesh_choice_confirm(self, dialog, response_id):
         self._gtk.remove_dialog(dialog)
