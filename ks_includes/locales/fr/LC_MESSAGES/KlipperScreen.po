@@ -223,6 +223,18 @@ msgstr "Désactiver les moteurs"
 msgid "Distance (mm)"
 msgstr "Distance (mm)"
 
+msgid "Error clearing active spool"
+msgstr "Erreur lors de la suppression de la bobine active"
+
+msgid "Error getting active spool"
+msgstr "Erreur lors de l'obtention de la bobine active"
+
+msgid "Error setting active spool"
+msgstr "Erreur lors de la configuration de la bobine active"
+
+msgid "Error trying to fetch spools"
+msgstr "Erreur lors de la tentative de récupération des bobines"
+
 #, python-format
 msgid "Do you want to recover %s?"
 msgstr "Voulez-vous récupérer %s ?"

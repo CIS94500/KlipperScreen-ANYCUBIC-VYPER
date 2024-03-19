@@ -7,19 +7,18 @@ It's strongly recommended to test it and ensure your hardware is working with Ra
 Once you have established that the screen is working, then proceed installing KlipperScreen.
 
 ## Setup
-This install process is meant for a non-desktop version of the OS for example RaspberryOS Lite, but it should work on other debian derivatives.
+The installation process is meant for a non-desktop version of the OS for example RaspberryOS Lite, but it should work on other debian derivatives.
+
+[Click to learn how to check if you installed a desktop version](FAQ.md#how-to-check-if-you-have-a-desktop-environment)
 
 If you installed a desktop (GUI version) of the OS and want to run KlipperScreen exclusively then do:
 ```sh title="Boot to console / KlipperScreen"
-sudo systemctl set-default multi-user.target
-sudo reboot
+sudo systemctl set-default multi-user.target && sudo reboot
 ```
 to undo and go back to the desktop environment:
 ```sh title="Boot to the desktop"
-sudo systemctl set-default graphical.target
-sudo reboot
+sudo systemctl set-default graphical.target && sudo reboot
 ```
-
 
 ## Auto install
 
@@ -39,7 +38,7 @@ Execute the following commands:
 
 ```sh
 cd ~/
-git clone https://github.com/jordanruthe/KlipperScreen.git
+git clone https://github.com/KlipperScreen/KlipperScreen.git
 cd ~/KlipperScreen
 ./scripts/KlipperScreen-install.sh
 ```
@@ -51,6 +50,7 @@ If you need a custom location for the configuration file, you can add -c or --co
 the location of your configuration file.
 
 At this point KlipperScreen should be working, if it doesn't start then go to the [troubleshooting page](Troubleshooting.md)
+!!! warning
 
 ## Moonraker configuration
 
@@ -66,7 +66,7 @@ trusted_clients:
 
     Will require the [moonraker api key](https://moonraker.readthedocs.io/en/latest/installation/#retrieving-the-api-key) in [KlipperScreen.conf](Configuration.md)
 
-If you wish to use the update manager feature of moonraker for KlipperScreen, add the following block to the moonraker.conf:
+If you wish to use the update manager feature of moonraker for KlipperScreen, add the following block to `moonraker.conf`:
 
 ```ini title="moonraker.conf"
 [update_manager KlipperScreen]
@@ -80,3 +80,19 @@ managed_services: KlipperScreen
 ```
 !!! tip
     If you see warnings in other UIs ignore them until KlipperScreen finishes installing, and Moonraker is restarted.
+
+
+## Printer Configuration
+
+Some basic configuration needs to be applied for correct functionality.
+
+```ini title="printer.cfg"
+[virtual_sdcard]
+path: ~/printer_data/gcodes
+[display_status]
+[pause_resume]
+```
+
+## Macros
+
+You may need some macros for the printer to function as you expected, [read more in the macros page](macros.md)

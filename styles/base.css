@@ -380,6 +380,10 @@ trough {
     font-weight: bold;
 }
 
+.message_cpu_warning {
+    font-weight: bold;
+}
+
 .numpad{
     margin-top: 30px;
 }

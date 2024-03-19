@@ -25,6 +25,7 @@ class BasePanel(ScreenPanel):
             'printer_select': len(self._config.get_printers()) > 1,
         }
         self.current_extruder = None
+        self.last_usage_report = datetime.now() #cpu/mem high
         # Action bar buttons
         abscale = 0.8 #VSYS self.bts * 1.1
         self.control['back'] = self._gtk.Button('back', scale=abscale)
@@ -195,6 +196,25 @@ class BasePanel(ScreenPanel):
             self._screen._menu_go_back()
 
     def process_update(self, action, data):
+        if action == "notify_proc_stat_update":
+            cpu = (max(data["system_cpu_usage"][core] for core in data["system_cpu_usage"] if core.startswith("cpu")))
+            memory = (data["system_memory"]["used"] / data["system_memory"]["total"]) * 100
+            error = "message_cpu_warning"
+            ctx = self.titlebar.get_style_context()
+            if cpu > 85 or memory > 85:
+                self.last_usage_report = datetime.now()
+                if not ctx.has_class(error):
+                    ctx.add_class(error)
+                msg = f"CPU: {cpu:2.0f}%    RAM: {memory:2.0f}%"
+                self._screen.log_notification(msg, 3)
+                self.titlelbl.set_label(msg)
+            elif ctx.has_class(error):
+                if (datetime.now() - self.last_usage_report).seconds < 3:
+                    return
+                ctx.remove_class(error)
+                self.titlelbl.set_label(f"{self._screen.connecting_to_printer}")
+            return
+
         if action == "notify_update_response":
             if self.update_dialog is None:
                 self.show_update_dialog()
@@ -213,7 +233,8 @@ class BasePanel(ScreenPanel):
                         self._screen.updating = False
                         for dialog in self._screen.dialogs:
                             self._gtk.remove_dialog(dialog)
-
+            return
+            
         if action != "notify_status_update" or self._screen.printer is None:
             return
         devices = self._printer.get_temp_store_devices()

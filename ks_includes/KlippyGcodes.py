@@ -20,9 +20,6 @@ class KlippyGcodes:
 
     PROBE_CALIBRATE = "PROBE_CALIBRATE"
     Z_ENDSTOP_CALIBRATE = "Z_ENDSTOP_CALIBRATE"
-    TESTZ = "TESTZ Z="
-    ABORT = "ABORT"
-    ACCEPT = "ACCEPT"
 
     @staticmethod
     def set_bed_temp(temp):

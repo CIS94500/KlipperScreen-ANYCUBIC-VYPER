@@ -3,7 +3,7 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-from ks_includes.KlippyGcodes import KlippyGcodes
+
 from ks_includes.screen_panel import ScreenPanel
 
 class Panel(ScreenPanel):
@@ -16,11 +16,27 @@ class Panel(ScreenPanel):
         super().__init__(screen, title)
         macros = self._printer.get_gcode_macros()
         self.macro_calibrate = any("_START_CALIBRATE_PROBE" in macro.upper() for macro in macros)
-
+        
+        self.mesh_min = []
+        self.mesh_max = []
+        self.zero_ref = []
+        self.z_hop_speed = 15.0
+        self.z_hop = 5.0
         self.z_offset = None
         self.probe = self._printer.get_probe()
         if self.probe:
+            self.x_offset = float(self.probe['x_offset']) if "x_offset" in self.probe else 0.0
+            self.y_offset = float(self.probe['y_offset']) if "y_offset" in self.probe else 0.0
             self.z_offset = float(self.probe['z_offset'])
+            if "sample_retract_dist" in self.probe:
+                self.z_hop = float(self.probe['sample_retract_dist'])
+            if "speed" in self.probe:
+                self.z_hop_speed = float(self.probe['speed'])
+        else:
+            self.x_offset = 0.0
+            self.y_offset = 0.0
+            self.z_offset = 0.0
+        logging.info(f"Offset X:{self.x_offset} Y:{self.y_offset} Z:{self.z_offset}")
 
         grid = self._gtk.HomogeneousGrid()
         grid.set_row_homogeneous(False)
@@ -67,7 +83,24 @@ class Panel(ScreenPanel):
         grid.attach(distgrid, 1, 2, 2, 1)
         # nb bloc de decalage a partir de la gauche, nb bloc de decalage a partir du haut, longueur du nombre de bloc, ?? visible
         self.content.add(grid)
+        
+        self.set_functions()
+        
+    @staticmethod
+    def _csv_to_array(string):
+        return [float(i.strip()) for i in string.split(',')]
+        
+    def set_functions(self):
+        functions = []
 
+        if "BED_MESH_CALIBRATE" in self._printer.available_commands:
+            self.mesh_min = self._csv_to_array(self._printer.get_config_section("bed_mesh")['mesh_min'])
+            self.mesh_max = self._csv_to_array(self._printer.get_config_section("bed_mesh")['mesh_max'])
+            if 'zero_reference_position' in self._printer.get_config_section("bed_mesh"):
+                self.zero_ref = self._csv_to_array(
+                    self._printer.get_config_section("bed_mesh")['zero_reference_position'])
+        logging.info(f"Available functions for calibration: {functions}")
+        
     def process_busy(self, busy):
         if busy:
             for button in self.buttons:
@@ -108,8 +141,12 @@ class Panel(ScreenPanel):
         self.distance = distance
 
     def move(self, widget, direction):
-        self._screen._ws.klippy.gcode_script(KlippyGcodes.testz_move(f"{direction}{self.distance}"))
-
+        self._screen._ws.klippy.gcode_script(f"TESTZ Z={direction}{self.distance}")
+        
+    def accept_calibrate(self, widget):
+        self.mem_zoffset = 0
+        self._screen._ws.klippy.gcode_script(f"ACCEPT\nG90\nG1 Z10 F3600\nSAVE_CONFIG")
+        
     def abort(self, widget):
         logging.info("Aborting calibration")
         self._screen._ws.klippy.gcode_script(f"G0 Z10 F3600\nSET_GCODE_OFFSET Z={self.mem_zoffset}\nABORT")
@@ -117,93 +154,74 @@ class Panel(ScreenPanel):
         self._screen._menu_go_back()
 
     def home(self, widget):
-        self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
+        self._screen._ws.klippy.gcode_script("G28")
 
     def start_calibration(self, widget):
         self.mem_zoffset = self._printer.data["gcode_move"]["homing_origin"][2]
         self._screen._ws.klippy.gcode_script(f"SET_GCODE_OFFSET Z=0")
 
         if not self.macro_calibrate:
-            self._screen.show_popup_message("Please wait while the elements heat up...", 1)
+            self._screen.show_popup_message(_("Please wait while the elements heat up..."), 1)
             self._screen._ws.klippy.gcode_script(f"M104 S210\nM140 S60\nM109 S210\nM190 S60")
             if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
-                self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
-            self._move_to_position()
+                self._screen._ws.klippy.gcode_script("G28")
+            self._move_to_position(*self._get_probe_location())
             self._screen._ws.klippy.gcode_script(f"PROBE_CALIBRATE")
         else:
             self._screen._ws.klippy.gcode_script(f"_START_CALIBRATE_PROBE")
 
-    def _move_to_position(self):
-        x_position = y_position = None
-        z_hop = speed = None
-        # Get position from config
+    def _move_to_position(self, x, y):
+        if not x or not y:
+            self._screen.show_popup_message(_("Error: Couldn't get a position to probe"))
+            return
+        logging.info(f"Lifting Z: {self.z_hop}mm {self.z_hop_speed}mm/s")
+        self._screen._ws.klippy.gcode_script(f"G91\nG0 Z{self.z_hop} F{self.z_hop_speed * 60}")
+        logging.info(f"Moving to X:{x} Y:{y}")
+        self._screen._ws.klippy.gcode_script(f'G90\nG0 X{x} Y{y} F3000')
+
+    def _get_probe_location(self):
         if self.ks_printer_cfg is not None:
-            x_position = self.ks_printer_cfg.getfloat("calibrate_x_position", None)
-            y_position = self.ks_printer_cfg.getfloat("calibrate_y_position", None)
+            x = self.ks_printer_cfg.getfloat("calibrate_x_position", None)
+            y = self.ks_printer_cfg.getfloat("calibrate_y_position", None)
+            if x and y:
+                logging.debug(f"Using KS configured position: {x}, {y}")
+                return x, y
 
-        if "sample_retract_dist" in self.probe:
-            z_hop = self.probe['sample_retract_dist']
-        if "speed" in self.probe:
-            speed = self.probe['speed']
+        if self.zero_ref:
+            logging.debug(f"Using zero reference position: {self.zero_ref}")
+            return self.zero_ref[0] - self.x_offset, self.zero_ref[1] - self.y_offset
 
-        # Use safe_z_home position
-        if "safe_z_home" in self._printer.get_config_section_list():
-            safe_z = self._printer.get_config_section("safe_z_home")
-            safe_z_xy = safe_z['home_xy_position']
-            safe_z_xy = [str(i.strip()) for i in safe_z_xy.split(',')]
-            if x_position is None:
-                x_position = float(safe_z_xy[0])
-                logging.debug(f"Using safe_z x:{x_position}")
-            if y_position is None:
-                y_position = float(safe_z_xy[1])
-                logging.debug(f"Using safe_z y:{y_position}")
-            if 'z_hop' in safe_z:
-                z_hop = safe_z['z_hop']
-            if 'z_hop_speed' in safe_z:
-                speed = safe_z['z_hop_speed']
+        if ("safe_z_home" in self._printer.get_config_section_list() and
+                "Z_ENDSTOP_CALIBRATE" not in self._printer.available_commands):
+            return self._get_safe_z()
 
-        speed = 15 if speed is None else speed
-        z_hop = 5 if z_hop is None else z_hop
-        self._screen._ws.klippy.gcode_script(f"G91\nG0 Z{z_hop} F{float(speed) * 60}")
-        if self._printer.get_stat("gcode_move", "absolute_coordinates"):
-            self._screen._ws.klippy.gcode_script("G90")
+        x, y = self._calculate_position()
+        return x, y
 
-        if x_position is not None and y_position is not None:
-            logging.debug(f"Configured probing position X: {x_position} Y: {y_position}")
-            self._screen._ws.klippy.gcode_script(f'G0 X{x_position} Y{y_position} F3000')
-        else:
-            self._calculate_position()
+    def _get_safe_z(self):
+        safe_z = self._printer.get_config_section("safe_z_home")
+        safe_z_xy = self._csv_to_array(safe_z['home_xy_position'])
+        logging.debug(f"Using safe_z {safe_z_xy[0]}, {safe_z_xy[1]}")
+        if 'z_hop' in safe_z:
+            self.z_hop = float(safe_z['z_hop'])
+        if 'z_hop_speed' in safe_z:
+            self.z_hop_speed = float(safe_z['z_hop_speed'])
+        return safe_z_xy[0], safe_z_xy[1]
 
     def _calculate_position(self):
-        logging.debug("Position not configured, probing the middle of the bed")
+        if self.mesh_max and self.mesh_min:
+            mesh_mid_x = (self.mesh_min[0] + self.mesh_max[0]) / 2
+            mesh_mid_y = (self.mesh_min[1] + self.mesh_max[1]) / 2
+            logging.debug(f"Probe in the mesh center X:{mesh_mid_x} Y:{mesh_mid_y}")
+            return mesh_mid_x - self.x_offset, mesh_mid_y - self.y_offset
         try:
-            xmax = float(self._printer.get_config_section("stepper_x")['position_max'])
-            ymax = float(self._printer.get_config_section("stepper_y")['position_max'])
+            mid_x = float(self._printer.get_config_section("stepper_x")['position_max']) / 2
+            mid_y = float(self._printer.get_config_section("stepper_y")['position_max']) / 2
         except KeyError:
             logging.error("Couldn't get max position from stepper_x and stepper_y")
-            return
-        x_position = xmax / 2
-        y_position = ymax / 2
-        logging.info(f"Center position X:{x_position} Y:{y_position}")
-
-        # Find probe offset
-        x_offset = y_offset = None
-        if "x_offset" in self.probe:
-            x_offset = float(self.probe['x_offset'])
-        if "y_offset" in self.probe:
-            y_offset = float(self.probe['y_offset'])
-        logging.info(f"Offset X:{x_offset} Y:{y_offset}")
-        if x_offset is not None:
-            x_position = x_position - x_offset
-        if y_offset is not None:
-            y_position = y_position - y_offset
-
-        logging.info(f"Moving to X:{x_position} Y:{y_position}")
-        self._screen._ws.klippy.gcode_script(f'G0 X{x_position} Y{y_position} F3000')
-
-    def accept_calibrate(self, widget):
-        self.mem_zoffset = 0
-        self._screen._ws.klippy.gcode_script(f"ACCEPT\nG90\nG1 Z10 F3600\nSAVE_CONFIG")
+            return None, None
+        logging.debug(f"Probe in the center X:{mid_x} Y:{mid_y}")
+        return mid_x - self.x_offset, mid_y - self.y_offset
 
     def buttons_calibrating(self):
         self.buttons['start'].get_style_context().remove_class('color3')
@@ -233,7 +251,3 @@ class Panel(ScreenPanel):
         self.buttons['accept'].get_style_context().remove_class('color3')
         self.buttons['cancel'].set_sensitive(False)
         self.buttons['cancel'].get_style_context().remove_class('color2')
-
-    # def activate(self):
-        # This is only here because klipper doesn't provide a method to detect if it's calibrating
-        # self._screen._ws.klippy.gcode_script(KlippyGcodes.testz_move("+0.001"))

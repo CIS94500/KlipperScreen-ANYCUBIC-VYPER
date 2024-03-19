@@ -709,6 +709,7 @@ class KlipperScreen(Gtk.Window):
             logging.debug("Printer not initialized yet")
             self.printer.state = "not ready"
             return
+        self.files.refresh_files()
         self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
         self.base_panel_show_all()
 
@@ -760,8 +761,10 @@ class KlipperScreen(Gtk.Window):
             return
         elif action == "notify_status_update" and self.printer.state != "shutdown":
             self.printer.process_update(data)
-            #if 'manual_probe' in data and data['manual_probe']['is_active'] and 'zcalibrate' not in self._cur_panels: #VSYS
-                #self.show_panel("zcalibrate", _('Z Calibrate')) #VSYS
+            # if 'manual_probe' in data and data['manual_probe']['is_active'] and 'zcalibrate' not in self._cur_panels: #VSYS
+                # self.show_panel("zcalibrate", _('Z Calibrate')) #VSYS
+            if "screws_tilt_adjust" in data and 'bed_level' not in self._cur_panels:
+                self.show_panel("bed_level", _('Bed Level'))
         elif action == "notify_filelist_changed":
             if self.files is not None:
                 self.files.process_update(data)
@@ -840,8 +843,6 @@ class KlipperScreen(Gtk.Window):
         self.gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:
             self._send_action(None, method, params)
-        if method == "server.files.delete_directory":
-            GLib.timeout_add_seconds(2, self.files.refresh_files)
 
     def _send_action(self, widget, method, params):
         logging.info(f"{method}: {params}")
@@ -941,7 +942,6 @@ class KlipperScreen(Gtk.Window):
             return self._init_printer("Error getting printer object data with extra items")
 
         self.files.set_gcodes_path()
-        self.files.refresh_files()
 
         logging.info("Printer initialized")
         self.initialized = True

@@ -116,24 +116,23 @@ class KlipperScreenConfig:
 
         lang = self.get_main_config().get("language", None)
         logging.debug(f"Selected lang: {lang} OS lang: {locale.getlocale()[0]}")
+        if lang not in self.lang_list:
+            lang = self.find_language(lang)
         self.install_language(lang)
 
+    def find_language(self, lang):
+        if lang in (None, "system_lang"):
+            sys_lang = locale.getlocale()[0]
+            if sys_lang is None or len(sys_lang) < 2:
+                return "en"
+            if sys_lang in self.lang_list:
+                return sys_lang
+            for language in self.lang_list:
+                if sys_lang.startswith(language):
+                    return language
+        return next((language for language in self.lang_list if lang.startswith(language)), "en")
+
     def install_language(self, lang):
-        if lang is None or lang == "system_lang":
-            for language in self.lang_list:
-                if locale.getlocale()[0].startswith(language):
-                    logging.debug("Using system lang")
-                    lang = language
-        if lang is not None and lang not in self.lang_list:
-            # try to match a parent
-            for language in self.lang_list:
-                if lang.startswith(language):
-                    lang = language
-                    self.set("main", "language", lang)
-        if lang not in self.lang_list:
-            logging.error(f"lang: {lang} not found")
-            logging.info(f"Available lang list {self.lang_list}")
-            lang = "en"
         logging.info(f"Using lang {lang}")
         self.lang = self.langs[lang]
         self.lang.install(names=['gettext', 'ngettext'])
@@ -160,7 +159,7 @@ class KlipperScreenConfig:
                 )
                 strs = (
                     'default_printer', 'language', 'print_sort_dir', 'theme', 'screen_blanking', 'font_size',
-                    'print_estimate_method', 'screen_blanking', 'screen_on_devices', 'screen_off_devices',
+                    'print_estimate_method', 'screen_blanking', "screen_on_devices", "screen_off_devices", 'print_view',
                 )
                 numbers = (
                     'job_complete_timeout', 'job_error_timeout', 'move_speed_xy', 'move_speed_z',
@@ -289,6 +288,7 @@ class KlipperScreenConfig:
             {"move_speed_xy": {"section": "main", "name": _("XY Move Speed (mm/s)"), "type": None, "value": "50"}},
             {"move_speed_z": {"section": "main", "name": _("Z Move Speed (mm/s)"), "type": None, "value": "10"}},
             {"print_sort_dir": {"section": "main", "type": None, "value": "name_asc"}},
+            {"print_view": {"section": "main", "type": None, "value": "thumbs"}},
         ]
 
         self.configurable_options.extend(panel_options)
