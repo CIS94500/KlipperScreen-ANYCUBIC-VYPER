@@ -265,4 +265,3 @@ fix_fbturbo
 add_desktop_file
 install_systemd_service
 start_KlipperScreen
-

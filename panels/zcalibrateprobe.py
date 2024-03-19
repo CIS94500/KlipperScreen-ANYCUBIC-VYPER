@@ -16,7 +16,7 @@ class Panel(ScreenPanel):
         super().__init__(screen, title)
         macros = self._printer.get_gcode_macros()
         self.macro_calibrate = any("_START_CALIBRATE_PROBE" in macro.upper() for macro in macros)
-        
+
         self.mesh_min = []
         self.mesh_max = []
         self.zero_ref = []
@@ -83,13 +83,13 @@ class Panel(ScreenPanel):
         grid.attach(distgrid, 1, 2, 2, 1)
         # nb bloc de decalage a partir de la gauche, nb bloc de decalage a partir du haut, longueur du nombre de bloc, ?? visible
         self.content.add(grid)
-        
+
         self.set_functions()
-        
+
     @staticmethod
     def _csv_to_array(string):
         return [float(i.strip()) for i in string.split(',')]
-        
+
     def set_functions(self):
         functions = []
 
@@ -100,7 +100,7 @@ class Panel(ScreenPanel):
                 self.zero_ref = self._csv_to_array(
                     self._printer.get_config_section("bed_mesh")['zero_reference_position'])
         logging.info(f"Available functions for calibration: {functions}")
-        
+
     def process_busy(self, busy):
         if busy:
             for button in self.buttons:
@@ -142,11 +142,11 @@ class Panel(ScreenPanel):
 
     def move(self, widget, direction):
         self._screen._ws.klippy.gcode_script(f"TESTZ Z={direction}{self.distance}")
-        
+
     def accept_calibrate(self, widget):
         self.mem_zoffset = 0
         self._screen._ws.klippy.gcode_script(f"ACCEPT\nG90\nG1 Z10 F3600\nSAVE_CONFIG")
-        
+
     def abort(self, widget):
         logging.info("Aborting calibration")
         self._screen._ws.klippy.gcode_script(f"G0 Z10 F3600\nSET_GCODE_OFFSET Z={self.mem_zoffset}\nABORT")

@@ -323,7 +323,7 @@ class Printer:
 
     def device_has_target(self, device):
         return "target" in self.devices[device]
-        
+
     def get_temp_store(self, device, section=False, results=0):
         if device not in self.tempstore:
             return False
@@ -368,7 +368,7 @@ class Printer:
         logging.info(f"Temp store: {list(self.tempstore)}")
         if not self.store_timeout:
             self.store_timeout = GLib.timeout_add_seconds(1, self._update_temp_store)
-            
+
     def config_section_exists(self, section):
         return section in self.get_config_section_list()
 

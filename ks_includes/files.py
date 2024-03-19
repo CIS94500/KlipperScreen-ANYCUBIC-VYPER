@@ -55,7 +55,7 @@ class KlippyFiles:
             self.run_callbacks(
                 "modify_file", {'action': "modify_file", 'item': self.files[params['filename']]}
             )
-            
+
     def add_file(self, item):
         if 'path' not in item:
             logging.info(f"Error adding item, unknown path: {item}")
@@ -96,7 +96,7 @@ class KlippyFiles:
     @staticmethod
     def is_gcode(path):
         return os.path.splitext(path)[1] in {'.gcode', '.gco', '.g'}
-        
+
     def file_metadata_exists(self, filename):
         return filename in self.files and "slicer" in self.files[filename]
 
@@ -118,7 +118,6 @@ class KlippyFiles:
             self._screen._ws.klippy.get_file_metadata(filename, self._callback)
         else:
             logging.info("Not a gcode")
-            self._screen._ws.klippy.get_file_metadata(filename, self._callback)
 
     def refresh_files(self):
         self._screen._ws.klippy.get_file_list(self._callback)

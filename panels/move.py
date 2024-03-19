@@ -249,7 +249,6 @@ class Panel(ScreenPanel):
         return False
 
     def home(self, widget):
-        # self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
         if "delta" in self._printer.get_config_section("printer")['kinematics']:
             self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
             return

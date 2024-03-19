@@ -222,7 +222,7 @@ class Panel(ScreenPanel):
             return None, None
         logging.debug(f"Probe in the center X:{mid_x} Y:{mid_y}")
         return mid_x - self.x_offset, mid_y - self.y_offset
-        
+
     def process_busy(self, busy):
         if busy:
             for button in self.buttons:

@@ -196,7 +196,6 @@ class KlipperScreen(Gtk.Window):
             self._ws.close()
             self.connected_printer = None
             self.printer.state = "disconnected"
-
         self.connecting = True
         self.initialized = False
 

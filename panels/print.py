@@ -39,7 +39,6 @@ class Panel(ScreenPanel):
         self.source = ""
         self.time_24 = self._config.get_main_config().getboolean("24htime", True)
         self.showing_rename = False
-
         self.loading = False
         self.cur_directory = 'gcodes'
         self.list_button_size = self._gtk.img_scale * self.bts
@@ -125,7 +124,8 @@ class Panel(ScreenPanel):
         fbchild.set_date(item['modified'])
         fbchild.set_size(item['size'])
         if 'dirname' in item:
-            if item['dirname'].startswith("."):
+            if (item['dirname'].startswith(".") or
+                    item['dirname'] == "System Volume Information"):
                 return
             name = item['dirname']
             path = f"{self.cur_directory}/{name}"
@@ -372,7 +372,6 @@ class Panel(ScreenPanel):
         if not result.get("result") or not isinstance(result["result"], dict):
             logging.info(result)
             return
-
         items = [self.create_item(item) for item in [*result["result"]["dirs"], *result["result"]["files"]]]
         for item in filter(None, items):
             self.flowbox.add(item)
@@ -488,4 +487,3 @@ class Panel(ScreenPanel):
             params
         )
         self.back()
-
