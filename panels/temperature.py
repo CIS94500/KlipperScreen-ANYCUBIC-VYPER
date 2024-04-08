@@ -23,16 +23,15 @@ class Panel(ScreenPanel):
         self.tempdelta = self.tempdeltas[-2]
         self.show_preheat = False
         self.preheat_options = self._screen._config.get_preheat_options()
-        self.grid = self._gtk.HomogeneousGrid()
+        self.grid = Gtk.Grid(row_homogeneous=True, column_homogeneous=True)
         self._gtk.reset_temp_color()
         self.grid.attach(self.create_left_panel(), 0, 0, 1, 1)
 
         # When printing start in temp_delta mode and only select tools
         selection = []
         if self._printer.state not in ("printing", "paused"):
-            selection.extend(iter(self._printer.get_tools()))
             self.show_preheat = True
-            selection.extend(self._printer.get_heaters())
+            selection.extend(self._printer.get_temp_devices())
         elif extra:
             selection.append(extra)
 
@@ -60,7 +59,7 @@ class Panel(ScreenPanel):
         cooldown.connect("clicked", self.set_temperature, "cooldown")
         adjust.connect("clicked", self.switch_preheat_adjust)
 
-        right = self._gtk.HomogeneousGrid()
+        right = Gtk.Grid(row_homogeneous=True, column_homogeneous=True)
         right.attach(cooldown, 0, 0, 2, 1)
         right.attach(adjust, 2, 0, 1, 1)
         if self.show_preheat:
@@ -80,7 +79,7 @@ class Panel(ScreenPanel):
         self.grid.show_all()
 
     def preheat(self):
-        self.labels["preheat_grid"] = self._gtk.HomogeneousGrid()
+        self.labels["preheat_grid"] = Gtk.Grid(row_homogeneous=True, column_homogeneous=True)
         i = 0
         for option in self.preheat_options:
             if option != "cooldown":
@@ -93,7 +92,7 @@ class Panel(ScreenPanel):
         return scroll
 
     def delta_adjust(self):
-        deltagrid = self._gtk.HomogeneousGrid()
+        deltagrid = Gtk.Grid(row_homogeneous=True, column_homogeneous=True)
         self.labels["increase"] = self._gtk.Button("increase", None, "color1")
         self.labels["increase"].connect("clicked", self.change_target_temp_incremental, "+")
         self.labels["decrease"] = self._gtk.Button("decrease", None, "color3")
@@ -163,9 +162,6 @@ class Panel(ScreenPanel):
                 logging.info(f"Setting {heater} to {target}")
 
     def update_graph_visibility(self):
-        if not self._printer.get_temp_store_devices():
-            logging.debug(f"Could not create graph tempstore: {self._printer.get_temp_store_devices()}")
-            return
         count = 0
         for device in self.devices:
             visible = self._config.get_config().getboolean(f"graph {self._screen.connected_printer}",
@@ -334,13 +330,15 @@ class Panel(ScreenPanel):
             name.get_style_context().add_class("graph_label_hidden")
 
         can_target = self._printer.device_has_target(device)
-        self.labels['da'].add_object(device, "temperatures", rgb, False, True)
+        self.labels['da'].add_object(device, "temperatures", rgb, False, False)
         if can_target:
-            self.labels['da'].add_object(device, "targets", rgb, True, False)
+            self.labels['da'].add_object(device, "targets", rgb, False, True)
             name.connect('button-press-event', self.name_pressed, device)
             name.connect('button-release-event', self.name_released, device)
         else:
             name.connect("clicked", self.toggle_visibility, device)
+        if self._show_heater_power and self._printer.device_has_power(device):
+            self.labels['da'].add_object(device, "powers", rgb, True, False)
         self.labels['da'].set_showing(device, visible)
 
         temp = self._gtk.Button(label="", lines=1)
@@ -446,7 +444,7 @@ class Panel(ScreenPanel):
         self.labels['devices'].attach(name, 0, 0, 1, 1)
         self.labels['devices'].attach(temp, 1, 0, 1, 1)
 
-        self.labels['da'] = HeaterGraph(self._printer, self._gtk.font_size)
+        self.labels['da'] = HeaterGraph(self._screen, self._printer, self._gtk.font_size)
         self.labels['da'].set_vexpand(True)
 
         scroll = self._gtk.ScrolledWindow()
@@ -471,7 +469,7 @@ class Panel(ScreenPanel):
         popover.connect('closed', self.popover_closed)
         self.labels['popover'] = popover
 
-        for d in (self._printer.get_tools() + self._printer.get_heaters()):
+        for d in self._printer.get_temp_devices():
             self.add_device(d)
 
         return self.left_panel
@@ -517,13 +515,14 @@ class Panel(ScreenPanel):
     def process_update(self, action, data):
         if action != "notify_status_update":
             return
-        for x in (self._printer.get_tools() + self._printer.get_heaters()):
-            self.update_temp(
-                x,
-                self._printer.get_dev_stat(x, "temperature"),
-                self._printer.get_dev_stat(x, "target"),
-                self._printer.get_dev_stat(x, "power"),
-            )
+        for x in self._printer.get_temp_devices():
+            if x in data:
+                self.update_temp(
+                    x,
+                    self._printer.get_dev_stat(x, "temperature"),
+                    self._printer.get_dev_stat(x, "target"),
+                    self._printer.get_dev_stat(x, "power"),
+                )
 
     def show_numpad(self, widget, device=None):
         for d in self.active_heaters:

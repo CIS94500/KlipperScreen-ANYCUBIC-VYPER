@@ -226,7 +226,6 @@ class KlipperScreen(Gtk.Window):
                                    self.printers[ind][name]["moonraker_host"],
                                    self.printers[ind][name]["moonraker_port"],
                                    )
-
         if self.files is None:
             self.files = KlippyFiles(self)
         self._ws.initial_connect()
@@ -244,7 +243,7 @@ class KlipperScreen(Gtk.Window):
                 "print_stats": ["print_duration", "total_duration", "filament_used", "filename", "state", "message",
                                 "info"],
                 "toolhead": ["homed_axes", "estimated_print_time", "print_time", "position", "extruder",
-                             "max_accel", "max_accel_to_decel", "max_velocity", "square_corner_velocity"],
+                             "max_accel", "minimum_cruise_ratio", "max_velocity", "square_corner_velocity"],
                 "virtual_sdcard": ["file_position", "is_active", "progress"],
                 "webhooks": ["state", "state_message"],
                 "firmware_retraction": ["retract_length", "retract_speed", "unretract_extra_length", "unretract_speed"],
@@ -259,6 +258,10 @@ class KlipperScreen(Gtk.Window):
                 "target", "temperature", "pressure_advance", "smooth_time", "power"]
         for h in self.printer.get_heaters():
             requested_updates['objects'][h] = ["target", "temperature", "power"]
+        for t in self.printer.get_temp_sensors():
+            requested_updates['objects'][t] = ["temperature"]
+        for f in self.printer.get_temp_fans():
+            requested_updates['objects'][f] = ["target", "temperature"]
         for f in self.printer.get_fans():
             requested_updates['objects'][f] = ["speed"]
         for f in self.printer.get_filament_sensors():
@@ -319,19 +322,23 @@ class KlipperScreen(Gtk.Window):
         self.process_update("notify_log", log_entry)
 
     def show_popup_message(self, message, level=3):
+#begin VSYS
+        if message[0:10] == "GoToPanel:":
+            myPanel = message[10:].strip()
+            if myPanel == "":
+                return
+            elif myPanel.lower() == "extrude":
+                if not self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
+                    self.show_panel("extrude", _("Extrude"))
+            else:
+                self.show_panel(myPanel.lower(), _(myPanel.replace("_", " ").capitalize()))
+            self.close_screensaver()
+            return
+#end VSYS
         if (datetime.now() - self.last_popup_time).seconds < 1:
             return
         self.last_popup_time = datetime.now()
         self.close_screensaver()
-#begin VSYS
-        if message[0:10] == "GoToPanel:":
-            if message[10:].lower() == "extrude":
-                if not self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
-                    self.show_panel("extrude", _("Extrude"))
-            else:
-                self.show_panel(message[10:].lower(), _(message[10:].replace("_", " ").capitalize()))
-            return
-#end VSYS
         if self.popup_message is not None:
             self.close_popup_message()
 
@@ -364,7 +371,7 @@ class KlipperScreen(Gtk.Window):
             if self.popup_timeout is not None:
                 GLib.source_remove(self.popup_timeout)
                 self.popup_timeout = None
-            timeout = 300 if level == 2 else 20 #VSYS
+            timeout = 300 if level == 2 else 10 #VSYS
             self.popup_timeout = GLib.timeout_add_seconds(timeout, self.close_popup_message)
 
         return False
@@ -383,27 +390,19 @@ class KlipperScreen(Gtk.Window):
 
         title = Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.CHAR, hexpand=True, halign=Gtk.Align.START)
         title.set_markup(f"<b>{err}</b>\n")
-        version = Gtk.Label(label=f"{self.version}")
-        version.set_halign(Gtk.Align.END)
-
-        message = Gtk.Label(label=f"{e}", wrap=True)
-
-        scroll = self.gtk.ScrolledWindow()
-        scroll.set_vexpand(True)
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.add(message)
+        version = Gtk.Label(label=f"{functions.get_software_version()}", halign=Gtk.Align.END)
 
         help_msg = _("Provide KlipperScreen.log when asking for help.\n")
-        help_msg += _("KlipperScreen will reboot")
-        help_notice = Gtk.Label(label=help_msg)
-        help_notice.set_line_wrap(True)
+        message = Gtk.Label(label=f"{help_msg}\n\n{e}", wrap=True, wrap_mode=Pango.WrapMode.CHAR)
+        scroll = self.gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.add(message)
 
         grid = Gtk.Grid()
         grid.attach(title, 0, 0, 1, 1)
         grid.attach(version, 1, 0, 1, 1)
         grid.attach(Gtk.Separator(), 0, 1, 2, 1)
         grid.attach(scroll, 0, 2, 2, 1)
-        grid.attach(help_notice, 0, 3, 2, 1)
 
         buttons = [
             {"name": _("Go Back"), "response": Gtk.ResponseType.CANCEL}
@@ -923,6 +922,7 @@ class KlipperScreen(Gtk.Window):
         config = self.apiclient.send_request("printer/objects/query?configfile")
         if config is False:
             return self._init_printer("Error getting printer configuration")
+        logging.debug(config['result']['status'])
         # Reinitialize printer, in case the printer was shut down and anything has changed.
         self.printer.reinit(printer_info['result'], config['result']['status'])
         self.printer.available_commands = self.apiclient.get_gcode_help()['result']
@@ -930,7 +930,9 @@ class KlipperScreen(Gtk.Window):
         self.ws_subscribe()
         extra_items = (self.printer.get_tools()
                        + self.printer.get_heaters()
+                       + self.printer.get_temp_sensors()
                        + self.printer.get_fans()
+                       + self.printer.get_temp_fans()
                        + self.printer.get_filament_sensors()
                        + self.printer.get_output_pins()
                        )
@@ -951,7 +953,7 @@ class KlipperScreen(Gtk.Window):
         return False
 
     def init_tempstore(self):
-        if len(self.printer.get_tools() + self.printer.get_heaters()) == 0:
+        if len(self.printer.get_temp_devices()) == 0:
             return
         tempstore = self.apiclient.send_request("server/temperature_store")
         if tempstore and 'result' in tempstore and tempstore['result']:
@@ -960,6 +962,9 @@ class KlipperScreen(Gtk.Window):
                 self.panels[self._cur_panels[-1]].update_graph_visibility()
         else:
             logging.error(f'Tempstore not ready: {tempstore} Retrying in 5 seconds')
+            GLib.timeout_add_seconds(5, self.init_tempstore)
+            return
+        if set(self.printer.tempstore) != set(self.printer.get_temp_devices()):
             GLib.timeout_add_seconds(5, self.init_tempstore)
             return
         server_config = self.apiclient.send_request("server/config")

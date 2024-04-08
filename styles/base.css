@@ -381,6 +381,7 @@ trough {
 }
 
 .message_cpu_warning {
+    background-color: #c98920;
     font-weight: bold;
 }
 

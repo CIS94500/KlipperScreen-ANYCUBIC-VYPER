@@ -43,7 +43,7 @@ class Panel(ScreenPanel):
         labels = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         labels.add(name)
 
-        dev = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+        dev = Gtk.Box(
             spacing=5, hexpand=True, vexpand=False, valign=Gtk.Align.CENTER)
         dev.add(labels)
         dev.add(switch)

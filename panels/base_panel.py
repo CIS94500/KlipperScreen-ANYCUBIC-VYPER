@@ -26,6 +26,7 @@ class BasePanel(ScreenPanel):
         }
         self.current_extruder = None
         self.last_usage_report = datetime.now() #cpu/mem high
+        self.usage_report = 0
         # Action bar buttons
         abscale = 0.8 #VSYS self.bts * 1.1
         self.control['back'] = self._gtk.Button('back', scale=abscale)
@@ -76,7 +77,6 @@ class BasePanel(ScreenPanel):
         self.control['temp_box'] = Gtk.Box(spacing=10)
 
         self.titlelbl = Gtk.Label(hexpand=True, halign=Gtk.Align.CENTER, ellipsize=Pango.EllipsizeMode.END)
-        self.set_title(title)
 
         self.control['time'] = Gtk.Label(label="00:00 AM")
         self.control['time_box'] = Gtk.Box(halign=Gtk.Align.END)
@@ -87,6 +87,7 @@ class BasePanel(ScreenPanel):
         self.titlebar.add(self.control['temp_box'])
         self.titlebar.add(self.titlelbl)
         self.titlebar.add(self.control['time_box'])
+        self.set_title(title)
 
         # Main layout
         self.main_grid = Gtk.Grid()
@@ -108,11 +109,12 @@ class BasePanel(ScreenPanel):
         try:
             for child in self.control['temp_box'].get_children():
                 self.control['temp_box'].remove(child)
-            if not show or self._printer.get_temp_store_devices() is None:
+            devices = self._printer.get_temp_devices()
+            if not show or not devices:
                 return
 
             img_size = self._gtk.img_scale * self.bts
-            for device in self._printer.get_temp_store_devices():
+            for device in devices:
                 self.labels[device] = Gtk.Label(ellipsize=Pango.EllipsizeMode.START)
                 self.labels[f'{device}_box'] = Gtk.Box()
                 icon = self.get_icon(device, img_size)
@@ -122,20 +124,23 @@ class BasePanel(ScreenPanel):
 
             # Limit the number of items according to resolution
             nlimit = int(round(log(self._screen.width, 10) * 5 - 10.5))
-
             n = 0
-            if self._printer.get_tools():
+            if len(self._printer.get_tools()) > (nlimit - 1):
                 self.current_extruder = self._printer.get_stat("toolhead", "extruder")
                 if self.current_extruder and f"{self.current_extruder}_box" in self.labels:
                     self.control['temp_box'].add(self.labels[f"{self.current_extruder}_box"])
+            else:
+                self.current_extruder = False
+            for device in devices:
+                if n >= nlimit:
+                    break
+                if device.startswith("extruder") and self.current_extruder is False:
+                    self.control['temp_box'].add(self.labels[f"{device}_box"])
                     n += 1
-
-            if self._printer.has_heated_bed():
-                self.control['temp_box'].add(self.labels['heater_bed_box'])
-                n += 1
-
-            # Options in the config have priority
-            for device in self._printer.get_temp_store_devices():
+                elif device.startswith("heater"):
+                    self.control['temp_box'].add(self.labels[f"{device}_box"])
+                    n += 1
+            for device in devices:
                 # Users can fill the bar if they want
                 if n >= nlimit + 1:
                     break
@@ -146,13 +151,6 @@ class BasePanel(ScreenPanel):
                         n += 1
                         break
 
-            # If there is enough space fill with heater_generic
-            for device in self._printer.get_temp_store_devices():
-                if n >= nlimit:
-                    break
-                if device.startswith("heater_generic"):
-                    self.control['temp_box'].add(self.labels[f"{device}_box"])
-                    n += 1
             self.control['temp_box'].show_all()
         except Exception as e:
             logging.debug(f"Couldn't create heaters box: {e}")
@@ -197,20 +195,26 @@ class BasePanel(ScreenPanel):
 
     def process_update(self, action, data):
         if action == "notify_proc_stat_update":
-            cpu = (max(data["system_cpu_usage"][core] for core in data["system_cpu_usage"] if core.startswith("cpu")))
+            cpu = data["system_cpu_usage"]["cpu"]
             memory = (data["system_memory"]["used"] / data["system_memory"]["total"]) * 100
             error = "message_cpu_warning"
             ctx = self.titlebar.get_style_context()
-            if cpu > 85 or memory > 85:
+            msg = f"CPU: {cpu:2.0f}%    RAM: {memory:2.0f}%"
+            if cpu > 80 or memory > 85:
+                if self.usage_report < 4:
+                    self.usage_report += 1
+                    return
                 self.last_usage_report = datetime.now()
                 if not ctx.has_class(error):
                     ctx.add_class(error)
-                msg = f"CPU: {cpu:2.0f}%    RAM: {memory:2.0f}%"
-                self._screen.log_notification(msg, 3)
+                self._screen.log_notification(f"{self._screen.connecting_to_printer}: {msg}", 2)
                 self.titlelbl.set_label(msg)
             elif ctx.has_class(error):
-                if (datetime.now() - self.last_usage_report).seconds < 3:
+                self.titlelbl.set_label(msg)
+                if (datetime.now() - self.last_usage_report).seconds < 5:
+                    self.titlelbl.set_label(msg)
                     return
+                self.usage_report = 0
                 ctx.remove_class(error)
                 self.titlelbl.set_label(f"{self._screen.connecting_to_printer}")
             return
@@ -237,20 +241,18 @@ class BasePanel(ScreenPanel):
 
         if action != "notify_status_update" or self._screen.printer is None:
             return
-        devices = self._printer.get_temp_store_devices()
-        if devices is not None:
-            for device in devices:
-                temp = self._printer.get_dev_stat(device, "temperature")
-                if temp is not None and device in self.labels:
-                    name = ""
-                    if not (device.startswith("extruder") or device.startswith("heater_bed")):
-                        if self.titlebar_name_type == "full":
-                            name = device.split()[1] if len(device.split()) > 1 else device
-                            name = f'{self.prettify(name)}: '
-                        elif self.titlebar_name_type == "short":
-                            name = device.split()[1] if len(device.split()) > 1 else device
-                            name = f"{name[:1].upper()}: "
-                    self.labels[device].set_label(f"{name}{int(temp)}°")
+        for device in self._printer.get_temp_devices():
+            temp = self._printer.get_dev_stat(device, "temperature")
+            if temp is not None and device in self.labels:
+                name = ""
+                if not (device.startswith("extruder") or device.startswith("heater_bed")):
+                    if self.titlebar_name_type == "full":
+                        name = device.split()[1] if len(device.split()) > 1 else device
+                        name = f'{self.prettify(name)}: '
+                    elif self.titlebar_name_type == "short":
+                        name = device.split()[1] if len(device.split()) > 1 else device
+                        name = f"{name[:1].upper()}: "
+                self.labels[device].set_label(f"{name}{int(temp)}°")
 
         if (self.current_extruder and 'toolhead' in data and 'extruder' in data['toolhead']
                 and data["toolhead"]["extruder"] != self.current_extruder):
@@ -298,6 +300,7 @@ class BasePanel(ScreenPanel):
             self.buttons_showing['printer_select'] = False
 
     def set_title(self, title):
+        self.titlebar.get_style_context().remove_class("message_cpu_warning")
         if not title:
             self.titlelbl.set_label(f"{self._screen.connecting_to_printer}")
             return
