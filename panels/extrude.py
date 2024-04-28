@@ -57,7 +57,7 @@ class Panel(ScreenPanel):
             "panel": "spoolman"
         })
 
-        extgrid = self._gtk.HomogeneousGrid()
+        extgrid = Gtk.Grid()
         limit = 5
         i = 0
         for extruder in self._printer.get_tools():

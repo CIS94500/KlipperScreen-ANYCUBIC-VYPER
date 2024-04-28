@@ -72,14 +72,14 @@ class Prompt:
         close.set_vexpand(False)
         close.connect("clicked", self.close)
 
-        scroll = self.gtk.ScrolledWindow()
+        scroll = self.gtk.ScrolledWindow(steppers=False)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.add(Gtk.Label(label=self.text, wrap=True, hexpand=True, vexpand=True))
 
         content = Gtk.Grid()
-        # if not self.screen.windowed:
-            # content.attach(title, 0, 0, 1, 1)
-            # content.attach(close, 1, 0, 1, 1)
+        if self.screen.windowed:
+            content.attach(title, 0, 0, 1, 1)
+            content.attach(close, 1, 0, 1, 1)
         content.attach(scroll, 0, 1, 2, 1)
 
         self.prompt = self.gtk.Dialog(

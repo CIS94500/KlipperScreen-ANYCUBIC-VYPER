@@ -38,8 +38,7 @@ class Panel(ScreenPanel):
             self.z_offset = 0.0
         logging.info(f"Offset X:{self.x_offset} Y:{self.y_offset} Z:{self.z_offset}")
 
-        grid = self._gtk.HomogeneousGrid()
-        grid.set_row_homogeneous(False)
+        grid = Gtk.Grid(row_homogeneous=False, column_homogeneous=True)
         self.buttons = {
             'start': self._gtk.Button('arrow-down', _("Calibrate"), 'color3'),
             'z+': self._gtk.Button('z-farther', _("Raise Nozzle"), 'color4'),

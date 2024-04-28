@@ -171,7 +171,7 @@ class Panel(ScreenPanel):
                 image_args = (path, icon, self.thumbsize / 2, True, "file")
                 delete.connect("clicked", self.confirm_delete_file, f"gcodes/{path}")
                 rename.connect("clicked", self.show_rename, f"gcodes/{path}")
-                action = self._gtk.Button("print", style="color3")
+                action = self._gtk.Button("printer", style="color3")
                 action.connect("clicked", self.confirm_print, path)
                 action.set_hexpand(False)
                 action.set_vexpand(False)
@@ -322,18 +322,19 @@ class Panel(ScreenPanel):
                 {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
             ]
 #End VSYS
-        label = Gtk.Label(hexpand=True, vexpand=True, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+        label = Gtk.Label(hexpand=True, vexpand=True, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
         label.set_markup(f"<b>{filename}</b>\n")
-        grid = Gtk.Grid(vexpand=True, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
-        grid.add(label)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.add(label)
 
         height = (self._screen.height - self._gtk.dialog_buttons_height - self._gtk.font_size) * .75
         pixbuf = self.get_file_image(filename, self._screen.width * .9, height)
         if pixbuf is not None:
             image = Gtk.Image.new_from_pixbuf(pixbuf)
-            image.set_vexpand(False)
-            grid.attach_next_to(image, label, Gtk.PositionType.BOTTOM, 1, 1)
-        self._gtk.Dialog(_("Print") + f' {filename}', buttons, grid, self.confirm_print_response, filename)
+            box.add(image)
+
+        self._gtk.Dialog(_("Print") + f' {filename}', buttons, box, self.confirm_print_response, filename)
 
     def confirm_print_response(self, dialog, response_id, filename):
         self._gtk.remove_dialog(dialog)

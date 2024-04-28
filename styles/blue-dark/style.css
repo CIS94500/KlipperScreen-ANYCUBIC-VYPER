@@ -5,8 +5,12 @@ list row,
 treeview.view,
 window {
     background-color: #13181C;
-    background-image: url("./styles/flsun/background.svg");
+    background-image: url("./styles/blue-dark/background.svg");
     background-size: cover;
+}
+
+combobox arrow {
+    background-color: transparent;
 }
 
 button {
@@ -89,19 +93,25 @@ trough {
     background-color: #404E57;
     color: white;
     border-color: black;
+    border-radius: 0.5em;
 }
 
-trough highlight, trough progress {
+trough highlight,
+trough progress {
     background-color: #3584e4;
     color: white;
     border-color: black;
+    border-top-left-radius: 0.5em;
+    border-bottom-left-radius: 0.5em;
 }
 
 scale-mark {
     color: white;
 }
 
-scrollbar, scrollbar button, scrollbar trough {
+scrollbar,
+scrollbar button,
+scrollbar trough {
     background-color: #13181C;
 }
 
@@ -113,15 +123,10 @@ textview .time {
     color: grey;
 }
 
-.popup {
-    background-color: black;
-}
-
 .dialog {
     border: #13181C;
     background-color: #13181C;
 }
-
 
 .distbutton_active {
     background-color: #2196f3;
@@ -149,7 +154,7 @@ textview .time {
     border-bottom-color: white;
 }
 
-.numpad_tleft, .numpad_top, .numpad_tright, .numpad_left, .numpad_button, .numpad_right, .numpad_bleft, .numpad_bottom, .numpad_bright {
+.numpad_key {
     border-color: white;
 }
 
@@ -160,20 +165,6 @@ textview .time {
 .printing-progress-text {
     color: white;
 }
-
-.printing-status-label {
-    color: #ccc;
-}
-
-.tempbutton_top {
-    border-color: white;
-}
-
-.tempbutton, .tempbutton_bottom {
-    border-color: white;
-    border-top-color: #ccc;
-}
-
 .message {
     border-color: #981E1F;
     color: white;
@@ -183,6 +174,7 @@ textview .time {
 .message button {
     background-color: white;
     color: black;
+
 }
 
 .warning {

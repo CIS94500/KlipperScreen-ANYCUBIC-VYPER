@@ -65,8 +65,7 @@ class Panel(ScreenPanel):
 
         scroll = self._gtk.ScrolledWindow()
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0, vexpand=True)
-
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
 
         self.labels['networklist'] = Gtk.Grid()
 
@@ -150,11 +149,11 @@ class Panel(ScreenPanel):
         delete.set_hexpand(False)
         delete.set_halign(Gtk.Align.END)
 
-        network = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5, hexpand=True, vexpand=False)
+        network = Gtk.Box(spacing=5, hexpand=True, vexpand=False)
         network.get_style_context().add_class("frame-item")
         network.add(labels)
 
-        buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        buttons = Gtk.Box(spacing=5)
         if network_id != -1 or netinfo['connected']:
             buttons.pack_end(connect, False, False, 0)
             buttons.pack_end(delete, False, False, 0)
@@ -300,8 +299,7 @@ class Panel(ScreenPanel):
         if "add_network" in self.labels:
             del self.labels['add_network']
 
-        label = self._gtk.Label(_("PSK for") + ' ssid')
-        label.set_hexpand(False)
+        label = Gtk.Label(label=_("PSK for") + ' ssid', hexpand=False)
         self.labels['network_psk'] = Gtk.Entry(hexpand=True)
         self.labels['network_psk'].connect("activate", self.add_new_network, ssid)
         self.labels['network_psk'].connect("focus-in-event", self._screen.show_keyboard)
@@ -343,7 +341,8 @@ class Panel(ScreenPanel):
                 self.labels['ip'].set_text(f"IP: {ifadd[netifaces.AF_INET][0]['addr']}  ")
             if ifadd.get(netifaces.AF_INET6):
                 ipv6 = f"<b>IPv6:</b> {ifadd[netifaces.AF_INET6][0]['addr'].split('%')[0]}"
-            info = f'<b>{_("Hostname")}:</b> {os.uname().nodename}\n{ipv4}\n{ipv6}'
+
+            info = '<b>' + _("Hostname") + f':</b> {os.uname().nodename}\n{ipv4}\n{ipv6}'
         else:
             self.labels['networks'][ssid]['name'].set_label(_("Hidden") if ssid.startswith("\x00") else f"{ssid}")
             if "psk" in netinfo:
@@ -353,7 +352,7 @@ class Panel(ScreenPanel):
         if "frequency" in netinfo:
             freq = "2.4 GHz" if netinfo['frequency'][:1] == "2" else "5 Ghz"
         if "channel" in netinfo:
-            chan = f'{_("Channel")} {netinfo["channel"]}'
+            chan = _("Channel") + f' {netinfo["channel"]}'
         if "signal_level_dBm" in netinfo:
             unit = "%" if self.use_network_manager else _("dBm")
             lvl = f"{netinfo['signal_level_dBm']} {unit}"
@@ -392,11 +391,10 @@ class Panel(ScreenPanel):
             ipv4 = ""
         self.labels['networkinfo'].set_markup(
             f'<b>{self.interface}</b>\n\n'
-            f'<b>{_("Hostname")}:</b> {os.uname().nodename}\n'
+            + '<b>' + _("Hostname") + f':</b> {os.uname().nodename}\n'
             f'<b>IPv4:</b> {ipv4}\n'
             f'<b>IPv6:</b> {ipv6}'
         )
-
         self.labels['networkinfo'].show_all()
         return True
 

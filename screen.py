@@ -95,19 +95,20 @@ class KlipperScreen(Gtk.Window):
     initialized = initializing = False
     popup_timeout = None
     wayland = False
+    windowed = False
     notification_log = []
     prompt = None
 
-    def __init__(self, args, version):
+    def __init__(self, args):
         try:
             super().__init__(title="KlipperScreen")
         except Exception as e:
             logging.exception(f"{e}\n\n{traceback.format_exc()}")
             raise RuntimeError from e
+        GLib.set_prgname('KlipperScreen')
         self.blanking_time = 600
         self.use_dpms = True
         self.apiclient = None
-        self.version = version
         self.dialogs = []
         self.confirm = None
         self.last_popup_time = datetime.now()
@@ -121,18 +122,37 @@ class KlipperScreen(Gtk.Window):
 
         self.connect("key-press-event", self._key_press_event)
         self.connect("configure_event", self.update_size)
-        monitor = Gdk.Display.get_default().get_primary_monitor()
-        if monitor is None:
-            self.wayland = True
-            monitor = Gdk.Display.get_default().get_monitor(0)
-        if monitor is None:
-            raise RuntimeError("Couldn't get default monitor")
-        self.width = self._config.get_main_config().getint("width", monitor.get_geometry().width)
-        self.height = self._config.get_main_config().getint("height", monitor.get_geometry().height)
+        display = Gdk.Display.get_default()
+        monitor_amount = Gdk.Display.get_n_monitors(display)
+        try:
+            mon_n = int(args.monitor)
+            if not (-1 < mon_n < monitor_amount):
+                raise ValueError
+        except ValueError:
+            mon_n = 0
+        logging.info(f"Monitors: {monitor_amount} using number: {mon_n}")
+        monitor = display.get_monitor(mon_n)
+        self.wayland = display.get_name().startswith('wayland') or display.get_primary_monitor() is None
+        logging.info(f"Wayland: {self.wayland} Display name: {display.get_name()}")
+        self.width = self._config.get_main_config().getint("width", None)
+        self.height = self._config.get_main_config().getint("height", None)
+        if 'XDG_CURRENT_DESKTOP' in os.environ:
+            logging.warning("Running inside a desktop environment is not recommended")
+            if not self.width:
+                self.width = max(int(monitor.get_geometry().width * .5), 480)
+            if not self.height:
+                self.height = max(int(monitor.get_geometry().height * .5), 320)
+        if self.width or self.height:
+            logging.info("Setting windowed mode")
+            if mon_n > 0:
+                logging.error("Monitor selection is only supported for fullscreen")
+            self.set_resizable(True)
+            self.windowed = True
+        else:
+            self.width = monitor.get_geometry().width
+            self.height = monitor.get_geometry().height
+            self.fullscreen_on_monitor(self.get_screen(), mon_n)
         self.set_default_size(self.width, self.height)
-        self.set_resizable(True)
-        if not (self._config.get_main_config().get("width") or self._config.get_main_config().get("height")):
-            self.fullscreen()
         self.aspect_ratio = self.width / self.height
         self.vertical_mode = self.aspect_ratio < 1.0
         logging.info(f"Screen resolution: {self.width}x{self.height}")
@@ -345,22 +365,26 @@ class KlipperScreen(Gtk.Window):
         self.log_notification(message, level)
 
         msg = Gtk.Button(label=f"{message}", hexpand=True, vexpand=True)
-        msg.get_child().set_line_wrap(True)
-        msg.get_child().set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        msg.get_child().set_max_width_chars(40)
+        for widget in msg.get_children():
+            if isinstance(widget, Gtk.Label):
+                widget.set_line_wrap(True)
+                widget.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                widget.set_max_width_chars(40)
         msg.connect("clicked", self.close_popup_message)
         msg.get_style_context().add_class("message_popup")
         if level == 1:
             msg.get_style_context().add_class("message_popup_echo")
+            logging.info(f'echo: {message}')
         elif level == 2:
             msg.get_style_context().add_class("message_popup_warning")
+            logging.info(f'warning: {message}')
         else:
             msg.get_style_context().add_class("message_popup_error")
+            logging.info(f'error: {message}')
 
-        popup = Gtk.Popover.new(self.base_panel.titlebar)
+        popup = Gtk.Popover(relative_to=self.base_panel.titlebar,
+                            halign=Gtk.Align.CENTER, width_request=int(self.width - 1)) #VSYS
         popup.get_style_context().add_class("message_popup_popover")
-        popup.set_size_request(self.width, -1) #VSYS
-        popup.set_halign(Gtk.Align.CENTER)
         popup.add(msg)
         popup.popup()
 
@@ -836,7 +860,10 @@ class KlipperScreen(Gtk.Window):
 
         if self.confirm is not None:
             self.gtk.remove_dialog(self.confirm)
-        self.confirm = self.gtk.Dialog("KlipperScreen", buttons, label, self._confirm_send_action_response, method, params)
+        self.confirm = self.gtk.Dialog(
+            "KlipperScreen", buttons, label, self._confirm_send_action_response, method, params
+        )
+
     def _confirm_send_action_response(self, dialog, response_id, method, params):
         self.gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:
@@ -871,17 +898,21 @@ class KlipperScreen(Gtk.Window):
             else:
                 self._ws.klippy.power_device_off(dev)
 
-    def _init_printer(self, msg, remove=False):
+    def _init_printer(self, msg, remove=False, klipper=False):
         self.printer_initializing(msg, remove)
         self.initializing = False
-        GLib.timeout_add_seconds(3, self.init_printer)
-        return False
+        if klipper:
+            GLib.timeout_add_seconds(3, self.init_klipper)
+        else:
+            GLib.timeout_add_seconds(3, self.init_printer)
 
     def init_printer(self):
         if self.initializing:
+            logging.info("Already Initializing")
             return False
         self.initializing = True
         if self.reinit_count > self.max_retries or 'printer_select' in self._cur_panels:
+            logging.info("Stopping Retries")
             self.initializing = False
             return False
         state = self.apiclient.get_server_info()
@@ -893,11 +924,29 @@ class KlipperScreen(Gtk.Window):
         self.connected_printer = self.connecting_to_printer
         self.base_panel.set_ks_printer_cfg(self.connected_printer)
 
+        self.init_server(state["result"])
         # Moonraker is ready, set a loop to init the printer
-        self.reinit_count += 1
+        return self.init_klipper(state["result"])
 
-        server_info = state["result"]
-        logging.info(f"Moonraker info {server_info}")
+    def init_server(self, server_info):
+        popup = ''
+        level = 2
+        if server_info["warnings"]:
+            popup += '\nMoonraker warnings:\n'
+            for warning in server_info["warnings"]:
+                warning = warning.replace('<br>', '').replace('<br/>', '\n').replace('</br>', '\n').replace(':', ':\n')
+                popup += f"{warning}\n"
+        if server_info["failed_components"]:
+            popup += '\nMoonraker failed components:\n'
+            for failed in server_info["failed_components"]:
+                popup += f'[{failed}]\n'
+        if server_info["missing_klippy_requirements"]:
+            popup += '\nMissing Klipper configuration:\n'
+            for missing in server_info["missing_klippy_requirements"]:
+                popup += f'[{missing}]\n'
+                level = 3
+        if popup:
+            self.show_popup_message(popup, level)
         if "power" in server_info["components"]:
             powerdevs = self.apiclient.send_request("machine/device_power/devices")
             if powerdevs is not False:
@@ -909,13 +958,23 @@ class KlipperScreen(Gtk.Window):
         if "spoolman" in server_info["components"]:
             self.printer.enable_spoolman()
 
+    def init_klipper(self, server_info=None):
+        if self.reinit_count > self.max_retries or 'printer_select' in self._cur_panels:
+            logging.info("Stopping Retries")
+            return False
+        if not server_info:
+            server_info = self.apiclient.get_server_info()["result"]
+        logging.info(f"Moonraker info {server_info}")
+
+        self.reinit_count += 1
+
         if server_info['klippy_connected'] is False:
             logging.info("Klipper not connected")
             msg = _("Moonraker: connected") + "\n\n"
             msg += f"Klipper: {server_info['klippy_state']}" + "\n\n"
             if self.reinit_count <= self.max_retries:
                 msg += _("Retrying") + f' #{self.reinit_count}'
-            return self._init_printer(msg)
+            return self._init_printer(msg, klipper=True)
         printer_info = self.apiclient.get_printer_info()
         if printer_info is False:
             return self._init_printer("Unable to get printer info from moonraker")
@@ -1064,12 +1123,12 @@ def main():
         logging.error(f"python {sys.version_info.major}.{sys.version_info.minor} "
                       f"does not meet the minimum requirement {minimum[0]}.{minimum[1]}")
         sys.exit(1)
-    version = functions.get_software_version()
     parser = argparse.ArgumentParser(description="KlipperScreen - A GUI for Klipper")
     homedir = os.path.expanduser("~")
 
     parser.add_argument(
-        "-c", "--configfile", default=os.path.join(homedir, "KlipperScreen.conf"), metavar='<configfile>',
+        "-c", "--configfile",
+        default="", metavar='<configfile>',
         help="Location of KlipperScreen configuration file"
     )
     logdir = os.path.join(homedir, "printer_data", "logs")
@@ -1079,20 +1138,19 @@ def main():
         "-l", "--logfile", default=os.path.join(logdir, "KlipperScreen.log"), metavar='<logfile>',
         help="Location of KlipperScreen logfile output"
     )
+    parser.add_argument(
+        "-m", "--monitor", default="0", metavar='<monitor>',
+        help="Number of the monitor, that will show Klipperscreen (default: 0)"
+    )
     args = parser.parse_args()
 
-    functions.setup_logging(
-        os.path.normpath(os.path.expanduser(args.logfile)),
-        version
-    )
+    functions.setup_logging(os.path.normpath(os.path.expanduser(args.logfile)))
     functions.patch_threading_excepthook()
-    logging.info(f"Python version: {sys.version_info.major}.{sys.version_info.minor}")
-    logging.info(f"KlipperScreen version: {version}")
     if not Gtk.init_check():
         logging.critical("Failed to initialize Gtk")
         raise RuntimeError
     try:
-        win = KlipperScreen(args, version)
+        win = KlipperScreen(args)
     except Exception as e:
         logging.exception(f"Failed to initialize window\n{e}\n\n{traceback.format_exc()}")
         raise RuntimeError from e

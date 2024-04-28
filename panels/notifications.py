@@ -24,12 +24,12 @@ class Panel(ScreenPanel):
         self.tb = Gtk.TextBuffer(text=self.empty)
 
         clean_button = self._gtk.Button("refresh", _('Clear') + " ", None, self.bts, Gtk.PositionType.RIGHT, 1)
+        clean_button.get_style_context().add_class("button_active")
         clean_button.get_style_context().add_class("buttons_slim")
         clean_button.connect("clicked", self.clean)
         clean_button.set_hexpand(True)
 
         topbar = Gtk.Box(hexpand=False, vexpand=False)
-
         topbar.add(clean_button)
 
         tv = Gtk.TextView(editable=False, cursor_visible=False, wrap_mode=Gtk.WrapMode.WORD)
@@ -37,13 +37,13 @@ class Panel(ScreenPanel):
         tv.connect("button-press-event", self.tvClicked)
         tv.connect("size-allocate", self._autoscroll)
 
-        scroll = Gtk.ScrolledWindow(hexpand=True, vexpand=True)
+        scroll = self._gtk.ScrolledWindow()
         scroll.add(tv)
 
-        grid = self._gtk.HomogeneousGrid()
-        grid.set_row_homogeneous(False)
+        grid = Gtk.Grid(row_homogeneous=False)
         grid.attach(topbar, 3, 0, 1, 1)
         grid.attach(scroll, 0, 1, 4, 1)
+        
         self.content.add(grid)
 
     def activate(self):

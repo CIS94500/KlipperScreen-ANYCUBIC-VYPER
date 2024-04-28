@@ -62,6 +62,7 @@ class Panel(ScreenPanel):
 
         enter = self._gtk.Button("resume", " " + _('Send') + " ", None, .66, Gtk.PositionType.RIGHT, 1)
         enter.get_style_context().add_class("buttons_slim")
+        enter.get_style_context().add_class("button_active")
 
         enter.set_hexpand(False)
         enter.connect("clicked", self._send_command)

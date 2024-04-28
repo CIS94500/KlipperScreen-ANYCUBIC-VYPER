@@ -18,6 +18,7 @@ class Panel(MenuPanel):
         self.h = self.f = 0
         self.main_menu = Gtk.Grid(row_homogeneous=True, column_homogeneous=True, hexpand=True, vexpand=True)
         scroll = self._gtk.ScrolledWindow()
+        self.numpad_visible = False
 
         logging.info("### Making MainMenu")
 
@@ -47,11 +48,9 @@ class Panel(MenuPanel):
             self.labels['da'].set_showing(device, visible)
             if visible:
                 count += 1
-                self.devices[device]['name'].get_style_context().add_class(self.devices[device]['class'])
-                self.devices[device]['name'].get_style_context().remove_class("graph_label_hidden")
+                self.devices[device]['name'].get_style_context().add_class("graph_label")
             else:
-                self.devices[device]['name'].get_style_context().add_class("graph_label_hidden")
-                self.devices[device]['name'].get_style_context().remove_class(self.devices[device]['class'])
+                self.devices[device]['name'].get_style_context().remove_class("graph_label")
         if count > 0:
             if self.labels['da'] not in self.left_panel:
                 self.left_panel.add(self.labels['da'])
@@ -135,11 +134,10 @@ class Panel(MenuPanel):
         name = self._gtk.Button(image, self.prettify(devname), None, self.bts, Gtk.PositionType.LEFT, 1)
         name.connect("clicked", self.toggle_visibility, device)
         name.set_alignment(0, .5)
+        name.get_style_context().add_class(class_name)
         visible = self._config.get_config().getboolean(f"graph {self._screen.connected_printer}", device, fallback=True)
         if visible:
-            name.get_style_context().add_class(class_name)
-        else:
-            name.get_style_context().add_class("graph_label_hidden")
+            name.get_style_context().add_class("graph_label")
         self.labels['da'].set_showing(device, visible)
 
         temp = self._gtk.Button(label="", lines=1)
@@ -229,7 +227,7 @@ class Panel(MenuPanel):
         self.labels['da'] = HeaterGraph(self._screen, self._printer, self._gtk.font_size)
         self.labels['da'].set_vexpand(True)
 
-        scroll = self._gtk.ScrolledWindow()
+        scroll = self._gtk.ScrolledWindow(steppers=False)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.get_style_context().add_class('heater-list')
         scroll.add(self.labels['devices'])

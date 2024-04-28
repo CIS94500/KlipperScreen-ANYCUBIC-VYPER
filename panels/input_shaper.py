@@ -3,7 +3,6 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
-from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
 
 
@@ -50,7 +49,7 @@ class Panel(ScreenPanel):
             axis_lbl.set_markup(f"<b>{dim_freq['name']}</b>")
 
             self.freq_xy_adj[dim_freq['config']] = Gtk.Adjustment(0, dim_freq['min'], dim_freq['max'], 0.1)
-            scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=self.freq_xy_adj[dim_freq['config']],
+            scale = Gtk.Scale(adjustment=self.freq_xy_adj[dim_freq['config']],
                               digits=1, hexpand=True, valign=Gtk.Align.END, has_origin=True)
             scale.get_style_context().add_class("option_slider")
             scale.connect("button-release-event", self.set_opt_value, dim_freq['config'])
@@ -93,7 +92,7 @@ class Panel(ScreenPanel):
     def start_calibration(self, widget, method):
         self.labels['popover'].popdown()
         if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
-            self._screen._ws.klippy.gcode_script(KlippyGcodes.HOME)
+            self._screen._ws.klippy.gcode_script("G28")
         self.calibrating_axis = method
         if method == "x":
             self._screen._ws.klippy.gcode_script('SHAPER_CALIBRATE AXIS=X')

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KlipperScreen\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-31 02:01-0300\n"
+"POT-Creation-Date: 2024-04-26 23:35-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -41,6 +41,9 @@ msgstr ""
 msgid "Add profile"
 msgstr ""
 
+msgid "All"
+msgstr ""
+
 msgid "Apply"
 msgstr ""
 
@@ -52,10 +55,16 @@ msgstr ""
 msgid "Apply %s%.3f offset to Probe?"
 msgstr ""
 
+msgid "Archived"
+msgstr ""
+
 msgid "Are you sure do you want to exclude the object?"
 msgstr ""
 
 msgid "Are you sure you want to run Emergency Stop?"
+msgstr ""
+
+msgid "Are you sure you want to stop the calibration?"
 msgstr ""
 
 msgid "Are you sure you wish to cancel this print?"
@@ -70,6 +79,9 @@ msgstr ""
 msgid "Are you sure you wish to shutdown the system?"
 msgstr ""
 
+msgid "Asks for confirmation before stopping"
+msgstr ""
+
 msgid "Auto"
 msgstr ""
 
@@ -77,6 +89,9 @@ msgid "Auto-calibrate"
 msgstr ""
 
 msgid "Auto-close notifications"
+msgstr ""
+
+msgid "Auto-open Extrude On Pause"
 msgstr ""
 
 msgid "Auto-scroll"
@@ -88,7 +103,7 @@ msgstr ""
 msgid "Bed Mesh"
 msgstr ""
 
-msgid "Bed screw configuration:"
+msgid "Both"
 msgstr ""
 
 msgid "Calibrate"
@@ -121,6 +136,12 @@ msgstr ""
 msgid "Cannot connect to Moonraker"
 msgstr ""
 
+msgid "Changes how the interface looks"
+msgstr ""
+
+msgid "Changes how the time remaining is calculated"
+msgstr ""
+
 msgid "Channel"
 msgstr ""
 
@@ -134,6 +155,9 @@ msgid "Clear"
 msgstr ""
 
 msgid "Close"
+msgstr ""
+
+msgid "Close messages after a timeout"
 msgstr ""
 
 msgid "Complete"
@@ -152,10 +176,10 @@ msgstr ""
 msgid "Console"
 msgstr ""
 
-msgid "Continue"
+msgid "Cooldown"
 msgstr ""
 
-msgid "Cooldown"
+msgid "Current percentage and graph line"
 msgstr ""
 
 msgid "DPMS has failed to load and has been disabled"
@@ -176,6 +200,9 @@ msgstr ""
 msgid "Disable Motors"
 msgstr ""
 
+msgid "Disable for 12hs with am / pm"
+msgstr ""
+
 msgid "Distance (mm)"
 msgstr ""
 
@@ -186,7 +213,31 @@ msgstr ""
 msgid "Elapsed:"
 msgstr ""
 
+msgid "Emergency Stop"
+msgstr ""
+
+msgid "Enable screen power management"
+msgstr ""
+
+msgid "Ended official support in June 2023"
+msgstr ""
+
 msgid "Error"
+msgstr ""
+
+msgid "Error clearing active spool"
+msgstr ""
+
+msgid "Error getting active spool"
+msgstr ""
+
+msgid "Error setting active spool"
+msgstr ""
+
+msgid "Error trying to fetch spools"
+msgstr ""
+
+msgid "Error: Couldn't get a position to probe"
 msgstr ""
 
 msgid "Estimated Time Method"
@@ -199,6 +250,9 @@ msgid "Extra Large"
 msgstr ""
 
 msgid "Extrude"
+msgstr ""
+
+msgid "Extruders"
 msgstr ""
 
 msgid "Extrusion +"
@@ -231,6 +285,9 @@ msgstr ""
 msgid "File:"
 msgstr ""
 
+msgid "Filter"
+msgstr ""
+
 msgid "Finding ADXL"
 msgstr ""
 
@@ -253,9 +310,6 @@ msgid "Font Size"
 msgstr ""
 
 msgid "Full Update"
-msgstr ""
-
-msgid "Fullscreen"
 msgstr ""
 
 msgid "Go Back"
@@ -300,6 +354,9 @@ msgstr ""
 msgid "Hostname"
 msgstr ""
 
+msgid "ID"
+msgstr ""
+
 msgid "Icon Theme"
 msgstr ""
 
@@ -321,6 +378,9 @@ msgstr ""
 msgid "Invalid password"
 msgstr ""
 
+msgid "Inversely affects the icon size"
+msgstr ""
+
 msgid "Invert X"
 msgstr ""
 
@@ -331,6 +391,9 @@ msgid "Invert Z"
 msgstr ""
 
 msgid "It may take more than 5 minutes depending on the heater power."
+msgstr ""
+
+msgid "It's possible that the configuration is not correct"
 msgstr ""
 
 msgid "Klipper Restart"
@@ -351,7 +414,11 @@ msgstr ""
 msgid "Klipper will reboot"
 msgstr ""
 
-msgid "KlipperScreen will reboot"
+msgid "KlipperScreen will drop support in June 2024"
+msgstr ""
+
+msgid ""
+"LOAD_FILAMENT/UNLOAD_FILAMENT are hidden and should be used from extrude"
 msgstr ""
 
 msgid "Language"
@@ -360,7 +427,13 @@ msgstr ""
 msgid "Large"
 msgstr ""
 
+msgid "Last Used"
+msgstr ""
+
 msgid "Layer:"
+msgstr ""
+
+msgid "Leds"
 msgstr ""
 
 msgid "Left:"
@@ -370,6 +443,12 @@ msgid "Limits"
 msgstr ""
 
 msgid "Load"
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+
+msgid "Lost Connection to Moonraker"
 msgstr ""
 
 msgid "Lower Nozzle"
@@ -384,13 +463,13 @@ msgstr ""
 msgid "Main Menu"
 msgstr ""
 
+msgid "Material"
+msgstr ""
+
 msgid "Max"
 msgstr ""
 
 msgid "Max Acceleration"
-msgstr ""
-
-msgid "Max Acceleration to Deceleration"
 msgstr ""
 
 msgid "Max Velocity"
@@ -415,6 +494,9 @@ msgid "Menu"
 msgstr ""
 
 msgid "Mesh calibrate"
+msgstr ""
+
+msgid "Minimum Cruise Ratio"
 msgstr ""
 
 msgid "Modified"
@@ -444,12 +526,28 @@ msgstr ""
 msgid "New"
 msgstr ""
 
-msgid ""
-"Not supported for auto-detection, it needs to be configured in klipperscreen."
-"conf"
+msgid "No elegible macros:"
+msgstr ""
+
+msgid "No mesh has been loaded"
+msgstr ""
+
+msgid "No wireless interface has been found"
+msgstr ""
+
+msgid "Not all screens support this"
+msgstr ""
+
+msgid "Not working or not configured"
 msgstr ""
 
 msgid "Nothing selected"
+msgstr ""
+
+msgid "Notification log empty"
+msgstr ""
+
+msgid "Notifications"
 msgstr ""
 
 #, python-format
@@ -572,6 +670,9 @@ msgstr ""
 msgid "Retrying"
 msgstr ""
 
+msgid "Rotation invalid"
+msgstr ""
+
 msgid "Save"
 msgstr ""
 
@@ -600,6 +701,9 @@ msgstr ""
 msgid "Screws Adjust"
 msgstr ""
 
+msgid "Screws not used:"
+msgstr ""
+
 msgid "Select"
 msgstr ""
 
@@ -616,6 +720,12 @@ msgid "Show"
 msgstr ""
 
 msgid "Show Heater Power"
+msgstr ""
+
+msgid "Show Scrollbars Buttons"
+msgstr ""
+
+msgid "Show only devices that are able to be set"
 msgstr ""
 
 msgid "Shutdown"
@@ -678,13 +788,16 @@ msgstr ""
 msgid "Temperature"
 msgstr ""
 
+msgid "This panel supports up-to 9 screws in a 3x3 Grid"
+msgstr ""
+
+msgid "Timeout for screen black-out or power-off"
+msgstr ""
+
 msgid "Total:"
 msgstr ""
 
 msgid "Unknown Heater"
-msgstr ""
-
-msgid "Unknown screw position"
 msgstr ""
 
 msgid "Unload"
@@ -706,6 +819,15 @@ msgid "Updating"
 msgstr ""
 
 msgid "Uploaded"
+msgstr ""
+
+msgid "Useful for un-responsive touchscreens"
+msgstr ""
+
+msgid "Warning"
+msgstr ""
+
+msgid "WebRTC is not supported by the backend trying Stream"
 msgstr ""
 
 msgid "XY Move Speed (mm/s)"
@@ -741,6 +863,12 @@ msgid "hour"
 msgid_plural "hours"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "macros that use 'rename_existing' are hidden"
+msgstr ""
+
+msgid "macros with a name starting with '_' are hidden"
+msgstr ""
 
 msgid "minute"
 msgid_plural "minutes"

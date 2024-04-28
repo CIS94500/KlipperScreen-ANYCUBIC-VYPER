@@ -10,6 +10,10 @@ window {
     background-color: #FAFAFA;
 }
 
+combobox arrow {
+    background-color: transparent;
+}
+
 button {
     background-color: #FAFAFA;
 }

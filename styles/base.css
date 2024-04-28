@@ -137,6 +137,15 @@ combobox box button {
 
 combobox arrow {
     min-width: 1em;
+    background-color: #13181C;
+}
+
+combobox arrow:disabled {
+-gtk-icon-source: None;
+}
+
+combobox cellview {
+    padding: 0.5em;
 }
 
 entry {
@@ -211,6 +220,24 @@ scrollbar slider {
     min-width: 2em;
     border-radius: .7em;
     background-color: #404E57;
+}
+
+scrollbar.vertical.with-steppers {
+    -GtkScrollbar-has-backward-stepper: true;
+    -GtkScrollbar-has-forward-stepper: true;
+}
+
+scrollbar.vertical.with-steppers button.down {
+    -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+scrollbar.vertical.with-steppers button.up {
+    -gtk-icon-source: -gtk-icontheme("pan-up-symbolic");
+}
+
+undershoot.top,
+undershoot.bottom {
+    background-image: none;
 }
 
 separator {
@@ -336,7 +363,7 @@ trough {
 }
 
 .keyboard_box {
-    margin-top: 38px;
+    margin-top: 10px;
 }
 
 .keyboard_matchbox {
@@ -344,9 +371,10 @@ trough {
 }
 
 .keyboard_pad {
+    border: .05em solid gray;
     margin: 0.05em;
     padding: 0.0em;
-    border-radius: 0.7em;
+    border-radius: 0.3em;
 }
 
 .message_popup_popover {
@@ -557,10 +585,14 @@ trough {
 
 popover {
     background-color: #222;
+    border: 0.1em solid white;
+    padding: 0em;
 }
 
 popover button {
     background-color: #222;
+    padding: 1em 3.1em;
+    margin: 0;
 }
 
 .screensaver, .screensaver button, .screensaver button:hover, .screensaver button:focus, .screensaver button:active {
@@ -575,7 +607,7 @@ popover button {
 
 .filament_sensor {
     border-radius: 3em;
-	margin: 0.3em 0.3em 0.3em 0.3em;
+    margin: 0.3em 0.3em 0.3em 0.3em;
 }
 
 .filament_sensor switch {
@@ -596,6 +628,8 @@ popover button {
     padding-top: 0;
     padding-bottom: 0;
 }
+
+.graph_label {border-left-width: .4em; border-left-style: solid;}
 
 .dialog-error {
     border-bottom: .4em solid #981E1F;
@@ -621,20 +655,4 @@ popover button {
     border-bottom: .4em solid #ED6500;
 }
 
-/* Hardcoded values until creation of dynamic CSS updates */
-.graph_label_hidden {padding-left: .9em;} /* .4em on top of normal button padding */
-.graph_label_extruder {border-left-width: .4em; border-left-style: solid;}
-.graph_label_extruder1 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_extruder2 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_extruder3 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_extruder4 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_heater_bed {border-left-width: .4em; border-left-style: solid;}
-.graph_label_fan_1 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_fan_2 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_fan_3 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_fan_4 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_sensor_1 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_sensor_2 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_sensor_3 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_sensor_4 {border-left-width: .4em; border-left-style: solid;}
-.graph_label_sensor_5 {border-left-width: .4em; border-left-style: solid;}
+

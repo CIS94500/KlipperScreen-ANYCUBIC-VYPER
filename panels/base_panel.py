@@ -201,7 +201,7 @@ class BasePanel(ScreenPanel):
             ctx = self.titlebar.get_style_context()
             msg = f"CPU: {cpu:2.0f}%    RAM: {memory:2.0f}%"
             if cpu > 80 or memory > 85:
-                if self.usage_report < 4:
+                if self.usage_report < 3:
                     self.usage_report += 1
                     return
                 self.last_usage_report = datetime.now()
@@ -210,7 +210,6 @@ class BasePanel(ScreenPanel):
                 self._screen.log_notification(f"{self._screen.connecting_to_printer}: {msg}", 2)
                 self.titlelbl.set_label(msg)
             elif ctx.has_class(error):
-                self.titlelbl.set_label(msg)
                 if (datetime.now() - self.last_usage_report).seconds < 5:
                     self.titlelbl.set_label(msg)
                     return
@@ -350,7 +349,7 @@ class BasePanel(ScreenPanel):
 
         self.labels['update_progress'] = Gtk.Label(halign=Gtk.Align.START, valign=Gtk.Align.START, ellipsize=Pango.EllipsizeMode.END)
 
-        self.labels['update_scroll'] = self._gtk.ScrolledWindow()
+        self.labels['update_scroll'] = self._gtk.ScrolledWindow(steppers=False)
         self.labels['update_scroll'].set_property("overlay-scrolling", True)
         self.labels['update_scroll'].add(self.labels['update_progress'])
         self.labels['update_scroll'].connect("size-allocate", self._autoscroll)

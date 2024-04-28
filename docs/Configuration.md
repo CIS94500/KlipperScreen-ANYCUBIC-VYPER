@@ -57,15 +57,9 @@ moonraker_port: 7125
 # Define the z_babystep intervals in a CSV list. Currently only 2 are supported, the last value is default
 # z_babystep_values: 0.01, 0.05
 
-# Override the movement speed and set a specific for this printer.
-# These setting overrides the settings configured in the UI. If specified,
-# the values configured in the UI will not be used.
-# this is not recommended and may be removed in the future, use the ui settings
-# move_speed_xy: 500
-# move_speed_z: 300
-
+# For the 'Power on' button on the splash screen:
 # Define one or more moonraker power devices that turn on this printer (CSV list)
-# Default is the printer name
+# By Default it tries to match the printer name defined in this section header to the moonraker power device name.
 # power_devices: example1, example2
 
 # Define what items should be shown in titlebar besides the extruder and bed
@@ -78,20 +72,14 @@ moonraker_port: 7125
 # titlebar_name_type: None
 
 # Z probe calibrate position
-# By default is the middle of the bed
+# By default it tries to guess the correct location
+# it will try using zero reference position, safe_z, mesh midddle, middle of axis length, etc
 # example:
 # calibrate_x_position: 100
 # calibrate_y_position: 100
 
-
-# Bed Screws
-# define the screw positons required for odd number of screws in a comma separated list (CSV)
-# possible values are: bl, br, bm, fl, fr, fm, lm, rm, center
-# they correspond to back-left, back-right, back-middle, front-left, front-right, front-middle, left-middle, right-middle
-# example:
-# screw_positions: bl, br, fm
-
 # Rotation is useful if the screen is not directly in front of the machine.
+# It will affect the bed mesh visualization.
 # Valid values are 0 90 180 270
 # screw_rotation: 0
 
@@ -156,9 +144,10 @@ A menu item is configured as follows:
 ```{ .ini .no-copy }
 [menu __main my_menu_item]
 name: Item Name
-#   To build a sub-menu of this menu item, you would next use [menu __main my_menu_item sub_menu_item]
+#   To build a sub-menu of this menu item, you would next define [menu __main my_menu_item sub_menu_item]
 #
-#   The following items are optional:
+#   --- The following items are optional ---
+#
 # icon: home
 #   Icon name to be used, it can be any image in the directory:
 #   KlipperScreen/styles/{theme}/images/ where {theme} is your current theme
@@ -166,19 +155,33 @@ name: Item Name
 #
 # style: mycolor4
 #   Icon style, defined as "button.mycolor4" (for example) in the theme css
+#
 # panel: preheat
 #   Panel from the panels folder in the KlipperScreen folder
-# method: printer.gcode.script
-#   Moonraker method to call when the item is selected
-# params: {"script":"G28 X"}
-#   Parameters that would be passed with the method above
+#
 # enable: {{ 'screws_tilt_adjust' in printer.config_sections and printer.power_devices.count > 0 }}
 #   Enable allows hiding of a menu if the condition is false. (evaluated with Jinja2)
-#   Available variables are listed below.
+#   Available variables are listed in the next section.
+#
+#   --- The items below do not work if you define a panel to be loaded ---
+#
+# method: printer.gcode.script
+#   Moonraker method to call when the item is selected, you will need params below
+#   the most common is is printer.gcode.script check out other methods in moonraker documentation:
+#   https://moonraker.readthedocs.io/en/latest/web_api/#run-a-gcode
+#
+# params: {"script":"G28 X"}
+#   Parameters that would be passed with the method above
+#
+# confirm: 'Are you sure?'
+#   If present this option will give you a confirmation prompt with the text above.
+#   It's recommended that you use a Macro-prompt instead of this option,
+#   as the Macro-prompt will also be shown on other interfaces, and it's more flexible.
+#   Macro-prompts are described in: https://klipperscreen.github.io/KlipperScreen/macros/#prompts
 ```
-Available panels are listed here: [docs/panels.md](Panels.md)
 
-Certain variables are available for conditional testing of the enable statement:
+
+Variables to conditionally test the enable statement:
 ```{ .yaml .no-copy }
 # Configured in Moonraker
 moonraker.power_devices.count # Number of power devices

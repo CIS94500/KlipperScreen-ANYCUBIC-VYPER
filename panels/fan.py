@@ -3,7 +3,6 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Pango
-from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
 
 
@@ -59,8 +58,7 @@ class Panel(ScreenPanel):
         fan_name = _("Part Fan") if fan == "fan" else fan.split()[1]
         name.set_markup(f"\n<big><b>{fan_name}</b></big>\n")
 
-
-        fan_col = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        fan_col = Gtk.Box(spacing=5)
         stop_btn = self._gtk.Button("cancel", _("Stop"), "color1") #VSYS
         stop_btn.set_hexpand(False)
         stop_btn.connect("clicked", self.update_fan_speed, fan, 0)
@@ -71,7 +69,7 @@ class Panel(ScreenPanel):
         speed = float(self._printer.get_fan_speed(fan))
         if changeable:
             speed = round(speed * 100)
-            scale = Gtk.Scale.new_with_range(orientation=Gtk.Orientation.HORIZONTAL, min=0, max=100, step=1)
+            scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, min=0, max=100, step=1)
             scale.set_value(speed)
             scale.set_digits(0)
             scale.set_hexpand(True)
@@ -121,7 +119,7 @@ class Panel(ScreenPanel):
         value = self.devices[fan]['scale'].get_value()
 
         if fan == "fan":
-            self._screen._ws.klippy.gcode_script(KlippyGcodes.set_fan_speed(value))
+            self._screen._ws.klippy.gcode_script(f"M106 S{value * 2.55:.0f}")
         else:
             self._screen._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={fan.split()[1]} SPEED={float(value) / 100}")
         # Check the speed in case it wasn't applied

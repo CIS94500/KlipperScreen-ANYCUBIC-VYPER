@@ -2,16 +2,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KlipperScreen\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-31 02:01-0300\n"
-"PO-Revision-Date: \n"
-"Last-Translator: AntoszHUN\n"
-"Language-Team: \n"
+"POT-Creation-Date: 2024-04-26 23:35-0300\n"
+"PO-Revision-Date: 2024-04-21 11:50+0000\n"
+"Last-Translator: Szilárd Szabó <szilasz1975@gmail.com>\n"
+"Language-Team: Hungarian <https://hosted.weblate.org/projects/klipperscreen/"
+"klipperscreen/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2.1\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.5-dev\n"
 
 #, python-format
 msgid "%s will be updated to version"
@@ -21,7 +22,7 @@ msgid "(default)"
 msgstr "(alapértelmezett)"
 
 msgid "24 Hour Time"
-msgstr "24 Órás Idő"
+msgstr "24 órás idő"
 
 msgid "A FIRMWARE_RESTART may fix the issue."
 msgstr "A FIRMWARE_RESTART javíthatja a problémát."
@@ -41,22 +42,31 @@ msgstr "Elfogad"
 msgid "Add profile"
 msgstr "Profil hozzáadása"
 
+msgid "All"
+msgstr "Mind"
+
 msgid "Apply"
 msgstr "Alkalmaz"
 
 #, python-format
 msgid "Apply %s%.3f offset to Endstop?"
-msgstr "Alkalmazod a %s%.3f végpont eltolást?"
+msgstr "Alkalmazod a(z) %s%.3f végállás eltolást?"
 
 #, python-format
 msgid "Apply %s%.3f offset to Probe?"
-msgstr "Alkalmazod a %s%.3f szonda eltolást?"
+msgstr "Alkalmazod a(z) %s%.3f szonda eltolást?"
+
+msgid "Archived"
+msgstr "Archivált"
 
 msgid "Are you sure do you want to exclude the object?"
 msgstr "Biztosan kizárod az objektumot?"
 
 msgid "Are you sure you want to run Emergency Stop?"
-msgstr "Biztosan Vészleállítást szeretnél?"
+msgstr "Biztosan vészleállítást szeretnél?"
+
+msgid "Are you sure you want to stop the calibration?"
+msgstr ""
 
 msgid "Are you sure you wish to cancel this print?"
 msgstr "Biztosan megszakítod ezt a nyomtatást?"
@@ -70,6 +80,9 @@ msgstr "Biztos, hogy újra akarod indítani a rendszert?"
 msgid "Are you sure you wish to shutdown the system?"
 msgstr "Biztos, hogy le szeretnéd állítani a rendszert?"
 
+msgid "Asks for confirmation before stopping"
+msgstr ""
+
 msgid "Auto"
 msgstr "Auto"
 
@@ -78,6 +91,9 @@ msgstr "Automatikus kalibrálás"
 
 msgid "Auto-close notifications"
 msgstr "Értesítések automatikus bezárása"
+
+msgid "Auto-open Extrude On Pause"
+msgstr "Automatikus megnyitás adagolás szünetelése után"
 
 msgid "Auto-scroll"
 msgstr "Automatikus görgetés"
@@ -88,8 +104,8 @@ msgstr "Ágyszint"
 msgid "Bed Mesh"
 msgstr "Ágyháló"
 
-msgid "Bed screw configuration:"
-msgstr "Az ágycsavar konfigurációja:"
+msgid "Both"
+msgstr "Mindkettő"
 
 msgid "Calibrate"
 msgstr "Kalibrálás"
@@ -107,7 +123,7 @@ msgid "Can't set above the maximum:"
 msgstr "Nem állítható a maximum fölé:"
 
 msgid "Cancel"
-msgstr "Mégse"
+msgstr "Mégsem"
 
 msgid "Cancel Print"
 msgstr "Nyomtatás megszakítása"
@@ -121,20 +137,29 @@ msgstr "Törlés"
 msgid "Cannot connect to Moonraker"
 msgstr "Nem lehet csatlakozni a Moonrakerhez"
 
+msgid "Changes how the interface looks"
+msgstr ""
+
+msgid "Changes how the time remaining is calculated"
+msgstr ""
+
 msgid "Channel"
 msgstr "Csatorna"
 
 msgid "Check ADXL Wiring"
-msgstr "Ellenőrizd az ADXL kábelezést"
+msgstr "Ellenőrizd az ADXL kábelezését"
 
 msgid "Checking for updates, please wait..."
-msgstr "Frissítések keresése, kérjük, várj..."
+msgstr "Frissítések keresése, kérlek, várj..."
 
 msgid "Clear"
-msgstr "Tiszta"
+msgstr "Tisztítás"
 
 msgid "Close"
 msgstr "Bezárás"
+
+msgid "Close messages after a timeout"
+msgstr ""
 
 msgid "Complete"
 msgstr "Befejezve"
@@ -152,14 +177,14 @@ msgstr "Csatlakozás %s"
 msgid "Console"
 msgstr "Konzol"
 
-msgid "Continue"
-msgstr "Folytat"
-
 msgid "Cooldown"
 msgstr "Lehűtés"
 
-msgid "DPMS has failed to load and has been disabled"
+msgid "Current percentage and graph line"
 msgstr ""
+
+msgid "DPMS has failed to load and has been disabled"
+msgstr "A DPMS betöltése nem sikerült, ezért le van tiltva"
 
 msgid "Date"
 msgstr "Dátum"
@@ -168,13 +193,16 @@ msgid "Delete Directory?"
 msgstr "Törlöd a könyvtárat?"
 
 msgid "Delete File?"
-msgstr "Fájl törlése?"
+msgstr "Törlöd a fájlt?"
 
 msgid "Deselect"
 msgstr "Kijelölés törlése"
 
 msgid "Disable Motors"
 msgstr "Motorok letiltása"
+
+msgid "Disable for 12hs with am / pm"
+msgstr ""
 
 msgid "Distance (mm)"
 msgstr "Távolság (mm)"
@@ -186,8 +214,32 @@ msgstr "Vissza akarod állítani %s-t?"
 msgid "Elapsed:"
 msgstr "Eltelt:"
 
+msgid "Emergency Stop"
+msgstr "Vész STOP"
+
+msgid "Enable screen power management"
+msgstr ""
+
+msgid "Ended official support in June 2023"
+msgstr "A hivatalos támogatás 2023 júniusában véget ért"
+
 msgid "Error"
 msgstr "Hiba"
+
+msgid "Error clearing active spool"
+msgstr "Hiba az aktív tekercs törlésekor"
+
+msgid "Error getting active spool"
+msgstr "Hiba az aktív tekercs lekérésekor"
+
+msgid "Error setting active spool"
+msgstr "Hiba az aktív tekercs beállításakor"
+
+msgid "Error trying to fetch spools"
+msgstr "Hiba a tekercsek lekérésekor"
+
+msgid "Error: Couldn't get a position to probe"
+msgstr "Hiba: Nem sikerült beállítani a mérni kívánt pozíciót"
 
 msgid "Estimated Time Method"
 msgstr "Becsült idő módszer"
@@ -201,11 +253,14 @@ msgstr "Extra nagy"
 msgid "Extrude"
 msgstr "Száladagolás"
 
+msgid "Extruders"
+msgstr "Adagolók"
+
 msgid "Extrusion +"
-msgstr "Extrudálás +"
+msgstr "Adagolás +"
 
 msgid "Extrusion -"
-msgstr "Extrudálás -"
+msgstr "Adagolás -"
 
 msgid "Failed, adjust position first"
 msgstr "Sikertelen! Előbb állítsd be a pozíciót"
@@ -231,6 +286,9 @@ msgstr "Fájl"
 msgid "File:"
 msgstr "Fájl:"
 
+msgid "Filter"
+msgstr "Szűrő"
+
 msgid "Finding ADXL"
 msgstr "ADXL keresése"
 
@@ -241,7 +299,7 @@ msgid "Finish"
 msgstr "Befejezve"
 
 msgid "Firmware Restart"
-msgstr "Firmware Újraindítása"
+msgstr "Firmware újraindítása"
 
 msgid "Flow:"
 msgstr "Folyam:"
@@ -253,10 +311,7 @@ msgid "Font Size"
 msgstr "Betűméret"
 
 msgid "Full Update"
-msgstr "Teljes Frissítés"
-
-msgid "Fullscreen"
-msgstr "Teljes képernyő"
+msgstr "Teljes frissítés"
 
 msgid "Go Back"
 msgstr "Visszalépés"
@@ -271,7 +326,7 @@ msgid "Hide"
 msgstr "Elrejt"
 
 msgid "Hide sensors in Temp."
-msgstr "Hőfok szenzorok elrejtése."
+msgstr "Hőfok szenzorok elrejtése"
 
 msgid "Hide temp."
 msgstr "Hőfok elrejtése"
@@ -300,6 +355,9 @@ msgstr "Gazdagép"
 msgid "Hostname"
 msgstr "Gazdanév"
 
+msgid "ID"
+msgstr "ID"
+
 msgid "Icon Theme"
 msgstr "Ikon téma"
 
@@ -321,6 +379,9 @@ msgstr "Érvénytelen"
 msgid "Invalid password"
 msgstr "Érvénytelen jelszó"
 
+msgid "Inversely affects the icon size"
+msgstr ""
+
 msgid "Invert X"
 msgstr "Fordított X"
 
@@ -333,11 +394,14 @@ msgstr "Fordított Z"
 msgid "It may take more than 5 minutes depending on the heater power."
 msgstr "A fűtés teljesítményétől függően több mint 5 percig tarthat."
 
+msgid "It's possible that the configuration is not correct"
+msgstr ""
+
 msgid "Klipper Restart"
-msgstr "Klipper Újraindítása"
+msgstr "A Klipper újraindítása"
 
 msgid "Klipper has disconnected"
-msgstr "Klipper szétkapcsolt"
+msgstr "A Klipper szétkapcsolt"
 
 msgid "Klipper has encountered an error."
 msgstr "A Klipper hibát észlelt."
@@ -346,13 +410,18 @@ msgid "Klipper has shutdown"
 msgstr "A Klipper leállt"
 
 msgid "Klipper is attempting to start"
-msgstr "Klipper megpróbálja elindítani"
+msgstr "A Klipper megpróbál elindulni"
 
 msgid "Klipper will reboot"
 msgstr "A Klipper újraindul"
 
-msgid "KlipperScreen will reboot"
-msgstr "A KlipperScreen újraindul"
+msgid "KlipperScreen will drop support in June 2024"
+msgstr "A KlipperScreen 2024 júniusában megszünteti a támogatást"
+
+msgid ""
+"LOAD_FILAMENT/UNLOAD_FILAMENT are hidden and should be used from extrude"
+msgstr ""
+"LOAD_FILAMENT/UNLOAD_FILAMENT rejtett és a száladagolásból kell használni"
 
 msgid "Language"
 msgstr "Nyelv"
@@ -360,17 +429,29 @@ msgstr "Nyelv"
 msgid "Large"
 msgstr "Nagy"
 
+msgid "Last Used"
+msgstr "Utoljára használt"
+
 msgid "Layer:"
 msgstr "Réteg:"
 
+msgid "Leds"
+msgstr "LED-ek"
+
 msgid "Left:"
-msgstr "Bal:"
+msgstr "Marad:"
 
 msgid "Limits"
 msgstr "Korlátok"
 
 msgid "Load"
 msgstr "Betöltés"
+
+msgid "Loading..."
+msgstr "Betöltés..."
+
+msgid "Lost Connection to Moonraker"
+msgstr "Megszakadt a kapcsolat a Moonraker-el"
 
 msgid "Lower Nozzle"
 msgstr "Fúvóka le"
@@ -384,14 +465,14 @@ msgstr "Makrók"
 msgid "Main Menu"
 msgstr "Főmenü"
 
+msgid "Material"
+msgstr "Anyag"
+
 msgid "Max"
 msgstr "Max"
 
 msgid "Max Acceleration"
 msgstr "Max gyorsulás"
-
-msgid "Max Acceleration to Deceleration"
-msgstr "Lassulás max gyorsulása"
 
 msgid "Max Velocity"
 msgstr "Max sebesség"
@@ -417,6 +498,9 @@ msgstr "Menü"
 msgid "Mesh calibrate"
 msgstr "Háló kalibrálása"
 
+msgid "Minimum Cruise Ratio"
+msgstr "Minimális utazási arány"
+
 msgid "Modified"
 msgstr "Módosított"
 
@@ -430,7 +514,7 @@ msgid "Move"
 msgstr "Mozgatás"
 
 msgid "Move Distance (mm)"
-msgstr "Mozgási távolság (mm)"
+msgstr "Mozgás távolsága (mm)"
 
 msgid "Name"
 msgstr "Név"
@@ -444,15 +528,29 @@ msgstr "Soha"
 msgid "New"
 msgstr "Új"
 
-msgid ""
-"Not supported for auto-detection, it needs to be configured in klipperscreen."
-"conf"
+msgid "No elegible macros:"
+msgstr "Nincs választható makró:"
+
+msgid "No mesh has been loaded"
+msgstr "Nincs háló betöltve"
+
+msgid "No wireless interface has been found"
+msgstr "Nem található vezeték nélküli interfész"
+
+msgid "Not all screens support this"
 msgstr ""
-"Az automatikus felismerés nem támogatott, a KlipperScreen-ben kell "
-"beállítani.conf"
+
+msgid "Not working or not configured"
+msgstr "Nem működik vagy nincs beállítva"
 
 msgid "Nothing selected"
 msgstr "Nincs kiválasztva"
+
+msgid "Notification log empty"
+msgstr "Értesítési napló üres"
+
+msgid "Notifications"
+msgstr "Értesítések"
 
 #, python-format
 msgid "Outdated by %d"
@@ -479,10 +577,10 @@ msgid "Paused"
 msgstr "Szüneteltetve"
 
 msgid "Perform a full upgrade?"
-msgstr "Teljes frissítést hajtasz végre?"
+msgstr "Teljes frissítést szeretnél?"
 
 msgid "Pins"
-msgstr "Kimenetek"
+msgstr "Tűk"
 
 msgid "Please recompile and flash the micro-controller."
 msgstr "Fordítsd újra és frissítsd a mikrovezérlőt."
@@ -524,7 +622,7 @@ msgid "Profile Name:"
 msgstr "Profil név:"
 
 msgid "Provide KlipperScreen.log when asking for help.\n"
-msgstr "Add meg a KlipperScreen.log-ot, amikor segítséget kérsz.\n"
+msgstr "Csatold a KlipperScreen.log-ot, amikor segítséget kérsz.\n"
 
 msgid "Quad Gantry Level"
 msgstr "Négy állású szint"
@@ -574,6 +672,9 @@ msgstr "Újra"
 msgid "Retrying"
 msgstr "Újrapróbálkozás"
 
+msgid "Rotation invalid"
+msgstr ""
+
 msgid "Save"
 msgstr "Mentés"
 
@@ -602,6 +703,9 @@ msgstr "Kijelző kikapcsolási ideje"
 msgid "Screws Adjust"
 msgstr "Csavarok beállítása"
 
+msgid "Screws not used:"
+msgstr ""
+
 msgid "Select"
 msgstr "Kijelölés"
 
@@ -619,6 +723,12 @@ msgstr "Mutat"
 
 msgid "Show Heater Power"
 msgstr "A fűtésteljesítmény megjelenítése"
+
+msgid "Show Scrollbars Buttons"
+msgstr "Görgetősáv gombok megjelenítése"
+
+msgid "Show only devices that are able to be set"
+msgstr ""
 
 msgid "Shutdown"
 msgstr "Leállítás"
@@ -651,13 +761,13 @@ msgid "Square Corner Velocity"
 msgstr "Sebesség a sarkokban"
 
 msgid "Standby"
-msgstr ""
+msgstr "Készenlét"
 
 msgid "Start"
 msgstr "Indítás"
 
 msgid "Starting WiFi Association"
-msgstr "A WiFi Egyesület elindítása"
+msgstr "A WiFi társítás elindítása"
 
 msgid "Starting recovery for"
 msgstr "Helyreállítás megkezdése"
@@ -669,16 +779,22 @@ msgid "System"
 msgstr "Rendszer"
 
 msgid "System Restart"
-msgstr "Rendszer Újraindítása"
+msgstr "Rendszer újraindítása"
 
 msgid "System Shutdown"
-msgstr "Rendszer Leállitás"
+msgstr "Rendszer leállitás"
 
 msgid "Temp (°C)"
-msgstr "Hőmérséklet (°C)"
+msgstr "Hőfok (°C)"
 
 msgid "Temperature"
 msgstr "Hőfok"
+
+msgid "This panel supports up-to 9 screws in a 3x3 Grid"
+msgstr ""
+
+msgid "Timeout for screen black-out or power-off"
+msgstr ""
 
 msgid "Total:"
 msgstr "Teljes:"
@@ -686,14 +802,11 @@ msgstr "Teljes:"
 msgid "Unknown Heater"
 msgstr "Ismeretlen melegítő"
 
-msgid "Unknown screw position"
-msgstr "Ismeretlen csavarhelyzet"
-
 msgid "Unload"
 msgstr "Kiadás"
 
 msgid "Unretract Extra Length"
-msgstr "Extra hossz visszahúzása"
+msgstr "Extra visszahúzás hossza"
 
 msgid "Unretract Speed"
 msgstr "Visszahúzási sebesség"
@@ -702,13 +815,22 @@ msgid "Up To Date"
 msgstr "Naprakész"
 
 msgid "Update"
-msgstr "Frissít"
+msgstr "Frissítés"
 
 msgid "Updating"
 msgstr "Frissítés"
 
 msgid "Uploaded"
 msgstr "Feltöltve"
+
+msgid "Useful for un-responsive touchscreens"
+msgstr ""
+
+msgid "Warning"
+msgstr "Figyelem"
+
+msgid "WebRTC is not supported by the backend trying Stream"
+msgstr "A WebRTC-t a Streamet próbáló háttérrendszer nem támogatja"
 
 msgid "XY Move Speed (mm/s)"
 msgstr "XY Mozgási seb. (mm/s)"
@@ -744,6 +866,12 @@ msgid_plural "hours"
 msgstr[0] "óra"
 msgstr[1] "órák"
 
+msgid "macros that use 'rename_existing' are hidden"
+msgstr "a 'rename_existing' használó makrók el vannak rejtve"
+
+msgid "macros with a name starting with '_' are hidden"
+msgstr "a '_' jellel kezdődő nevű makrók el vannak rejtve"
+
 msgid "minute"
 msgid_plural "minutes"
 msgstr[0] "perc"
@@ -761,92 +889,18 @@ msgstr "mm/s²"
 msgid "mm³/s"
 msgstr "mm³/s"
 
-#~ msgid "Actions"
-#~ msgstr "Műveletek"
-
-#~ msgid "Configuration"
-#~ msgstr "Konfiguráció"
-
-#~ msgid "Homing"
-#~ msgstr "Kezdőpont"
-
-#~ msgid "Disable XY"
-#~ msgstr "XY Letiltása"
-
-#~ msgid "Slicer Time correction (%)"
-#~ msgstr "Szeletelő idő javítása (%)"
-
-#~ msgid "Calibrated, save configuration to make it permanent"
-#~ msgstr "Kalibrálva! Mentsd el a konfigurációt, hogy az állandó legyen"
-
-#~ msgid "Decrease"
-#~ msgstr "Csökkent"
-
-#~ msgid "Increase"
-#~ msgstr "Növel"
-
-#, python-format
-#~ msgid "Sending Power ON signal to: %s"
-#~ msgstr "Bekapcsolási jel küldése ide: %s"
-
-#~ msgid "Sort:"
-#~ msgstr "Fajta:"
-
-#~ msgid "Calibrating..."
-#~ msgstr "Kalibrálás..."
-
-#~ msgid "Z+"
-#~ msgstr "Z+"
-
-#~ msgid "Z-"
-#~ msgstr "Z-"
-
-#~ msgid "X+"
-#~ msgstr "X+"
-
-#~ msgid "X-"
-#~ msgstr "X-"
-
-#~ msgid "Y+"
-#~ msgstr "Y+"
-
-#~ msgid "Y-"
-#~ msgstr "Y-"
-
-#, python-format
-#~ msgid "Retry #%s"
-#~ msgstr "Újra #%s"
-
-#~ msgid "Add Printer"
-#~ msgstr "Nyomtató hozzáadása"
-
-#~ msgid "Initializing"
-#~ msgstr "Inicializálás"
-
-#~ msgid "Delete"
-#~ msgstr "Töröl"
-
-#~ msgid "Off"
-#~ msgstr "Ki"
-
-#~ msgid "View Mesh"
-#~ msgstr "Háló nézet"
-
-#~ msgid "Machine"
-#~ msgstr "Gép"
-
-#~ msgid "Sort by: "
-#~ msgstr "Sorrend: "
-
-#~ msgid "Bltouch found applied offset"
-#~ msgstr "A Bltouch alkalmazott eltolást talált"
+#~ msgid "Bed screw configuration:"
+#~ msgstr "Az ágycsavar konfigurációja:"
 
 #~ msgid ""
-#~ "Check /tmp/KlipperScreen.log for more information.\n"
-#~ "Please submit an issue on GitHub for help."
+#~ "Not supported for auto-detection, it needs to be configured in "
+#~ "klipperscreen.conf"
 #~ msgstr ""
-#~ "Nézd a /tmp/KlipperScreen.log további információért.\n"
-#~ "Segítségért küldj be egy hibajegyet a GitHubon."
+#~ "Az automatikus felismerés nem támogatott, ezt a klipperscreen.conf "
+#~ "fájlban kell beállítani."
 
-#~ msgid "Probe found applied offset"
-#~ msgstr "A szonda alkalmazott eltolást talált"
+#~ msgid "Unknown screw position"
+#~ msgstr "Ismeretlen csavarhelyzet"
+
+#~ msgid "Max Acceleration to Deceleration"
+#~ msgstr "Lassulás max gyorsulása"

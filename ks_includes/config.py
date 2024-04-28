@@ -22,6 +22,9 @@ SCREEN_BLANKING_OPTIONS = [
 ]
 
 klipperscreendir = pathlib.Path(__file__).parent.resolve().parent
+home = os.path.expanduser("~/")
+printer_data_config = os.path.join(home, "printer_data", "config")
+xdg_config = os.path.join(home, ".config", "KlipperScreen")
 
 
 class ConfigError(Exception):
@@ -155,7 +158,7 @@ class KlipperScreenConfig:
                 bools = (
                     'invert_x', 'invert_y', 'invert_z', '24htime', 'only_heaters', 'show_cursor', 'confirm_estop',
                     'autoclose_popups', 'use_dpms', 'use_default_menu', 'side_macro_shortcut', 'use-matchbox-keyboard',
-                    'show_heater_power','auto_open_extrude',
+                    'show_heater_power', 'show_scroll_steppers', 'auto_open_extrude'
                 )
                 strs = (
                     'default_printer', 'language', 'print_sort_dir', 'theme', 'screen_blanking', 'font_size',
@@ -253,7 +256,8 @@ class KlipperScreenConfig:
                 "value": "3600", "callback": screen.set_screenblanking_timeout, "options": [
                     {"name": _("Never"), "value": "off"}]
             }},
-            {"24htime": {"section": "main", "name": _("24 Hour Time"), "type": "binary", "value": "True"}},
+            {"24htime": {"section": "main", "name": _("24 Hour Time"), "type": "binary",
+                         "value": "True"}},
             {"side_macro_shortcut": {
                 "section": "main", "name": _("Macro shortcut on sidebar"), "type": "binary",
                 "value": "True", "callback": screen.toggle_macro_shortcut}},
@@ -268,13 +272,20 @@ class KlipperScreenConfig:
             {"confirm_estop": {"section": "main", "name": _("Confirm Emergency Stop"), "type": "binary",
                                "value": "False"}},
             {"only_heaters": {"section": "main", "name": _("Hide sensors in Temp."), "type": "binary",
+                              "tooltip": _("Show only devices that are able to be set"),
                               "value": "False", "callback": screen.reload_panels}},
             {"use_dpms": {"section": "main", "name": _("Screen DPMS"), "type": "binary",
+                          "tooltip": _("Enable screen power management") + "\n"
+                                     + _("Not all screens support this"),
                           "value": "True", "callback": screen.set_dpms}},
             {"autoclose_popups": {"section": "main", "name": _("Auto-close notifications"), "type": "binary",
                                   "value": "True"}},
             {"show_heater_power": {"section": "main", "name": _("Show Heater Power"), "type": "binary",
+                                   "tooltip": _("Current percentage and graph line"),
                                    "value": "False", "callback": screen.reload_panels}},
+            {"show_scroll_steppers": {"section": "main", "name": _("Show Scrollbars Buttons"), "type": "binary",
+                                      "tooltip": _("Useful for un-responsive touchscreens"),
+                                      "value": "False", "callback": screen.reload_panels}},
             {"auto_open_extrude": {"section": "main", "name": _("Auto-open Extrude On Pause"), "type": "binary",
                                    "value": "True", "callback": screen.reload_panels}},
             # {"": {"section": "main", "name": _(""), "type": ""}}
@@ -388,35 +399,27 @@ class KlipperScreenConfig:
                     saved_def.append(line[(len(self.do_not_edit_prefix) + 1):])
         return ["\n".join(user_def), None if saved_def is None else "\n".join(saved_def)]
 
+    @staticmethod
+    def check_path_exists(base_dir, filename):
+        for name in (filename, filename.lower()):
+            full_path = os.path.join(base_dir, name)
+            if os.path.exists(full_path):
+                return full_path
+        return None
+
     def get_config_file_location(self, file):
-        # Passed config (-c) by default is ~/KlipperScreen.conf
+        # Passed config (-c) by default is blank
         logging.info(f"Passed config (-c): {file}")
-        if os.path.exists(file):
+        if file not in (".", "..") and os.path.exists(file):
             return file
 
-        file = os.path.join(klipperscreendir, self.configfile_name)
-        if os.path.exists(file):
-            return file
-        file = os.path.join(klipperscreendir, self.configfile_name.lower())
-        if os.path.exists(file):
-            return file
+        # List of directories to search for the config file
+        directories = [printer_data_config, home, xdg_config, klipperscreendir]
 
-        klipper_config = os.path.join(os.path.expanduser("~/"), "printer_data", "config")
-        file = os.path.join(klipper_config, self.configfile_name)
-        if os.path.exists(file):
-            return file
-        file = os.path.join(klipper_config, self.configfile_name.lower())
-        if os.path.exists(file):
-            return file
-
-        # OLD config folder
-        klipper_config = os.path.join(os.path.expanduser("~/"), "klipper_config")
-        file = os.path.join(klipper_config, self.configfile_name)
-        if os.path.exists(file):
-            return file
-        file = os.path.join(klipper_config, self.configfile_name.lower())
-        if os.path.exists(file):
-            return file
+        for directory in directories:
+            path = self.check_path_exists(directory, self.configfile_name)
+            if path:
+                return path
 
         # fallback
         return self.default_config_path
@@ -516,17 +519,17 @@ class KlipperScreenConfig:
         if self.config_path != self.default_config_path:
             filepath = self.config_path
         else:
-            filepath = os.path.expanduser("~/")
-            klipper_config = os.path.join(filepath, "printer_data", "config")
-            old_klipper_config = os.path.join(filepath, "klipper_config")
-            if os.path.exists(klipper_config):
-                filepath = os.path.join(klipper_config, self.configfile_name)
-            elif os.path.exists(old_klipper_config):
-                filepath = os.path.join(old_klipper_config, self.configfile_name)
+            if os.path.exists(printer_data_config):
+                filepath = os.path.join(printer_data_config, self.configfile_name)
             else:
-                filepath = os.path.join(filepath, self.configfile_name)
+                try:
+                    if not os.path.exists(xdg_config):
+                        pathlib.Path(xdg_config).mkdir(parents=True, exist_ok=True)
+                    filepath = os.path.join(xdg_config, self.configfile_name)
+                except Exception as e:
+                    logging.error(e)
+                    filepath = klipperscreendir
             logging.info(f'Creating a new config file in {filepath}')
-
         try:
             with open(filepath, 'w') as file:
                 file.write(contents)

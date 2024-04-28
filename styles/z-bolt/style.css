@@ -4,8 +4,13 @@
 
 list row,
 treeview.view,
+combobox arrow,
 window {
     background-color: #13181C;
+}
+
+combobox arrow {
+    background-color: transparent;
 }
 
 button {
@@ -90,7 +95,8 @@ trough {
     border-color: black;
 }
 
-trough highlight, trough progress {
+trough highlight,
+trough progress {
     background-color: #3584e4;
     color: white;
     border-color: black;
@@ -100,7 +106,9 @@ scale-mark {
     color: white;
 }
 
-scrollbar, scrollbar button, scrollbar trough {
+scrollbar,
+scrollbar button,
+scrollbar trough {
     background-color: #13181C;
 }
 
@@ -110,10 +118,6 @@ scrollbar slider {
 
 textview .time {
     color: grey;
-}
-
-.popup {
-    background-color: black;
 }
 
 .dialog {
@@ -147,7 +151,7 @@ textview .time {
     border-bottom-color: white;
 }
 
-.numpad_tleft, .numpad_top, .numpad_tright, .numpad_left, .numpad_button, .numpad_right, .numpad_bleft, .numpad_bottom, .numpad_bright {
+.numpad_key {
     border-color: white;
 }
 
@@ -158,20 +162,6 @@ textview .time {
 .printing-progress-text {
     color: white;
 }
-
-.printing-status-label {
-    color: #ccc;
-}
-
-.tempbutton_top {
-    border-color: white;
-}
-
-.tempbutton, .tempbutton_bottom {
-    border-color: white;
-    border-top-color: #ccc;
-}
-
 .message {
     border-color: #981E1F;
     color: white;
@@ -181,13 +171,21 @@ textview .time {
 .message button {
     background-color: white;
     color: black;
+
 }
 
-.warning {
-    background-color: rgba(30, 204, 39, 0.7);
+.message_popup_echo {
+    background-color: @echo;
 }
 
-.error {
+.message_popup_warning {
+    background-color: @warning;
+}
+
+.message_popup_warning label {
+    color: rgba(30, 204, 39, 0.7);
+}
+.message_popup_error {
     background-color: rgba(204, 30, 30, 0.7);
 }
 

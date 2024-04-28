@@ -29,20 +29,17 @@ class Panel(ScreenPanel):
         self.labels['retry'] = self._gtk.Button("load", _('Retry'), "color3")
         self.labels['retry'].connect("clicked", self.retry)
 
-        self.labels['actions'] = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True,
-						vexpand=False, homogeneous=True, halign=Gtk.Align.CENTER)
-        self.labels['actions'].set_size_request(self._gtk.content_width, -1)
+        self.labels['actions'] = Gtk.Box(hexpand=True, vexpand=False, homogeneous=True)
 
         scroll = self._gtk.ScrolledWindow()
-        scroll.set_hexpand(True)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.add(self.labels['text'])
 
-        info = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        info = Gtk.Box()
         info.pack_start(image, False, True, 8)
         info.pack_end(scroll, True, True, 8)
 
-        main = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        main = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         main.pack_start(info, True, True, 8)
         main.pack_end(self.labels['actions'], False, False, 0)
 
@@ -108,12 +105,10 @@ class Panel(ScreenPanel):
         self._screen._ws.klippy.restart()
 
     def retry(self, widget):
-        self.update_text((_("Connecting to %s") % self._screen.connecting_to_printer))
         if self._screen._ws and not self._screen._ws.connecting:
             self._screen._ws.retry()
-        else:
-            self._screen.reinit_count = 0
-            self._screen.init_printer()
+        self._screen.reinit_count = 0
+        self._screen._init_printer(_("Connecting to %s") % self._screen.connecting_to_printer)
         self.show_restart_buttons()
 
     def reboot_poweroff(self, widget, method):

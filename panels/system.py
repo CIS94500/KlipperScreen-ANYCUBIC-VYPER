@@ -106,7 +106,7 @@ class Panel(ScreenPanel):
     def show_update_info(self, widget, program):
         info = self.update_status['version_info'][program] if program in self.update_status['version_info'] else {}
 
-        scroll = self._gtk.ScrolledWindow()
+        scroll = self._gtk.ScrolledWindow(steppers=False)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -279,19 +279,14 @@ class Panel(ScreenPanel):
         self.labels[f"{p}_status"].set_sensitive(True)
 
     def reboot_poweroff(self, widget, method):
-        scroll = self._gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox.set_halign(Gtk.Align.CENTER)
-        vbox.set_valign(Gtk.Align.CENTER)
+        label = Gtk.Label(wrap=True, hexpand=True, vexpand=True)
+        label.set_label(_("Are you sure you wish to reboot the system?"))
         if method == "reboot":
-            label = Gtk.Label(label=_("Are you sure you wish to reboot the system?"))
+            label.set_label(_("Are you sure you wish to reboot the system?"))
             title = _("Restart")
         else:
-            label = Gtk.Label(label=_("Are you sure you wish to shutdown the system?"))
+            label.set_label(_("Are you sure you wish to shutdown the system?"))
             title = _("Shutdown")
-        vbox.add(label)
-        scroll.add(vbox)
 #begin VSYS
         buttons = [
             {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
@@ -299,7 +294,7 @@ class Panel(ScreenPanel):
         ]
 #end VSYS
 
-        self._gtk.Dialog(title, buttons, scroll, self.reboot_poweroff_confirm, method)
+        self._gtk.Dialog(title, buttons, label, self.reboot_poweroff_confirm, method)
 
     def reboot_poweroff_confirm(self, dialog, response_id, method):
         self._gtk.remove_dialog(dialog)
@@ -316,20 +311,14 @@ class Panel(ScreenPanel):
 
 #begin VSYS
     def reboot_choice(self, widget):
-        scroll = self._gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox.set_halign(Gtk.Align.CENTER)
-        vbox.set_valign(Gtk.Align.CENTER)
-        vbox.add(Gtk.Label(label=_("Are you sure you wish to reboot the system?")))
-        scroll.add(vbox)
+        label = Gtk.Label(wrap=True, hexpand=True, vexpand=True)
+        label.set_label(_("Are you sure you wish to reboot the system?"))
         buttons = [
             {"name": _("KlipperScreen"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
             {"name": _("Computer"), "response": Gtk.ResponseType.APPLY, "style": 'dialog-warning'},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
         ]
-        self._gtk.Dialog(_("Restart"), buttons, scroll, self.reboot_choice_confirm)
-
+        self._gtk.Dialog(_("Restart"), buttons, label, self.reboot_choice_confirm)
 
     def reboot_choice_confirm(self, dialog, response_id):
         self._gtk.remove_dialog(dialog)

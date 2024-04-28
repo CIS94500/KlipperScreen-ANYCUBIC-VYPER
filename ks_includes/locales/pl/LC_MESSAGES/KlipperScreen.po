@@ -3,17 +3,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Polish (KlipperScreen)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-31 02:01-0300\n"
-"PO-Revision-Date: 2023-07-31 22:13+0000\n"
-"Last-Translator: Daviteusz <daviteusz0@gmail.com>\n"
-"Language-Team: Polish\n"
+"POT-Creation-Date: 2024-04-26 23:35-0300\n"
+"PO-Revision-Date: 2024-04-16 18:02+0000\n"
+"Last-Translator: F1CU <ficu1234@gmail.com>\n"
+"Language-Team: Polish <https://hosted.weblate.org/projects/klipperscreen/"
+"klipperscreen/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.18.2\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Weblate 5.5-dev\n"
 
 #, python-format
 msgid "%s will be updated to version"
@@ -43,6 +44,9 @@ msgstr "Akceptuj"
 msgid "Add profile"
 msgstr "Dodaj profil"
 
+msgid "All"
+msgstr "Wszystkie"
+
 msgid "Apply"
 msgstr "Zastosuj"
 
@@ -54,11 +58,17 @@ msgstr "Zastosować przesunięcie %s%.3f do krańcówki?"
 msgid "Apply %s%.3f offset to Probe?"
 msgstr "Zastosować przesunięcie %s%.3f do sondy?"
 
+msgid "Archived"
+msgstr "Zarchiwizowane"
+
 msgid "Are you sure do you want to exclude the object?"
 msgstr "Czy na pewno chcesz wykluczyć obiekt?"
 
 msgid "Are you sure you want to run Emergency Stop?"
 msgstr "Czy na pewno chcesz zatrzymać awaryjnie?"
+
+msgid "Are you sure you want to stop the calibration?"
+msgstr ""
 
 msgid "Are you sure you wish to cancel this print?"
 msgstr "Czy na pewno chcesz przerwać drukowanie?"
@@ -72,6 +82,9 @@ msgstr "Czy na pewno chcesz ponownie uruchomić system?"
 msgid "Are you sure you wish to shutdown the system?"
 msgstr "Czy na pewno chcesz wyłączyć system?"
 
+msgid "Asks for confirmation before stopping"
+msgstr ""
+
 msgid "Auto"
 msgstr "Automatyczna"
 
@@ -80,6 +93,9 @@ msgstr "Automatyczna kalibracja"
 
 msgid "Auto-close notifications"
 msgstr "Automatycznie zamykaj powiadomienia"
+
+msgid "Auto-open Extrude On Pause"
+msgstr "Otwieraj menu wytłaczania podczas wstrzymania"
 
 msgid "Auto-scroll"
 msgstr "Automatyczne przewijanie"
@@ -90,8 +106,8 @@ msgstr "Poziom stołu"
 msgid "Bed Mesh"
 msgstr "Siatka stołu"
 
-msgid "Bed screw configuration:"
-msgstr "Konfiguracja śrub stołu:"
+msgid "Both"
+msgstr ""
 
 msgid "Calibrate"
 msgstr "Kalibruj"
@@ -123,6 +139,12 @@ msgstr "Trwa anulowanie"
 msgid "Cannot connect to Moonraker"
 msgstr "Nie można połączyć się z Moonrakerem"
 
+msgid "Changes how the interface looks"
+msgstr ""
+
+msgid "Changes how the time remaining is calculated"
+msgstr ""
+
 msgid "Channel"
 msgstr "Kanał"
 
@@ -137,6 +159,9 @@ msgstr "Wyczyść"
 
 msgid "Close"
 msgstr "Zamknij"
+
+msgid "Close messages after a timeout"
+msgstr ""
 
 msgid "Complete"
 msgstr "Zakończone"
@@ -154,11 +179,11 @@ msgstr "Łączenie z %s"
 msgid "Console"
 msgstr "Konsola"
 
-msgid "Continue"
-msgstr "Kontynuuj"
-
 msgid "Cooldown"
 msgstr "Studzenie"
+
+msgid "Current percentage and graph line"
+msgstr ""
 
 msgid "DPMS has failed to load and has been disabled"
 msgstr "Nie udało się wczytać DPMS i został on wyłączony"
@@ -178,6 +203,9 @@ msgstr "Odznacz"
 msgid "Disable Motors"
 msgstr "Wyłącz silniki"
 
+msgid "Disable for 12hs with am / pm"
+msgstr ""
+
 msgid "Distance (mm)"
 msgstr "Dystans (mm)"
 
@@ -188,8 +216,32 @@ msgstr "Czy chcesz przywrócić sprawność %s?"
 msgid "Elapsed:"
 msgstr "Upłynęło:"
 
+msgid "Emergency Stop"
+msgstr "Wyłącznik awaryjny"
+
+msgid "Enable screen power management"
+msgstr ""
+
+msgid "Ended official support in June 2023"
+msgstr "Oficjalne wsparcie zakończyło się w czerwcu 2023"
+
 msgid "Error"
 msgstr "Błąd"
+
+msgid "Error clearing active spool"
+msgstr "Błąd czyszczenia aktywnej szpuli"
+
+msgid "Error getting active spool"
+msgstr "Błąd pobierania aktywnej szpuli"
+
+msgid "Error setting active spool"
+msgstr "Błąd ustawiania aktywnej szpuli"
+
+msgid "Error trying to fetch spools"
+msgstr "Błąd podczas pobierania szpuli"
+
+msgid "Error: Couldn't get a position to probe"
+msgstr "Błąd: Nie mogę odczytać pozycji sondy"
 
 msgid "Estimated Time Method"
 msgstr "Metoda szacowanego czasu"
@@ -202,6 +254,9 @@ msgstr "Bardzo duży"
 
 msgid "Extrude"
 msgstr "Wytłaczaj"
+
+msgid "Extruders"
+msgstr "Wytłaczarki"
 
 msgid "Extrusion +"
 msgstr "Ekstruzja +"
@@ -233,6 +288,9 @@ msgstr "Plik"
 msgid "File:"
 msgstr "Plik:"
 
+msgid "Filter"
+msgstr "Filtruj"
+
 msgid "Finding ADXL"
 msgstr "Wyszukiwanie ADXL"
 
@@ -256,9 +314,6 @@ msgstr "Rozmiar czcionki"
 
 msgid "Full Update"
 msgstr "Aktualizuj wszystko"
-
-msgid "Fullscreen"
-msgstr "Pełny ekran"
 
 msgid "Go Back"
 msgstr "Powróć"
@@ -297,10 +352,13 @@ msgid "Home Z"
 msgstr "Bazuj Z"
 
 msgid "Host"
-msgstr "Gospodarz"
+msgstr "Host"
 
 msgid "Hostname"
 msgstr "Nazwa hosta"
+
+msgid "ID"
+msgstr "ID"
 
 msgid "Icon Theme"
 msgstr "Motyw ikon"
@@ -323,6 +381,9 @@ msgstr "Nieprawidłowy"
 msgid "Invalid password"
 msgstr "Nieprawidłowe hasło"
 
+msgid "Inversely affects the icon size"
+msgstr ""
+
 msgid "Invert X"
 msgstr "Odwróć X"
 
@@ -334,6 +395,9 @@ msgstr "Odwróć Z"
 
 msgid "It may take more than 5 minutes depending on the heater power."
 msgstr "Może to potrwać dłużej niż 5 minut w zależności od mocy grzałki."
+
+msgid "It's possible that the configuration is not correct"
+msgstr ""
 
 msgid "Klipper Restart"
 msgstr "Restartuj Klipper"
@@ -353,8 +417,14 @@ msgstr "Klipper próbuje się uruchomić"
 msgid "Klipper will reboot"
 msgstr "Klipper uruchomi się ponownie"
 
-msgid "KlipperScreen will reboot"
-msgstr "KlipperScreen uruchomi się ponownie"
+msgid "KlipperScreen will drop support in June 2024"
+msgstr "KlipperScreen zakończy wsparcie w czerwcu 2024"
+
+msgid ""
+"LOAD_FILAMENT/UNLOAD_FILAMENT are hidden and should be used from extrude"
+msgstr ""
+"LOAD_FILAMENT/UNLOAD_FILAMENT są ukryte i powinny być używane z menu "
+"wytłaczania"
 
 msgid "Language"
 msgstr "Język"
@@ -362,8 +432,14 @@ msgstr "Język"
 msgid "Large"
 msgstr "Duży"
 
+msgid "Last Used"
+msgstr "Ostatnie użycie"
+
 msgid "Layer:"
 msgstr "Warstwa:"
+
+msgid "Leds"
+msgstr "Oświetlenie"
 
 msgid "Left:"
 msgstr "Pozostało:"
@@ -373,6 +449,12 @@ msgstr "Limity"
 
 msgid "Load"
 msgstr "Ładuj"
+
+msgid "Loading..."
+msgstr "Ładowanie..."
+
+msgid "Lost Connection to Moonraker"
+msgstr "Utracono połączenie z Moonraker"
 
 msgid "Lower Nozzle"
 msgstr "Obniż dyszę"
@@ -386,14 +468,14 @@ msgstr "Makra"
 msgid "Main Menu"
 msgstr "Menu główne"
 
+msgid "Material"
+msgstr "Materiał"
+
 msgid "Max"
 msgstr "Maks"
 
 msgid "Max Acceleration"
 msgstr "Maksymalne przyspieszenie"
-
-msgid "Max Acceleration to Deceleration"
-msgstr "Maks. przyśpieszenie do hamowania"
 
 msgid "Max Velocity"
 msgstr "Maksymalna prędkość"
@@ -418,6 +500,9 @@ msgstr "Menu"
 
 msgid "Mesh calibrate"
 msgstr "Kalibracja siatki"
+
+msgid "Minimum Cruise Ratio"
+msgstr ""
 
 msgid "Modified"
 msgstr "Zmodyfikowane"
@@ -446,15 +531,29 @@ msgstr "Nigdy"
 msgid "New"
 msgstr "Nowe"
 
-msgid ""
-"Not supported for auto-detection, it needs to be configured in klipperscreen."
-"conf"
+msgid "No elegible macros:"
+msgstr "Brak odpowiednich makr:"
+
+msgid "No mesh has been loaded"
+msgstr "Nie załadowano żadnej siatki"
+
+msgid "No wireless interface has been found"
+msgstr "Nie znaleziono żadnego bezprzewodowego interfejsu"
+
+msgid "Not all screens support this"
 msgstr ""
-"Nieobsługiwany do automatycznego wykrywania, musi być skonfigurowany w pliku "
-"klipperscreen.conf"
+
+msgid "Not working or not configured"
+msgstr "Nie działa lub nie jest skonfigurowane"
 
 msgid "Nothing selected"
 msgstr "Nic nie wybrano"
+
+msgid "Notification log empty"
+msgstr "Dziennik powiadomień jest pusty"
+
+msgid "Notifications"
+msgstr "Powiadomienia"
 
 #, python-format
 msgid "Outdated by %d"
@@ -527,7 +626,7 @@ msgid "Profile Name:"
 msgstr "Nazwa profilu:"
 
 msgid "Provide KlipperScreen.log when asking for help.\n"
-msgstr "Przekaż KlipperScreen.log, prosząc o pomoc.\n"
+msgstr "Podaj KlipperScreen.log prosząc o pomoc.\n"
 
 msgid "Quad Gantry Level"
 msgstr "Poziom bramy"
@@ -577,6 +676,9 @@ msgstr "Ponów"
 msgid "Retrying"
 msgstr "Ponawianie próby"
 
+msgid "Rotation invalid"
+msgstr ""
+
 msgid "Save"
 msgstr "Zapisz"
 
@@ -605,6 +707,9 @@ msgstr "Czas wygaszania ekranu"
 msgid "Screws Adjust"
 msgstr "Popraw śruby"
 
+msgid "Screws not used:"
+msgstr ""
+
 msgid "Select"
 msgstr "Zaznacz"
 
@@ -622,6 +727,12 @@ msgstr "Pokaż"
 
 msgid "Show Heater Power"
 msgstr "Pokaż moc grzałki"
+
+msgid "Show Scrollbars Buttons"
+msgstr "Pokaż przyciski pasków przewijania"
+
+msgid "Show only devices that are able to be set"
+msgstr ""
 
 msgid "Shutdown"
 msgstr "Wyłącz"
@@ -683,14 +794,17 @@ msgstr "Temperatura (°C)"
 msgid "Temperature"
 msgstr "Temperatura"
 
+msgid "This panel supports up-to 9 screws in a 3x3 Grid"
+msgstr ""
+
+msgid "Timeout for screen black-out or power-off"
+msgstr ""
+
 msgid "Total:"
 msgstr "Całkowicie:"
 
 msgid "Unknown Heater"
 msgstr "Nieznany podgrzewacz"
-
-msgid "Unknown screw position"
-msgstr "Nieznana pozycja śruby"
 
 msgid "Unload"
 msgstr "Wyładuj"
@@ -712,6 +826,15 @@ msgstr "Aktualizowanie"
 
 msgid "Uploaded"
 msgstr "Przesłane"
+
+msgid "Useful for un-responsive touchscreens"
+msgstr ""
+
+msgid "Warning"
+msgstr "Ostrzeżenie"
+
+msgid "WebRTC is not supported by the backend trying Stream"
+msgstr "WebRTC nie jest wspierane przez backend próbujący streamować"
 
 msgid "XY Move Speed (mm/s)"
 msgstr "Prędkość ruchu XY (mm/s)"
@@ -736,9 +859,9 @@ msgstr "Przesunięcie Z:"
 
 msgid "commit"
 msgid_plural "commits"
-msgstr[0] "zmianę"
-msgstr[1] "zmiany"
-msgstr[2] "zmian"
+msgstr[0] "zatwierdzenie"
+msgstr[1] "zatwierdzenia"
+msgstr[2] "zatwierdzeń"
 
 msgid "dBm"
 msgstr "dBm"
@@ -748,6 +871,12 @@ msgid_plural "hours"
 msgstr[0] "godzina"
 msgstr[1] "godziny"
 msgstr[2] "godzin"
+
+msgid "macros that use 'rename_existing' are hidden"
+msgstr "makra używające \"rename_existing\" są ukryte"
+
+msgid "macros with a name starting with '_' are hidden"
+msgstr "makra z nazwą zaczynającą się od \"_\" są ukryte"
 
 msgid "minute"
 msgid_plural "minutes"
@@ -766,6 +895,28 @@ msgstr "mm/s²"
 
 msgid "mm³/s"
 msgstr "mm³/s"
+
+#~ msgid "Bed screw configuration:"
+#~ msgstr "Konfiguracja śrub stołu:"
+
+#~ msgid ""
+#~ "Not supported for auto-detection, it needs to be configured in "
+#~ "klipperscreen.conf"
+#~ msgstr ""
+#~ "Nieobsługiwany do automatycznego wykrywania, musi być skonfigurowany w "
+#~ "pliku klipperscreen.conf"
+
+#~ msgid "Unknown screw position"
+#~ msgstr "Nieznana pozycja śruby"
+
+#~ msgid "Max Acceleration to Deceleration"
+#~ msgstr "Maks. przyśpieszenie do hamowania"
+
+#~ msgid "Continue"
+#~ msgstr "Kontynuuj"
+
+#~ msgid "Fullscreen"
+#~ msgstr "Pełny ekran"
 
 #~ msgid "Actions"
 #~ msgstr "Akcje"

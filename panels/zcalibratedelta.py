@@ -16,7 +16,7 @@ class Panel(ScreenPanel):
         macros = self._printer.get_gcode_macros()
         self.macro_move_z = any("_MOVE_TO_Z0" in macro.upper() for macro in macros)
 
-        grid = self._gtk.HomogeneousGrid()
+        grid = Gtk.Grid(row_homogeneous=False)
         grid.set_row_homogeneous(False)
         self.buttons = {
             'home': self._gtk.Button('home', _("Homing"), 'color3'),
@@ -63,6 +63,9 @@ class Panel(ScreenPanel):
         self.content.add(grid)
 
     def process_update(self, action, data):
+        if action == "notify_busy":
+            self.process_busy(data)
+            return
         if action != "notify_status_update":
             return
         if "gcode_move" in data:
@@ -84,4 +87,12 @@ class Panel(ScreenPanel):
         self.distance = distance
 
     def home(self, widget):
-        self._screen._ws.klippy.gcode_script(f"G28")
+        self._screen._ws.klippy.gcode_script("G28")
+        
+    def process_busy(self, busy):
+        if busy:
+            for button in self.buttons:
+                self.buttons[button].set_sensitive(False)
+        else:
+            for button in self.buttons:
+                self.buttons[button].set_sensitive(True)

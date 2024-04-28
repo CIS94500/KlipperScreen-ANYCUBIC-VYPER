@@ -169,12 +169,10 @@ class Panel(ScreenPanel):
         sortable.set_sort_func(1, self.spool_compare_date)
 
         self.scroll = self._gtk.ScrolledWindow()
-        # VSYS NON TESTE ------------------
         if self._screen.vertical_mode:
             self.scroll.set_property("overlay-scrolling", True)
         else:
             self.scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        #----------------------------------
 
         clear_active_spool = self._gtk.Button("cancel", _("Clear"), "color2", self.bts, Gtk.PositionType.LEFT, 1)
         clear_active_spool.get_style_context().add_class("buttons_slim")
@@ -199,7 +197,7 @@ class Panel(ScreenPanel):
         name = Gtk.Label(halign=Gtk.Align.START, valign=Gtk.Align.CENTER, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
         name.set_markup(_("Archived"))
 
-        archived = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, valign=Gtk.Align.CENTER)
+        archived = Gtk.Box(valign=Gtk.Align.CENTER)
         archived.add(name)
         archived.add(switch)
 
@@ -215,7 +213,7 @@ class Panel(ScreenPanel):
         self._filter_expander.add(filter_box)
 
         row = Gtk.ListBoxRow()
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox = Gtk.Box(spacing=5)
         row.add(hbox)
 
         label = Gtk.Label(_("Material"))
@@ -235,7 +233,7 @@ class Panel(ScreenPanel):
 
         filter_box.add(row)
 
-        self.main = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0, vexpand=True)
+        self.main = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
         self.main.pack_start(sbox, False, False, 0)
         self.main.pack_start(self._filter_expander, False, True, 0)
         self.main.pack_start(self.scroll, True, True, 0)

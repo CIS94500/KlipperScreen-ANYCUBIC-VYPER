@@ -81,13 +81,13 @@ class Keyboard(Gtk.Box):
             self.keys = [
                 [
                     ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-                    ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+                    ["a", "s", "d", "f", "g", "h", "j", "k", "l", "."],
                     ["↑", "z", "x", "c", "v", "b", "n", "m", "#+=", "⌫"],
                     ["123", " ", "↓"],
                 ],
                 [
                     ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-                    ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+                    ["A", "S", "D", "F", "G", "H", "J", "K", "L", "."],
                     ["↑", "Z", "X", "C", "V", "B", "N", "M", "#+=", "⌫"],
                     ["123", " ", "↓"],
                 ],
@@ -122,8 +122,6 @@ class Keyboard(Gtk.Box):
                         self.buttons[p][r][k] = screen.gtk.Button("arrow-down", scale=.6)
                     else:
                         self.buttons[p][r][k] = screen.gtk.Button(label=key, lines=1)
-                    self.buttons[p][r][k].set_hexpand(True)
-                    self.buttons[p][r][k].set_vexpand(True)
                     self.buttons[p][r][k].connect('button-press-event', self.repeat, key)
                     self.buttons[p][r][k].connect('button-release-event', self.release)
                     self.buttons[p][r][k].get_style_context().add_class("keyboard_pad")
@@ -149,7 +147,7 @@ class Keyboard(Gtk.Box):
         columns = 0
         for r, row in enumerate(self.keys[p][:-1]):
             for k, key in enumerate(row):
-                x = k * 2 + 1 if r == 1 else k * 2
+                x = k * 2 + 1 if r == 3 else k * 2 #VSYS
                 self.keyboard.attach(self.buttons[p][r][k], x, r, 2, 1)
                 if x > columns:
                     columns = x
@@ -229,9 +227,9 @@ class Keyboard(Gtk.Box):
 
     def toggle_shift(self):
         self.shift_active = not self.shift_active
-        if self.shift_active:
-            for widget in self.shift:
+        widget: Gtk.Widget
+        for widget in self.shift:
+            if self.shift_active:
                 widget.get_style_context().add_class("active")
-        else:
-            for widget in self.shift:
+            else:
                 widget.get_style_context().remove_class("active")

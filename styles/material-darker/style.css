@@ -11,6 +11,10 @@ window {
     background-color: #121212;
 }
 
+combobox arrow {
+    background-color: transparent;
+}
+
 .active_device {
     background-color: #1c1c1c;
 }
