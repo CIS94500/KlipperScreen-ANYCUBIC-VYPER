@@ -105,6 +105,9 @@ msgstr "Archivé"
 msgid "Are you sure do you want to exclude the object?"
 msgstr "Êtes-vous sûr de vouloir exclure l’objet ?"
 
+msgid "Are you sure you want to run Emergency Stop?"
+msgstr "Êtes-vous sûr de vouloir exécuter l'arrêt d'urgence ?"
+
 msgid "Are you sure you want to stop the calibration?"
 msgstr "Êtes-vous sûr de vouloir arrêter la calibration ?"
 

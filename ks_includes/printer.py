@@ -242,12 +242,8 @@ class Printer:
     def get_printer_status_data(self):
 #Begin VSYS
         is_delta = False
-        is_cartesian = False
         if self.config_section_exists("printer"):
-            if "delta" in self.get_config_section("printer")['kinematics'].lower():
-                is_delta = True
-            else:
-                is_cartesian = True
+            is_delta = True if "delta" in self.get_config_section("printer")['kinematics'].lower() else False
 #End VSYS
         return {
             "moonraker": {
@@ -264,7 +260,6 @@ class Printer:
                 "gcode_macros": {"count": len(self.get_gcode_macros()), "list": self.get_gcode_macros()},
                 "config_sections": [section for section in self.config.keys()],
                 "is_delta": is_delta, #VSYS
-                "is_cartesian": is_cartesian, #VSYS
             }
         }
 
