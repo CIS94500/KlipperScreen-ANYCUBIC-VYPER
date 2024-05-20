@@ -19,7 +19,7 @@ class Panel(ScreenPanel):
         grid = Gtk.Grid(row_homogeneous=False)
         grid.set_row_homogeneous(False)
         self.buttons = {
-            'home': self._gtk.Button('home', _("Homing"), 'color3'),
+            'home': self._gtk.Button('home', _("Home"), 'color3'),
             'start': self._gtk.Button('arrow-down', _("Move Z0"), 'color4'),
             'z+': self._gtk.Button('z-farther', _("Raise Nozzle"), 'color1'),
             'z-': self._gtk.Button('z-closer', _("Lower Nozzle"), 'color3'),

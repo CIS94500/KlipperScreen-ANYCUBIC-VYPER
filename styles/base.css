@@ -413,12 +413,17 @@ trough {
     font-weight: bold;
 }
 
-.numpad{
-    margin-top: 30px;
+.numpad {
+    margin-top: 15px;
+}
+
+.numpad_key {
+    border: .15em;
+    border-style: solid;
+    border-color: white;
 }
 
 .numpad_tleft {
-    border: .15em solid white;
     border-bottom: 0;
     border-right: 0;
     border-top-left-radius: .7em;
@@ -426,54 +431,46 @@ trough {
 }
 
 .numpad_top {
-    border: .15em solid white;
     border-bottom: 0;
     border-right: 0;
     margin: .15em 0 0 0;
 }
 
 .numpad_tright {
-    border: .15em solid white;
     border-bottom: 0;
     border-top-right-radius: .7em;
     margin: .15em .15em 0 0;
 }
 
 .numpad_left {
-    border: .15em solid white;
     border-right: 0;
     border-bottom: 0;
     margin: 0 0 0 .15em;
 }
 
 .numpad_button {
-    border: .15em solid white;
     border-right: 0;
     border-bottom: 0;
     margin: 0;
 }
 
 .numpad_right {
-    border: .15em solid white;
     border-bottom: 0;
     margin: 0 .15em 0 0;
 }
 
 .numpad_bleft {
-    border: .15em solid white;
     border-right: 0;
     border-bottom-left-radius: .7em;
     margin: 0 0 .15em .15em;
 }
 
 .numpad_bottom {
-    border: .15em solid white;
     border-right: 0;
     margin: 0 0 .15em 0;
 }
 
 .numpad_bright {
-    border: .15em solid white;
     border-bottom-right-radius: .7em;
     margin: 0 .15em .15em 0;
 }
@@ -654,5 +651,4 @@ popover button {
 .dialog-primary {
     border-bottom: .4em solid #ED6500;
 }
-
 

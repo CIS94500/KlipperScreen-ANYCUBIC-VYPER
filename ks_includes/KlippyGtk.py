@@ -189,7 +189,7 @@ class KlippyGtk:
             else:
                 button_hsize = int((self.width / 3))
             for button in buttons:
-                style = button['style'] if 'style' in button else 'dialog-default'
+                style = button['style'] if 'style' in button else "dialog-default"
                 dialog.add_button(button['name'], button['response'])
                 button = dialog.get_widget_for_response(button['response'])
                 button.set_size_request(button_hsize, self.dialog_buttons_height)

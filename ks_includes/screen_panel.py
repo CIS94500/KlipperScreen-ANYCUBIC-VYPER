@@ -165,26 +165,19 @@ class ScreenPanel:
         return name
 
     def update_temp(self, dev, temp, target, power, lines=1):
-        if temp is None:
-            return
-
-        show_target = bool(target)
-        if dev in self.devices and not self.devices[dev]["can_target"]:
-            show_target = False
-
-        show_power = show_target and self._show_heater_power and power is not None
-
-        new_label_text = f"{int(temp):3}"
-        if show_target:
-            new_label_text += f"/{int(target)}"
+        new_label_text = f"{temp or 0:.1f}"
+        if self._printer.device_has_target(dev) and target:
+            new_label_text += f"/{target:.0f}"
         if dev not in self.devices:
             new_label_text += "°"
+
+        show_power = self._show_heater_power and power
         if show_power:
             if lines == 2:
                 # The label should wrap, but it doesn't work
                 # this is a workaround
                 new_label_text += "\n  "
-            new_label_text += f" {int(power * 100):3}%"
+            new_label_text += f" {power * 100:3.0f}%"
 
         if dev in self.labels:
             self.labels[dev].set_label(new_label_text)

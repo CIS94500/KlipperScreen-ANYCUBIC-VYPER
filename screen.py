@@ -268,6 +268,8 @@ class KlipperScreen(Gtk.Window):
             requested_updates['objects'][f] = ["enabled", "filament_detected"]
         for p in self.printer.get_output_pins():
             requested_updates['objects'][p] = ["value"]
+        for led in self.printer.get_leds():
+            requested_updates['objects'][led] = ["color_data"]
 
         self._ws.klippy.object_subscription(requested_updates)
 
@@ -824,8 +826,8 @@ class KlipperScreen(Gtk.Window):
 
     def _confirm_send_action(self, widget, text, method, params=None):
         buttons = [
-            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
+            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
         ]
 
         try:
@@ -965,6 +967,9 @@ class KlipperScreen(Gtk.Window):
         # Reinitialize printer, in case the printer was shut down and anything has changed.
         self.printer.reinit(printer_info['result'], config['result']['status'])
         self.printer.available_commands = self.apiclient.get_gcode_help()['result']
+        info = self.apiclient.send_request("machine/system_info")
+        if info and 'system_info' in info['result']:
+            self.printer.system_info = info['result']['system_info']
 
         self.ws_subscribe()
 
@@ -993,12 +998,12 @@ class KlipperScreen(Gtk.Window):
             *self.printer.get_temp_fans(),
             *self.printer.get_filament_sensors(),
             *self.printer.get_output_pins(),
+            *self.printer.get_leds(),
         )
 
         data = self.apiclient.send_request("printer/objects/query?" + "&".join(items))
-
         if data is False:
-            return self._init_printer("Error getting printer object data with extra items")
+            return self._init_printer("Error getting printer object data")
 
         self.files.set_gcodes_path()
 

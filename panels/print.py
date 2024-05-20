@@ -312,14 +312,14 @@ class Panel(ScreenPanel):
 #Begin VSYS
         if self.macro_adaptatif_mesh:
             buttons = [
-                {"name": _("Mesh Default"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
-                {"name": _("Mesh Adaptive"), "response": Gtk.ResponseType.APPLY, "style": 'dialog-default'},
-                {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
+                {"name": _("Mesh Default"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
+                {"name": _("Mesh Adaptive"), "response": Gtk.ResponseType.APPLY, "style": "dialog-default"},
+                {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
             ]
         else:
             buttons = [
-                {"name": _("Print"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
-                {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
+                {"name": _("Print"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
+                {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
             ]
 #End VSYS
         label = Gtk.Label(hexpand=True, vexpand=True, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)

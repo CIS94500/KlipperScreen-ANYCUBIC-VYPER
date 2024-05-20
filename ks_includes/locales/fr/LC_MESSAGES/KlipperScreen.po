@@ -57,6 +57,9 @@ msgstr "Maillage par défaut"
 msgid "Mesh Adaptive"
 msgstr "Maillage Adaptatif"
 
+msgid "General"
+msgstr "Général"
+
 #, python-format
 msgid "%s will be updated to version"
 msgstr "%s sera mis à jour vers la version"
@@ -66,6 +69,12 @@ msgstr "(défaut)"
 
 msgid "24 Hour Time"
 msgstr "Format 24 heures"
+
+msgid "Timeout for screen black-out or power-off"
+msgstr "Hors impression"
+
+msgid "Timeout for screen black-out or power-off during printing"
+msgstr "Pendant l'impression"
 
 msgid "A FIRMWARE_RESTART may fix the issue."
 msgstr "La commande FIRMWARE_RESTART peut résoudre le problème."
@@ -354,7 +363,7 @@ msgid "Hide temp."
 msgstr "Masquer temp."
 
 msgid "Home"
-msgstr "Accueil"
+msgstr "Origine"
 
 msgid "Home All"
 msgstr "Origine XYZ"

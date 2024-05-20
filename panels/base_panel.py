@@ -241,8 +241,8 @@ class BasePanel(ScreenPanel):
         if action != "notify_status_update" or self._screen.printer is None:
             return
         for device in self._printer.get_temp_devices():
-            temp = self._printer.get_dev_stat(device, "temperature")
-            if temp is not None and device in self.labels:
+            temp = self._printer.get_stat(device, "temperature")
+            if temp and device in self.labels:
                 name = ""
                 if not (device.startswith("extruder") or device.startswith("heater_bed")):
                     if self.titlebar_name_type == "full":
@@ -251,7 +251,7 @@ class BasePanel(ScreenPanel):
                     elif self.titlebar_name_type == "short":
                         name = device.split()[1] if len(device.split()) > 1 else device
                         name = f"{name[:1].upper()}: "
-                self.labels[device].set_label(f"{name}{int(temp)}°")
+                self.labels[device].set_label(f"{name}{temp:.0f}°")
 
         if (self.current_extruder and 'toolhead' in data and 'extruder' in data['toolhead']
                 and data["toolhead"]["extruder"] != self.current_extruder):
@@ -345,7 +345,7 @@ class BasePanel(ScreenPanel):
     def show_update_dialog(self):
         if self.update_dialog is not None:
             return
-        button = [{"name": _("Finish"), "response": Gtk.ResponseType.OK, "style": 'dialog-default'}]
+        button = [{"name": _("Finish"), "response": Gtk.ResponseType.OK, "style": "dialog-default"}]
 
         self.labels['update_progress'] = Gtk.Label(halign=Gtk.Align.START, valign=Gtk.Align.START, ellipsize=Pango.EllipsizeMode.END)
 

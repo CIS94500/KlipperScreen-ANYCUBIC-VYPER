@@ -69,8 +69,8 @@ class Panel(ScreenPanel):
             label.set_label(_("Do you want to run the bed leveling ?"))
         
         buttons = [
-            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
+            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
         ]
         self._gtk.Dialog(_("Bed Mesh"), buttons, label, self.mesh_choice_confirm)
 
