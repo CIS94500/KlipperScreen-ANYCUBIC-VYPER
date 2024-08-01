@@ -49,7 +49,7 @@ button {
     background-image: none;
     background-color: #13181C;
     margin: .25em;
-    padding: .2em .5em 0;
+    padding: 0 .5em;
     border-radius: 0;
     border: 0;
     -gtk-icon-shadow: none;
@@ -75,9 +75,11 @@ button.color4:disabled label {
     color: grey;
 }
 
-button label {
-    margin-top: .25em;
-    margin-bottom: .5em;
+button.color1 image,
+button.color2 image,
+button.color3 image,
+button.color4 image {
+    margin-top: 0.2em;
 }
 
 button.color1 {
@@ -478,7 +480,7 @@ trough {
 .printing-filename {
     font-size: 1.4em;
     font-weight: bold;
-    margin: .25em .25em 0 0;
+    margin-right: .25em;
 }
 
 .printing-info {
@@ -497,7 +499,7 @@ trough {
 .printing-status {
     color: #f0f0f0;
     font-style: italic;
-    margin: 0 0 0 0;
+    margin-right: .25em;
 }
 
 .printing-progress-text {
@@ -652,3 +654,17 @@ popover button {
     border-bottom: .4em solid #ED6500;
 }
 
+.dialog .image-button {
+    background-color: transparent;
+    padding: 0;
+    margin: 0.25em;
+}
+
+flowboxchild {
+    padding: 0;
+}
+
+flowbox button {
+    margin: 0.1em;
+    padding: .5em;
+}

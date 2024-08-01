@@ -15,11 +15,12 @@ def format_label(widget):
         label.set_line_wrap_mode(Pango.WrapMode.CHAR)
         label.set_line_wrap(True)
         label.set_ellipsize(Pango.EllipsizeMode.END)
-        label.set_lines(2)
+        label.set_lines(3)
 
 
 class Panel(ScreenPanel):
     def __init__(self, screen, title):
+        title = title or (_("Print") if self._printer.extrudercount > 0 else _("Gcodes"))
         super().__init__(screen, title)
 #Begin VSYS
         macros = self._printer.get_gcode_macros()
@@ -74,7 +75,7 @@ class Panel(ScreenPanel):
         logging.info(f"Thumbsize: {self.thumbsize}")
 
         self.flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE,
-                                   column_spacing=0, row_spacing=0, homogeneous=True)
+                                   column_spacing=0, row_spacing=0)
         list_mode = self._config.get_main_config().get("print_view", 'thumbs')
         logging.info(list_mode)
         self.list_mode = list_mode == 'list'
@@ -140,13 +141,16 @@ class Panel(ScreenPanel):
         else:
             logging.error(f"Unknown item {item}")
             return
-        basename = os.path.splitext(name)[0]
+        basename = (os.path.splitext(name)[0]).strip()
         fbchild.set_path(path)
         fbchild.set_name(basename.casefold())
         if self.list_mode:
             label = Gtk.Label(label=basename, hexpand=True, vexpand=False)
             format_label(label)
-            info = Gtk.Label(hexpand=True, halign=Gtk.Align.START, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+            info = Gtk.Label(
+                hexpand=True, halign=Gtk.Align.START, xalign=0,
+                wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+            )
             info.get_style_context().add_class("print-info")
             info.set_markup(self.get_info_str(item, path))
             delete = Gtk.Button(hexpand=False, vexpand=False, can_focus=False, always_show_image=True)
@@ -323,18 +327,35 @@ class Panel(ScreenPanel):
             ]
 #End VSYS
         label = Gtk.Label(hexpand=True, vexpand=True, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
-        label.set_markup(f"<b>{filename}</b>\n")
+        label.set_markup(f"<b>{filename}</b>")
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box.add(label)
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
+        main_box.pack_start(label, False, False, 0)
 
-        height = (self._screen.height - self._gtk.dialog_buttons_height - self._gtk.font_size) * .75
-        pixbuf = self.get_file_image(filename, self._screen.width * .9, height)
+        orientation = Gtk.Orientation.VERTICAL if self._screen.vertical_mode else Gtk.Orientation.HORIZONTAL
+        inside_box = Gtk.Box(orientation=orientation, vexpand=True)
+
+        if self._screen.vertical_mode:
+            width = self._screen.width * .9
+            height = (self._screen.height - self._gtk.dialog_buttons_height - self._gtk.font_size * 5) * .45
+        else:
+            width = self._screen.width * .5
+            height = (self._screen.height - self._gtk.dialog_buttons_height - self._gtk.font_size * 6)
+        pixbuf = self.get_file_image(filename, width, height)
         if pixbuf is not None:
             image = Gtk.Image.new_from_pixbuf(pixbuf)
-            box.add(image)
+            image_button = self._gtk.Button()
+            image_button.set_image(image)
+            image_button.connect("clicked", self.show_fullscreen_thumbnail, filename)
+            inside_box.pack_start(image_button, True, True, 0)
 
-        self._gtk.Dialog(_("Print") + f' {filename}', buttons, box, self.confirm_print_response, filename)
+        info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
+        fileinfo = Gtk.Label(label=self.get_file_info_extended(filename), use_markup=True)
+        info_box.pack_start(fileinfo, True, True, 0)
+
+        inside_box.pack_start(info_box, True, True, 0)
+        main_box.pack_start(inside_box, True, True, 0)
+        self._gtk.Dialog(_("Print") + f' {filename}', buttons, main_box, self.confirm_print_response, filename)
 
     def confirm_print_response(self, dialog, response_id, filename):
         self._gtk.remove_dialog(dialog)
@@ -354,17 +375,63 @@ class Panel(ScreenPanel):
     def get_info_str(self, item, path):
         info = ""
         if "modified" in item:
-            info += _("Modified") if 'dirname' in item else _("Uploaded")
+            info += _("Modified")
             if self.time_24:
-                info += f':<b> {datetime.fromtimestamp(item["modified"]):%Y/%m/%d %H:%M}</b>\n'
+                info += f':<b> {datetime.fromtimestamp(item["modified"]):%d/%m/%Y %H:%M}</b>\n'
             else:
                 info += f':<b> {datetime.fromtimestamp(item["modified"]):%Y/%m/%d %I:%M %p}</b>\n'
         if "size" in item:
             info += _("Size") + f': <b>{self.format_size(item["size"])}</b>\n'
         if 'filename' in item:
-            fileinfo = self._screen.files.get_file_info(path)
-            if "estimated_time" in fileinfo:
-                info += _("Print Time") + f': <b>{self.format_time(fileinfo["estimated_time"])}</b>'
+            info += self.get_file_info(path)
+        return info
+
+    def get_file_info(self, path):
+        info = ""
+        fileinfo = self._screen.files.get_file_info(path)
+        nameFila = f' - {(fileinfo["filament_name"]).strip()}' if "filament_name" in fileinfo else ""
+        if "layer_height" in fileinfo:
+            info += _("Layer Height") + f': <b>{fileinfo["layer_height"]}</b> ' + _("mm") + '\n'
+        if "filament_weight_total" in fileinfo:
+            info += _("Estimated Weight") + f': <b>{fileinfo["filament_weight_total"]}</b> ' + _("gr") + '\n'
+        if "estimated_time" in fileinfo:
+            info += _("Estimated Time") + f': <b>{self.format_time(fileinfo["estimated_time"]).strip()}</b>'
+        return info
+
+    def get_file_info_extended(self, filename):
+        fileinfo = self._screen.files.get_file_info(filename)
+        info = ""
+        if "size" in fileinfo:
+            info += _("Size") + f': <b>{self.format_size(fileinfo["size"])}</b>\n'
+        if "modified" in fileinfo:
+            info += _("Modified")
+            if self.time_24:
+                info += f':<b> {datetime.fromtimestamp(fileinfo["modified"]):%Y/%m/%d %H:%M}</b>\n'
+            else:
+                info += f':<b> {datetime.fromtimestamp(fileinfo["modified"]):%Y/%m/%d %I:%M %p}</b>\n'
+        if "object_height" in fileinfo:
+            info += _("Height") + f': <b>{fileinfo["object_height"]}</b> ' + _("mm") + '\n'     
+        if "layer_height" in fileinfo:
+            info += _("Layer Height") + f': <b>{fileinfo["layer_height"]}</b> ' + _("mm") + '\n'
+        if "first_layer_extr_temp" in fileinfo or "first_layer_bed_temp" in fileinfo:
+            info += _("Temperature first layer") + ':\n'
+        if "first_layer_extr_temp" in fileinfo:
+            info += f'    ' + _("Nozzle") + f': <b>{(fileinfo["first_layer_extr_temp"])}</b>' + _("°C") + '\n'
+        if "first_layer_bed_temp" in fileinfo:
+            info += f'    ' + _("Bed") + f': <b>{(fileinfo["first_layer_bed_temp"])}</b>' + _("°C") + '\n'
+        if "filament_weight_total" in fileinfo:
+            info += _("Estimated Weight") + f': <b>{fileinfo["filament_weight_total"]}</b> ' + _("gr") + '\n'
+        if "filament_type" in fileinfo:
+            nameFila = f' - {(fileinfo["filament_name"]).strip()}' if "filament_name" in fileinfo else ""
+            info += _("Filament") + f': <b>{(fileinfo["filament_type"]).strip() + nameFila}</b>\n'
+        if "nozzle_diameter" in fileinfo:
+            info += _("Nozzle diameter") + f': <b>{fileinfo["nozzle_diameter"]}</b> ' + _("mm") + '\n'
+        if "estimated_time" in fileinfo:
+            info += _("Estimated Time") + f': <b>{self.format_time(fileinfo["estimated_time"]).strip()}</b>\n'
+        if "job_id" in fileinfo:
+            history = self._screen.apiclient.send_request(f"server/history/job?uid={fileinfo['job_id']}")
+            if history and history['result'] and history['result']['job']['status'] == "completed":
+                info += _("Last Duration") + f": <b>{self.format_time(history['result']['job']['print_duration']).strip()}</b>"
         return info
 
     def load_files(self, result, method, params):
@@ -488,3 +555,14 @@ class Panel(ScreenPanel):
             params
         )
         self.back()
+
+    def show_fullscreen_thumbnail(self, widget, filename):
+        pixbuf = self.get_file_image(filename, self._screen.width * .9, self._screen.height * .75)
+        if pixbuf is None:
+            return
+        image = Gtk.Image.new_from_pixbuf(pixbuf)
+        image.set_vexpand(True)
+        self._gtk.Dialog(filename, None, image, self.close_fullscreen_thumbnail)
+
+    def close_fullscreen_thumbnail(self, dialog, response_id):
+        self._gtk.remove_dialog(dialog)

@@ -12,6 +12,7 @@ class Panel(ScreenPanel):
     initialized = False
 
     def __init__(self, screen, title):
+        title = title or _("Network")
         super().__init__(screen, title)
         self.show_add = False
         self.networks = {}

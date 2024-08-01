@@ -12,6 +12,7 @@ from ks_includes.widgets.bedmap import BedMap
 class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
+        title = title or _("Bed Mesh")
         super().__init__(screen, title)
 #Begin VSYS
         macros = self._printer.get_gcode_macros()
@@ -282,12 +283,7 @@ class Panel(ScreenPanel):
         self._screen.show_popup_message(_("Calibrating"), level=1)
         if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
             self._screen._ws.klippy.gcode_script("G28")
-
         self._screen._ws.klippy.gcode_script("BED_MESH_CALIBRATE")
-
-        # Load zcalibrate to do a manual mesh
-        if not self._printer.get_probe():
-            self.menu_item_clicked(widget, {"name": _("Mesh calibrate"), "panel": "zcalibrate"})
 
     def send_clear_mesh(self, widget):
         self._screen._ws.klippy.gcode_script("BED_MESH_CLEAR")

@@ -6,7 +6,7 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, GdkPixbuf, Gio, Gtk, Pango
-
+from ks_includes.widgets.scroll import CustomScrolledWindow
 
 def find_widget(widget, wanted_type):
     # Returns a widget of wanted_type or None
@@ -176,11 +176,12 @@ class KlippyGtk:
     def Dialog(self, title, buttons, content, callback=None, *args):
         dialog = Gtk.Dialog(title=title, modal=True, transient_for=self.screen,
                             default_width=self.width, default_height=self.height)
+        dialog.set_size_request(self.width, self.height)
         if not self.screen.windowed:
             dialog.fullscreen()
 
         if buttons:
-            max_buttons = 3 if self.screen.vertical_mode else 4
+            max_buttons = 4
             if len(buttons) > max_buttons:
                 buttons = buttons[:max_buttons]
             if len(buttons) > 2:
@@ -236,11 +237,6 @@ class KlippyGtk:
             return
         logging.debug(f"Cannot remove dialog {dialog}")
 
-    def ScrolledWindow(self, steppers=True):
-        scroll = Gtk.ScrolledWindow(hexpand=True, vexpand=True, overlay_scrolling=False)
-        scroll.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
-                          Gdk.EventMask.TOUCH_MASK |
-                          Gdk.EventMask.BUTTON_RELEASE_MASK)
-        if self.screen._config.get_main_config().getboolean("show_scroll_steppers", fallback=False) and steppers:
-            scroll.get_vscrollbar().get_style_context().add_class("with-steppers")
-        return scroll
+    def ScrolledWindow(self, steppers=True, **kwargs):
+        steppers = steppers and self.screen._config.get_main_config().getboolean("show_scroll_steppers", fallback=False)
+        return CustomScrolledWindow(steppers, **kwargs)

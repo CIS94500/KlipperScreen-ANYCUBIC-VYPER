@@ -1,15 +1,15 @@
 #!/bin/bash
 
-SCRIPTPATH=$(dirname -- "$(readlink -f -- "$0")")
-KSPATH=$(dirname "$SCRIPTPATH")
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+KSPATH=$(sed 's/\/scripts//g' <<< $SCRIPTPATH)
 KSENV="${KLIPPERSCREEN_VENV:-${HOME}/.KlipperScreen-env}"
 
-XSERVER="xinit xinput x11-xserver-utils xserver-xorg-input-evdev xserver-xorg-input-libinput xserver-xorg-legacy xserver-xorg-video-fbdev"
-CAGE="cage seatd xwayland"
+XSERVER="xinit xinput x11-xserver-utils xserver-xorg-input-evdev xserver-xorg-input-libinput"
+FBDEV="xserver-xorg-video-fbdev"
 PYTHON="python3-virtualenv virtualenv python3-distutils"
 PYGOBJECT="libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0"
 MISC="librsvg2-common libopenjp2-7 wireless-tools libdbus-glib-1-dev autoconf"
-OPTIONAL="fonts-nanum fonts-ipafont libmpv-dev policykit-1 network-manager"
+OPTIONAL="xserver-xorg-legacy fonts-nanum fonts-ipafont libmpv-dev policykit-1 network-manager"
 
 Red='\033[0;31m'
 Green='\033[0;32m'
@@ -31,29 +31,18 @@ echo_ok ()
     printf "${Green}$1${Normal}\n"
 }
 
-install_graphical_backend()
-{
-	echo_text "Installing Xserver"
-	if sudo apt install -y $XSERVER; then
-		echo_ok "Installed X"
-		update_x11
-		BACKEND="X"
-	else
-		echo_error "Installation of X-server dependencies failed ($XSERVER)"
-		exit 1
-	fi
-}
-
 install_packages()
 {
     echo_text "Update package data"
-    sudo apt update
+    sudo apt-get update
 
     echo_text "Checking for broken packages..."
-    if dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package}\n' | grep -E "^.[^nci]"; then
+    output=$(dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package}\n' | grep -E ^.[^nci])
+    if [ $? -eq 0 ]; then
         echo_text "Detected broken packages. Attempting to fix"
-        sudo apt -f install
-        if dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package}\n' | grep -E "^.[^nci]"; then
+        sudo apt-get -f install
+        output=$(dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package}\n' | grep -E ^.[^nci])
+        if [ $? -eq 0 ]; then
             echo_error "Unable to fix broken packages. These must be fixed before KlipperScreen can be installed"
             exit 1
         fi
@@ -62,27 +51,47 @@ install_packages()
     fi
 
     echo_text "Installing KlipperScreen dependencies"
-    sudo apt install -y $OPTIONAL
-    echo "$_"
-    if sudo apt install -y $PYTHON; then
+    sudo apt-get install -y $XSERVER
+    if [ $? -eq 0 ]; then
+        echo_ok "Installed X"
+    else
+        echo_error "Installation of X-server dependencies failed ($XSERVER)"
+        exit 1
+    fi
+    sudo apt-get install -y $OPTIONAL
+    echo $_
+    sudo apt-get install -y $FBDEV
+    if [ $? -eq 0 ]; then
+        echo_ok "Installed FBdev"
+    else
+        echo_error "Installation of FBdev failed ($FBDEV)"
+        exit 1
+    fi
+    sudo apt-get install -y $PYTHON
+    if [ $? -eq 0 ]; then
         echo_ok "Installed Python dependencies"
     else
         echo_error "Installation of Python dependencies failed ($PYTHON)"
         exit 1
     fi
-
-    if sudo apt install -y $PYGOBJECT; then
+    sudo apt-get install -y $PYGOBJECT
+    if [ $? -eq 0 ]; then
         echo_ok "Installed PyGobject dependencies"
     else
         echo_error "Installation of PyGobject dependencies failed ($PYGOBJECT)"
         exit 1
     fi
-    if sudo apt install -y $MISC; then
+    sudo apt-get install -y $MISC
+    if [ $? -eq 0 ]; then
         echo_ok "Installed Misc packages"
     else
         echo_error "Installation of Misc packages failed ($MISC)"
         exit 1
     fi
+#     ModemManager interferes with klipper comms
+#     on buster it's installed as a dependency of mpv
+#     it doesn't happen on bullseye
+    sudo systemctl mask ModemManager.service
 }
 
 check_requirements()
@@ -97,6 +106,11 @@ check_requirements()
 
 create_virtualenv()
 {
+    if [ -d $KSENV ]; then
+        echo_text "Removing old virtual environment"
+        rm -rf ${KSENV}
+    fi
+
     echo_text "Creating virtual environment"
     if [ ! -d ${KSENV} ]; then
         virtualenv -p /usr/bin/python3 ${KSENV}
@@ -124,18 +138,19 @@ install_systemd_service()
 {
     echo_text "Installing KlipperScreen unit file"
 
-    SERVICE=$(cat "$SCRIPTPATH"/KlipperScreen.service)
-    SERVICE=${SERVICE//KS_USER/$USER}
-    SERVICE=${SERVICE//KS_ENV/$KSENV}
-    SERVICE=${SERVICE//KS_DIR/$KSPATH}
-    SERVICE=${SERVICE//KS_BACKEND/$BACKEND}
+    SERVICE=$(<$SCRIPTPATH/KlipperScreen.service)
+    KSPATH_ESC=$(sed "s/\//\\\\\//g" <<< $KSPATH)
+    KSENV_ESC=$(sed "s/\//\\\\\//g" <<< $KSENV)
+
+    SERVICE=$(sed "s/KS_USER/$USER/g" <<< $SERVICE)
+    SERVICE=$(sed "s/KS_ENV/$KSENV_ESC/g" <<< $SERVICE)
+    SERVICE=$(sed "s/KS_DIR/$KSPATH_ESC/g" <<< $SERVICE)
 
     echo "$SERVICE" | sudo tee /etc/systemd/system/KlipperScreen.service > /dev/null
     sudo systemctl unmask KlipperScreen.service
     sudo systemctl daemon-reload
     sudo systemctl enable KlipperScreen
     sudo systemctl set-default multi-user.target
-    sudo adduser "$USER" tty
 }
 
 create_policy()
@@ -145,7 +160,9 @@ create_policy()
 
     echo_text "Installing KlipperScreen PolicyKit Rules"
     sudo groupadd -f klipperscreen
-    sudo adduser "$USER" netdev
+    sudo groupadd -f network
+    sudo groupadd -f netdev
+    sudo groupadd -f tty
     if [ ! -x "$(command -v pkaction)" ]; then
         echo "PolicyKit not installed"
         return
@@ -169,9 +186,10 @@ create_policy()
         exit 1
     fi
     echo_text "Installing PolicyKit Rules to ${RULE_FILE}..."
+    sudo rm ${RULE_FILE}
 
     KS_GID=$( getent group klipperscreen | awk -F: '{printf "%d", $3}' )
-    sudo tee ${RULE_FILE} > /dev/null << EOF
+    sudo /bin/sh -c "cat > ${RULE_FILE}" << EOF
 // Allow KlipperScreen to reboot, shutdown, etc
 polkit.addRule(function(action, subject) {
     if ((action.id == "org.freedesktop.login1.power-off" ||
@@ -180,7 +198,8 @@ polkit.addRule(function(action, subject) {
          action.id == "org.freedesktop.login1.reboot-multiple-sessions" ||
          action.id == "org.freedesktop.login1.halt" ||
          action.id == "org.freedesktop.login1.halt-multiple-sessions" ||
-         action.id.startsWith("org.freedesktop.NetworkManager.")) &&
+         action.id == "org.freedesktop.NetworkManager.*" ||
+         action.id.startsWith("org.freedesktop.packagekit.")) &&
         subject.user == "$USER") {
         // Only allow processes with the "klipperscreen" supplementary group
         // access
@@ -200,16 +219,17 @@ EOF
 create_policy_legacy()
 {
     RULE_FILE="/etc/polkit-1/localauthority/50-local.d/20-klipperscreen.pkla"
-    sudo tee ${RULE_FILE} > /dev/null << EOF
+    ACTIONS="org.freedesktop.login1.power-off"
+    ACTIONS="${ACTIONS};org.freedesktop.login1.power-off-multiple-sessions"
+    ACTIONS="${ACTIONS};org.freedesktop.login1.reboot"
+    ACTIONS="${ACTIONS};org.freedesktop.login1.reboot-multiple-sessions"
+    ACTIONS="${ACTIONS};org.freedesktop.login1.halt"
+    ACTIONS="${ACTIONS};org.freedesktop.login1.halt-multiple-sessions"
+    ACTIONS="${ACTIONS};org.freedesktop.NetworkManager.*"
+    sudo /bin/sh -c "cat > ${RULE_FILE}" << EOF
 [KlipperScreen]
 Identity=unix-user:$USER
-Action=org.freedesktop.login1.power-off;
-       org.freedesktop.login1.power-off-multiple-sessions;
-       org.freedesktop.login1.reboot;
-       org.freedesktop.login1.reboot-multiple-sessions;
-       org.freedesktop.login1.halt;
-       org.freedesktop.login1.halt-multiple-sessions;
-       org.freedesktop.NetworkManager.*
+Action=$ACTIONS
 ResultAny=yes
 EOF
 }
@@ -224,9 +244,11 @@ EOF
 
 fix_fbturbo()
 {
-    if [ "$(dpkg-query -W -f='${Status}' xserver-xorg-video-fbturbo 2>/dev/null | grep -c "ok installed")" -eq 0 ]; then
+    if [ $(dpkg-query -W -f='${Status}' xserver-xorg-video-fbturbo 2>/dev/null | grep -c "ok installed") -eq 0 ];
+    then
         FBCONFIG="/usr/share/X11/xorg.conf.d/99-fbturbo.conf"
-        if [ -e $FBCONFIG ]; then
+        if [ -e $FBCONFIG ]
+        then
             echo_text "FBturbo not installed, but the configuration file exists"
             echo_text "This will fail if the config is not removed or the package installed"
             echo_text "moving the config to the home folder"
@@ -237,32 +259,28 @@ fix_fbturbo()
 
 add_desktop_file()
 {
-    mkdir -p "$HOME"/.local/share/applications/
-    cp "$SCRIPTPATH"/KlipperScreen.desktop "$HOME"/.local/share/applications/KlipperScreen.desktop
-    sudo cp "$SCRIPTPATH"/../styles/icon.svg /usr/share/icons/hicolor/scalable/apps/KlipperScreen.svg
+    DESKTOP=$(<$SCRIPTPATH/KlipperScreen.desktop)
+    mkdir -p $HOME/.local/share/applications/
+    echo "$DESKTOP" | tee $HOME/.local/share/applications/KlipperScreen.desktop > /dev/null
+    sudo cp $SCRIPTPATH/../styles/icon.svg /usr/share/icons/hicolor/scalable/apps/KlipperScreen.svg
 }
 
 start_KlipperScreen()
 {
     echo_text "Starting service..."
-    sudo systemctl restart KlipperScreen
+    sudo systemctl stop KlipperScreen
+    sudo systemctl start KlipperScreen
 }
-
-
-# Script start
 if [ "$EUID" == 0 ]
     then echo_error "Please do not run this script as root"
     exit 1
 fi
-
-check_requirements
-install_graphical_backend
-install_systemd_service
 install_packages
+check_requirements
 create_virtualenv
 create_policy
+update_x11
 fix_fbturbo
 add_desktop_file
+install_systemd_service
 start_KlipperScreen
-
-

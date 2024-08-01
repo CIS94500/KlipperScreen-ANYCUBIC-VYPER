@@ -6,17 +6,20 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
 from ks_includes.KlippyGcodes import KlippyGcodes
 from ks_includes.screen_panel import ScreenPanel
+from ks_includes.widgets.autogrid import AutoGrid
 
 
 class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
+        title = title or _("Extrude")
         super().__init__(screen, title)
         self.current_extruder = self._printer.get_stat("toolhead", "extruder")
         macros = self._printer.get_gcode_macros()
         self.load_filament = any("LOAD_FILAMENT" in macro.upper() for macro in macros)
         self.unload_filament = any("UNLOAD_FILAMENT" in macro.upper() for macro in macros)
         self.extrude_filament = any("_EXTRUDE" in macro.upper() for macro in macros) #VSYS
+        self.wait_temp = any("_WAIT_TEMP" in macro.upper() for macro in macros) #VSYS
 
         self.speeds = ['1', '2', '5', '25']
         self.distances = ['5', '10', '15', '25']
@@ -42,41 +45,70 @@ class Panel(ScreenPanel):
             'retract': self._gtk.Button("retract", _("Retract"), "color1"),
             'temperature': self._gtk.Button("heat-up", _("Temperature"), "color4"),
             'spoolman': self._gtk.Button("spoolman", "Spoolman", "color3"),
+            'pressure': self._gtk.Button("pressure_advance", _("Pressure Advance"), "color2"),
+            'retraction': self._gtk.Button("settings", _("Retraction"), "color1")
         }
-        self.buttons['extrude'].connect("clicked", self.extrude, "+")
-        self.buttons['load'].connect("clicked", self.load_unload, "+")
-        self.buttons['unload'].connect("clicked", self.load_unload, "-")
-        self.buttons['retract'].connect("clicked", self.extrude, "-")
+        self.buttons['extrude'].connect("clicked", self.check_min_temp, "extrude", "+")
+        self.buttons['load'].connect("clicked", self.check_min_temp, "load_unload", "+")
+        self.buttons['unload'].connect("clicked", self.check_min_temp, "load_unload", "-")
+        self.buttons['retract'].connect("clicked", self.check_min_temp, "extrude", "-")
         self.buttons['temperature'].connect("clicked", self.menu_item_clicked, {
-            "name": "Temperature",
             "panel": "temperature"
         })
 
         self.buttons['spoolman'].connect("clicked", self.menu_item_clicked, {
-            "name": "Spoolman",
             "panel": "spoolman"
         })
+        self.buttons['pressure'].connect("clicked", self.menu_item_clicked, {
+            "panel": "pressure_advance"
+        })
+        self.buttons['retraction'].connect("clicked", self.menu_item_clicked, {
+            "panel": "retraction"
+        })
 
-        extgrid = Gtk.Grid()
-        limit = 5
+        xbox = Gtk.Box(homogeneous=True)
+        limit = 4
         i = 0
+        extruder_buttons = []
         for extruder in self._printer.get_tools():
-            if self._printer.extrudercount > 1:
-                self.labels[extruder] = self._gtk.Button(f"extruder-{i}", f"T{self._printer.get_tool_number(extruder)}")
-            else:
+            if self._printer.extrudercount == 1:
                 self.labels[extruder] = self._gtk.Button("extruder", "")
-            if len(self._printer.get_tools()) > 1:
+            else:
+                n = self._printer.get_tool_number(extruder)
+                self.labels[extruder] = self._gtk.Button(f"extruder-{n}", f"T{n}")
                 self.labels[extruder].connect("clicked", self.change_extruder, extruder)
             if extruder == self.current_extruder:
                 self.labels[extruder].get_style_context().add_class("button_active")
-            if i < limit:
-                extgrid.attach(self.labels[extruder], i, 0, 1, 1)
+            if self._printer.extrudercount < limit:
+                xbox.add(self.labels[extruder])
                 i += 1
-        if i < (limit - 1):
-            extgrid.attach(self.buttons['temperature'], i + 1, 0, 1, 1)
-        if i < (limit - 2) and self._printer.spoolman:
-            extgrid.attach(self.buttons['spoolman'], i + 2, 0, 1, 1)
-
+            else:
+                extruder_buttons.append(self.labels[extruder])
+        if extruder_buttons:
+            self.labels['extruders'] = AutoGrid(extruder_buttons, vertical=self._screen.vertical_mode)
+            self.labels['extruders_menu'] = self._gtk.ScrolledWindow()
+            self.labels['extruders_menu'].add(self.labels['extruders'])
+        if self._printer.extrudercount >= limit:
+            changer = self._gtk.Button("toolchanger")
+            changer.connect("clicked", self.load_menu, 'extruders', _('Extruders'))
+            xbox.add(changer)
+            self.labels["current_extruder"] = self._gtk.Button("extruder", "")
+            xbox.add(self.labels["current_extruder"])
+            self.labels["current_extruder"].connect("clicked", self.load_menu, 'extruders', _('Extruders'))
+#Begin VSYS
+        if self._printer.spoolman:
+            xbox.add(self.buttons['spoolman'])
+            i += 1        
+        else:
+            if not self._screen.vertical_mode:  
+                xbox.add(self.buttons['pressure'])
+                i += 1
+            if self._printer.get_config_section("firmware_retraction") and not self._screen.vertical_mode:
+                xbox.add(self.buttons['retraction'])
+                i += 1
+        if i < limit:
+            xbox.add(self.buttons['temperature'])
+#End VSYS
         distgrid = Gtk.Grid()
         for j, i in enumerate(self.distances):
             x = int(i)
@@ -152,18 +184,23 @@ class Panel(ScreenPanel):
                 self.labels[x]['box'].set_hexpand(True) #VSYS
                 sensors.attach(self.labels[x]['box'], s, 0, 1, 1)
 #End VSYS
-        grid = Gtk.Grid()
-        grid.set_column_homogeneous(True)
-        grid.attach(extgrid, 0, 0, 4, 1)
+
+        grid = Gtk.Grid(column_homogeneous=True)
+        grid.attach(xbox, 0, 0, 4, 1)
 
         if self._screen.vertical_mode:
             grid.attach(self.buttons['extrude'], 0, 1, 2, 1)
             grid.attach(self.buttons['retract'], 2, 1, 2, 1)
             grid.attach(self.buttons['load'], 0, 2, 2, 1)
             grid.attach(self.buttons['unload'], 2, 2, 2, 1)
-            grid.attach(distbox, 0, 3, 4, 1)
-            grid.attach(speedbox, 0, 4, 4, 1)
-            grid.attach(sensors, 0, 5, 4, 1)
+            settings_box = Gtk.Box(homogeneous=True)
+            settings_box.add(self.buttons['pressure'])
+            if self._printer.get_config_section("firmware_retraction"):
+                settings_box.add(self.buttons['retraction'])
+            grid.attach(settings_box, 0, 3, 4, 1)
+            grid.attach(distbox, 0, 4, 4, 1)
+            grid.attach(speedbox, 0, 5, 4, 1)
+            grid.attach(sensors, 0, 6, 4, 1)
         else:
             grid.attach(self.buttons['extrude'], 0, 2, 1, 1)
             grid.attach(self.buttons['load'], 1, 2, 1, 1)
@@ -173,11 +210,13 @@ class Panel(ScreenPanel):
             grid.attach(speedbox, 2, 3, 2, 1)
             grid.attach(sensors, 0, 4, 4, 1)
 
-        self.content.add(grid)
+        self.menu = ['extrude_menu']
+        self.labels['extrude_menu'] = grid
+        self.content.add(self.labels['extrude_menu'])
 
     def process_busy(self, busy):
         for button in self.buttons:
-            if button in ("temperature", "spoolman"):
+            if button in ("pressure", "retraction", "spoolman", "temperature"):
                 continue
             self.buttons[button].set_sensitive((not busy))
 
@@ -188,13 +227,16 @@ class Panel(ScreenPanel):
         if action != "notify_status_update":
             return
         for x in self._printer.get_tools():
-            self.update_temp(
-                x,
-                self._printer.get_stat(x, "temperature"),
-                self._printer.get_stat(x, "target"),
-                self._printer.get_stat(x, "power"),
-                lines=2,
-            )
+            if x in data:
+                self.update_temp(
+                    x,
+                    self._printer.get_stat(x, "temperature"),
+                    self._printer.get_stat(x, "target"),
+                    self._printer.get_stat(x, "power"),
+                    lines=2,
+                )
+        if "current_extruder" in self.labels:
+            self.labels["current_extruder"].set_label(self.labels[self.current_extruder].get_label())
 
         if ("toolhead" in data and "extruder" in data["toolhead"] and
                 data["toolhead"]["extruder"] != self.current_extruder):
@@ -202,9 +244,12 @@ class Panel(ScreenPanel):
                 self.labels[extruder].get_style_context().remove_class("button_active")
             self.current_extruder = data["toolhead"]["extruder"]
             self.labels[self.current_extruder].get_style_context().add_class("button_active")
+            if "current_extruder" in self.labels:
+                n = self._printer.get_tool_number(self.current_extruder)
+                self.labels["current_extruder"].set_image(self._gtk.Image(f"extruder-{n}"))
 
         for x in self._printer.get_filament_sensors():
-            if x in data:
+            if x in data and x in self.labels:
                 if 'enabled' in data[x]:
                     self.labels[x]['switch'].set_active(data[x]['enabled'])
                 if 'filament_detected' in data[x]:
@@ -236,6 +281,27 @@ class Panel(ScreenPanel):
         self.labels[f"speed{self.speed}"].get_style_context().remove_class("distbutton_active")
         self.labels[f"speed{speed}"].get_style_context().add_class("distbutton_active")
         self.speed = speed
+
+    def check_min_temp(self, widget, method, direction):
+        if not self.wait_temp: #VSYS
+            temp = int(self._printer.get_stat(self.current_extruder, 'temperature'))
+            target = int(self._printer.get_stat(self.current_extruder, 'target'))
+            min_extrude_temp = int(self._printer.config[self.current_extruder].get('min_extrude_temp', 170))
+            if temp < min_extrude_temp:
+                if target > min_extrude_temp:
+                    self._screen.show_popup_message(_("Please wait for the nozzle to heat up to" ) + f" {target}°C...", level=1)
+                    self._screen._ws.klippy.gcode_script(f"M109 S{target}")
+                else:
+                    self._screen.show_popup_message(_("Temperature too low to extrude"))
+                    self.menu_item_clicked(
+                        widget,
+                        {"panel": "temperature", 'extra': self.current_extruder}
+                    )
+                    return
+        if method == "extrude":
+            self.extrude(widget, direction)
+        elif method == "load_unload":
+            self.load_unload(widget, direction)
 
 #Begin VSYS
     def extrude(self, widget, direction):

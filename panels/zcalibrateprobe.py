@@ -13,6 +13,7 @@ class Panel(ScreenPanel):
     mem_zoffset = 0
 
     def __init__(self, screen, title):
+        title = title or _("Z Calibrate")
         super().__init__(screen, title)
         macros = self._printer.get_gcode_macros()
         self.macro_calibrate = any("_START_CALIBRATE_PROBE" in macro.upper() for macro in macros)

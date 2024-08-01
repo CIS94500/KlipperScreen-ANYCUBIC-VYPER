@@ -10,6 +10,7 @@ from ks_includes.functions import parse_bool
 class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
+        title = title or _("Pins")
         super().__init__(screen, title)
         self.devices = {}
         # Create a grid for all devices
@@ -23,7 +24,7 @@ class Panel(ScreenPanel):
         self.content.add(scroll)
 
     def load_pins(self):
-        output_pins = self._printer.get_output_pins()
+        output_pins = self._printer.get_pwm_tools() + self._printer.get_output_pins()
         for pin in output_pins:
             # Support for hiding devices by name
             name = pin.split()[1]

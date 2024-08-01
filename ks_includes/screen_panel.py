@@ -59,10 +59,12 @@ class ScreenPanel:
         return None
 
     def menu_item_clicked(self, widget, item):
+        panel_args = {}
+        if 'name' in item:
+            panel_args['title'] = item['name']
         if 'extra' in item:
-            self._screen.show_panel(item['panel'], item['name'], extra=item['extra'])
-            return
-        self._screen.show_panel(item['panel'], item['name'])
+            panel_args['extra'] = item['extra']
+        self._screen.show_panel(item['panel'], **panel_args)
 
     def load_menu(self, widget, name, title=None):
         logging.info(f"loading menu {name}")
@@ -117,20 +119,44 @@ class ScreenPanel:
         if callback is not None:
             callback(switch.get_active())
 
+    # @staticmethod
+    # def format_time(seconds):
+        # spc = "\u00A0"  # Non breakable space
+        # if seconds is None or seconds < 1:
+            # return "-"
+        # days = seconds // 86400
+        # day_units = ngettext("day", "days", days)
+        # seconds %= 86400
+        # hours = seconds // 3600
+        # hour_units = ngettext("hour", "hours", hours)
+        # seconds %= 3600
+        # minutes = round(seconds / 60)
+        # min_units = ngettext("minute", "minutes", minutes)
+        # seconds %= 60
+        # sec_units = ngettext("second", "seconds", seconds)
+        # return f"{f'{days:2.0f}{spc}{day_units}{spc}' if days > 0 else ''}" \
+               # f"{f'{hours:2.0f}{spc}{hour_units}{spc}' if hours > 0 else ''}" \
+               # f"{f'{minutes:2.0f}{spc}{min_units}{spc}' if minutes > 0 and days == 0 else ''}" \
+               # f"{f'{seconds:2.0f}{spc}{sec_units}' if days == 0 and hours == 0 and minutes == 0 else ''}"
+               
     @staticmethod
     def format_time(seconds):
         if seconds is None or seconds < 1:
             return "-"
         days = seconds // 86400
+        day_units = ngettext("day", "days", days)
         seconds %= 86400
         hours = seconds // 3600
+        hour_units = ngettext("hour", "hours", hours)
         seconds %= 3600
         minutes = round(seconds / 60)
+        min_units = ngettext("minute", "minutes", minutes)
         seconds %= 60
-        return f"{f'{days:2.0f}d ' if days > 0 else ''}" \
-               f"{f'{hours:2.0f}h ' if hours > 0 else ''}" \
-               f"{f'{minutes:2.0f}m ' if minutes > 0 else ''}" \
-               f"{f'{seconds:2.0f}s' if days == 0 and hours == 0 and minutes == 0 else ''}"
+        sec_units = ngettext("second", "seconds", seconds)
+        return f"{f'{days:2.0f} {day_units} ' if days > 0 else ''}" \
+               f"{f'{hours:2.0f} {hour_units} ' if hours > 0 else ''}" \
+               f"{f'{minutes:2.0f} {min_units} ' if minutes > 0 and days == 0 else ''}" \
+               f"{f'{seconds:2.0f} {sec_units}' if days == 0 and hours == 0 and minutes == 0 else ''}"
 
     def format_eta(self, total, elapsed):
         if total is None:
@@ -156,7 +182,16 @@ class ScreenPanel:
             unit = 1024 ** i
             if size < unit:
                 return f"{(1024 * size / unit):.1f} {suffix}"
-
+#ATTENTE NETWORK VSYS
+    @staticmethod
+    def format_speed(bitrate):
+        bitrate = float(bitrate)
+        suffixes = ["Kbits/s", "Mbits/s", "Gbits/s", "Tbits/s", "Pbits/s", "Ebits/s", "Zbits/s", "Ybits/s"]
+        for i, suffix in enumerate(suffixes, start=1):
+            unit = 1000 ** i
+            if bitrate < unit:
+                return f"{(1000 * bitrate / unit):.0f} {suffix}"
+#END NETWORK VSYS
     @staticmethod
     def prettify(name: str):
         name = name.replace("_", " ")
@@ -164,8 +199,8 @@ class ScreenPanel:
             name = name.title()
         return name
 
-    def update_temp(self, dev, temp, target, power, lines=1):
-        new_label_text = f"{temp or 0:.1f}"
+    def update_temp(self, dev, temp, target, power, lines=1, digits=1):
+        new_label_text = f"{temp or 0:.{digits}f}"
         if self._printer.device_has_target(dev) and target:
             new_label_text += f"/{target:.0f}"
         if dev not in self.devices:
@@ -193,7 +228,7 @@ class ScreenPanel:
             return
         name = Gtk.Label(
             hexpand=True, vexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.CENTER,
-            wrap=True, wrap_mode=Pango.WrapMode.CHAR)
+            wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0)
         name.set_markup(f"<big><b>{option['name']}</b></big>")
 
         labels = Gtk.Box(spacing=0, orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
@@ -202,7 +237,7 @@ class ScreenPanel:
             tooltip = Gtk.Label(
                 label=option['tooltip'],
                 hexpand=True, vexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.CENTER,
-                wrap=True, wrap_mode=Pango.WrapMode.CHAR)
+                wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0)
             labels.add(tooltip)
 
         row_box = Gtk.Box(spacing=5, valign=Gtk.Align.CENTER, hexpand=True, vexpand=False)

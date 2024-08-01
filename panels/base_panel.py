@@ -40,7 +40,6 @@ class BasePanel(ScreenPanel):
 
         self.control['macros_shortcut'] = self._gtk.Button('custom-script', scale=abscale)
         self.control['macros_shortcut'].connect("clicked", self.menu_item_clicked, {
-            "name": "Macros",
             "panel": "gcode_macros"
         })
 

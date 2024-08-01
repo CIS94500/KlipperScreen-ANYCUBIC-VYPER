@@ -50,6 +50,7 @@ button.color4 {
     background-color: #090909;
     border-color: #007db4;
     border-radius: 1em;
+	padding-top: 0.4em;
 }
 
 button.color1:active, button.color2:active, button.color3:active, button.color4:active, button.update:active, button.invalid:active, .dialog button:active {
