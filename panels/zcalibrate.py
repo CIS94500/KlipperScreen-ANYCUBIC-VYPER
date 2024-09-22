@@ -181,9 +181,12 @@ class Panel(ScreenPanel):
     def start_calibration(self, widget, method):
         self.popover.popdown()
         self.buttons['start'].set_sensitive(False)
+        self._screen._ws.klippy.gcode_script("SET_GCODE_OFFSET Z=0")
+        if self._printer.config_section_exists("bed_mesh"):
+            self._screen._ws.klippy.gcode_script("BED_MESH_CLEAR")
         if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
             self._screen._ws.klippy.gcode_script("G28")
-        self._screen._ws.klippy.gcode_script("SET_GCODE_OFFSET Z=0")
+
         if method == "mesh":
             self._screen._ws.klippy.gcode_script("BED_MESH_CALIBRATE")
         else:

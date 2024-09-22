@@ -159,6 +159,8 @@ class Panel(ScreenPanel):
     def start_calibration(self, widget):
         self.mem_zoffset = self._printer.data["gcode_move"]["homing_origin"][2]
         self._screen._ws.klippy.gcode_script(f"SET_GCODE_OFFSET Z=0")
+        if self._printer.config_section_exists("bed_mesh"):
+            self._screen._ws.klippy.gcode_script("BED_MESH_CLEAR")
 
         if not self.macro_calibrate:
             self._screen.show_popup_message(_("Please wait while the elements heat up..."), 1)

@@ -19,11 +19,29 @@ class Keyboard(Gtk.Box):
         self.keyboard.set_direction(Gtk.TextDirection.LTR)
         self.timeout = self.clear_timeout = None
         self.entry = entry
+        self.purpose = self.entry.get_input_purpose()
 
         language = self.detect_language(screen._config.get_main_config().get("language", None))
-        logging.info(f"Keyboard {language}")
 
-        if language == "de":
+        if self.purpose == Gtk.InputPurpose.DIGITS:
+            self.keys = [
+                [
+                    ["7", "8", "9"],
+                    ["4", "5", "6"],
+                    ["1", "2", "3"],
+                    ["↓", "0", "⌫"]
+                ]
+            ]
+        elif self.purpose == Gtk.InputPurpose.NUMBER:
+            self.keys = [
+                [
+                    ["7", "8", "9", "⌫"],
+                    ["4", "5", "6", "+"],
+                    ["1", "2", "3", "-"],
+                    ["↓", "0", ".", "↓"]
+                ]
+            ]
+        elif language == "de":
             self.keys = [
                 [
                     ["q", "w", "e", "r", "t", "z", "u", "i", "o", "p", "ü"],
@@ -55,13 +73,13 @@ class Keyboard(Gtk.Box):
                 [
                     ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p"],
                     ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
-                    ["↑", "w", "x", "c", "v", "b", "n", "ç", "#+=", "⌫"],
+                    ["↑", "w", "x", "c", "v", "b", "n", ".", "#+=", "⌫"],
                     ["123", " ", "↓"],
                 ],
                 [
                     ["A", "Z", "E", "R", "T", "Y", "U", "I", "O", "P"],
                     ["Q", "S", "D", "F", "G", "H", "J", "K", "L", "M"],
-                    ["↑", "W", "X", "C", "V", "B", "N", "Ç", "#+=", "⌫"],
+                    ["↑", "W", "X", "C", "V", "B", "N", ".", "#+=", "⌫"],
                     ["123", " ", "↓"],
                 ],
                 [
@@ -145,6 +163,17 @@ class Keyboard(Gtk.Box):
             self.keyboard.remove_row(0)
         self.pallet_nr = p
         columns = 0
+
+        if self.purpose in (Gtk.InputPurpose.DIGITS, Gtk.InputPurpose.NUMBER):
+            for r, row in enumerate(self.keys[p]):
+                for k, key in enumerate(row):
+                    x = k * 2
+                    self.keyboard.attach(self.buttons[p][r][k], x, r, 2, 1)
+                    if x > columns:
+                        columns = x
+            self.show_all()
+            return
+
         for r, row in enumerate(self.keys[p][:-1]):
             for k, key in enumerate(row):
                 x = k * 2 + 1 if r == 3 else k * 2 #VSYS
@@ -189,7 +218,7 @@ class Keyboard(Gtk.Box):
         if key == "⌫":
             Gtk.Entry.do_backspace(self.entry)
         elif key == "↓":
-            self.close_cb()
+            self.close_cb(entry=self.entry)
             return
         elif key == "↑":
             self.toggle_shift()
@@ -233,3 +262,6 @@ class Keyboard(Gtk.Box):
                 widget.get_style_context().add_class("active")
             else:
                 widget.get_style_context().remove_class("active")
+
+    def purpose_is_digits(self):
+        return self.entry.get_input_purpose() == Gtk.InputPurpose.DIGITS

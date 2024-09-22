@@ -19,6 +19,7 @@ button {
     background-color: #002b36; /*base03*/
 }
 
+.active image,
 button:active {
     background-color: #cb4b16; /*solarized-orange*/
 }

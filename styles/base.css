@@ -55,7 +55,9 @@ button {
     -gtk-icon-shadow: none;
 }
 
-button:active, .button_active {
+.active image,
+button:active,
+.button_active {
     background-color: #304C62;
 }
 
@@ -155,6 +157,13 @@ entry {
     background-color: #20292F;
     border: .2em solid #13181C;
     padding: .2em;
+    margin-right: .5em;
+}
+
+entry image {
+    margin: 0 .1em;
+    border-radius: 1em;
+    padding: .5em;
 }
 
 label {
@@ -667,4 +676,8 @@ flowboxchild {
 flowbox button {
     margin: 0.1em;
     padding: .5em;
+}
+
+keyboard_box {
+    padding: 0 20em;
 }

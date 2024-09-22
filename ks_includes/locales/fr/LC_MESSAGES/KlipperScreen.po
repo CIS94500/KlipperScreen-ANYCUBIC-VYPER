@@ -96,6 +96,9 @@ msgstr "Dernier print"
 msgid "Estimated Weight"
 msgstr "Poids estimé"
 
+msgid "Show cursor"
+msgstr "Afficher le curseur"
+
 #, python-format
 msgid "%s will be updated to version"
 msgstr "%s sera mis à jour vers la version"

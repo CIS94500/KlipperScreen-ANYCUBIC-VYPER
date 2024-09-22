@@ -57,6 +57,7 @@ button.color1:active, button.color2:active, button.color3:active, button.color4:
     border-style: none;
 }
 
+.active image,
 button.active {
     background-color: #ee6002;
 }

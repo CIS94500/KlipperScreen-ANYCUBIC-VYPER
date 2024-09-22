@@ -42,6 +42,7 @@ button.color4 {
     border-bottom-color: #2196f3;
 }
 
+.active image,
 button.active {
     background-color: #2196f3;
 }

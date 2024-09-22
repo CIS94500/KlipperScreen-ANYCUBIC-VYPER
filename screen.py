@@ -78,6 +78,7 @@ class KlipperScreen(Gtk.Window):
     windowed = False
     notification_log = []
     prompt = None
+    tempstore_timeout = None
 
     def __init__(self, args):
         try:
@@ -103,7 +104,12 @@ class KlipperScreen(Gtk.Window):
         self.connect("key-press-event", self._key_press_event)
         self.connect("configure_event", self.update_size)
         display = Gdk.Display.get_default()
+        self.display_number = os.environ.get('DISPLAY') or ':0'
+        logging.debug(f"Display for xset: {self.display_number}")
         monitor_amount = Gdk.Display.get_n_monitors(display)
+        for i in range(monitor_amount):
+            m = display.get_monitor(i)
+            logging.info(f"Screen {i}: {m.get_geometry().width}x{m.get_geometry().height}")
         try:
             mon_n = int(args.monitor)
             if not (-1 < mon_n < monitor_amount):
@@ -145,14 +151,7 @@ class KlipperScreen(Gtk.Window):
         self.base_panel = BasePanel(self, title="Base Panel")
         self.add(self.base_panel.main_grid)
         self.show_all()
-        if self.show_cursor:
-            self.get_window().set_cursor(
-                Gdk.Cursor.new_for_display(Gdk.Display.get_default(), Gdk.CursorType.ARROW))
-            os.system("xsetroot  -cursor_name  arrow")
-        else:
-            self.get_window().set_cursor(
-                Gdk.Cursor.new_for_display(Gdk.Display.get_default(), Gdk.CursorType.BLANK_CURSOR))
-            os.system("xsetroot  -cursor ks_includes/emptyCursor.xbm ks_includes/emptyCursor.xbm")
+        self.update_cursor(self.show_cursor)
         self.base_panel.activate()
         if self._config.errors:
             self.show_error_modal("Invalid config file", self._config.get_errors())
@@ -162,6 +161,10 @@ class KlipperScreen(Gtk.Window):
 
         self.log_notification("KlipperScreen Started", 1)
         self.initial_connection()
+
+    def update_cursor(self, show: bool):
+        self.show_cursor = show
+        self.gtk.set_cursor(show, window=self.get_window())
 
     def initial_connection(self):
         self.printers = self._config.get_printers()
@@ -563,6 +566,8 @@ class KlipperScreen(Gtk.Window):
 
         # Avoid leaving a cursor-handle
         close.grab_focus()
+        self.gtk.set_cursor(False, window=self.get_window())
+
         self.screensaver = box
         self.screensaver.show_all()
         self.power_devices(None, self._config.get_main_config().get("screen_off_devices", ""), on=False)
@@ -585,6 +590,7 @@ class KlipperScreen(Gtk.Window):
         for dialog in self.dialogs:
             logging.info(f"Restoring Dialog {dialog}")
             dialog.show()
+        self.gtk.set_cursor(self.show_cursor, window=self.get_window())
         self.show_all()
         self.power_devices(None, self._config.get_main_config().get("screen_on_devices", ""), on=True)
 
@@ -606,7 +612,7 @@ class KlipperScreen(Gtk.Window):
         if self._config.get_main_config().get('screen_blanking') != "off":
             logging.debug("Screen wake up")
             if not self.wayland:
-                os.system("xset -display :0 dpms force on")
+                os.system(f"xset -display {self.display_number} dpms force on")
 
     def set_dpms(self, use_dpms):
         self.use_dpms = use_dpms
@@ -615,7 +621,7 @@ class KlipperScreen(Gtk.Window):
 
     def set_screenblanking_timeout(self, time):
         if not self.wayland:
-            os.system("xset -display :0 s off")
+            os.system(f"xset -display {self.display_number} s off")
         self.use_dpms = self._config.get_main_config().getboolean("use_dpms", fallback=True)
 
         if time == "off":
@@ -624,14 +630,14 @@ class KlipperScreen(Gtk.Window):
                 GLib.source_remove(self.screensaver_timeout)
                 self.screensaver_timeout = None
             if not self.wayland:
-                os.system("xset -display :0 dpms 0 0 0")
+                os.system(f"xset -display {self.display_number} dpms 0 0 0")
             return
 
         self.blanking_time = abs(int(time))
         logging.debug(f"Changing screen blanking to: {self.blanking_time}")
         if self.use_dpms and functions.dpms_loaded is True:
             if not self.wayland:
-                os.system("xset -display :0 +dpms")
+                os.system(f"xset -display {self.display_number} +dpms")
             if functions.get_DPMS_state() == functions.DPMS_State.Fail:
                 logging.info("DPMS State FAIL")
                 self.show_popup_message(_("DPMS has failed to load and has been disabled"))
@@ -640,13 +646,13 @@ class KlipperScreen(Gtk.Window):
             else:
                 logging.debug("Using DPMS")
                 if not self.wayland:
-                    os.system(f"xset -display :0 dpms 0 {self.blanking_time} 0")
+                    os.system(f"xset -display {self.display_number} dpms 0 {self.blanking_time} 0")
                 GLib.timeout_add_seconds(1, self.check_dpms_state)
                 return
         # Without dpms just blank the screen
         logging.debug("Not using DPMS")
         if not self.wayland:
-            os.system("xset -display :0 dpms 0 0 0")
+            os.system(f"xset -display {self.display_number} dpms 0 0 0")
         self.reset_screensaver_timeout()
         return
 
@@ -1022,19 +1028,26 @@ class KlipperScreen(Gtk.Window):
 
     def init_tempstore(self):
         if len(self.printer.get_temp_devices()) == 0:
-            return
+            return False
         tempstore = self.apiclient.send_request("server/temperature_store")
         if tempstore and 'result' in tempstore and tempstore['result']:
             self.printer.init_temp_store(tempstore['result'])
             if hasattr(self.panels[self._cur_panels[-1]], "update_graph_visibility"):
                 self.panels[self._cur_panels[-1]].update_graph_visibility()
+            if self.tempstore_timeout:
+                self.remove_tempstore_timeout()
         else:
             logging.error(f'Tempstore not ready: {tempstore} Retrying in 5 seconds')
-            GLib.timeout_add_seconds(5, self.init_tempstore)
-            return
-        if set(self.printer.tempstore) != set(self.printer.get_temp_devices()):
-            GLib.timeout_add_seconds(5, self.init_tempstore)
-            return
+            if self.tempstore_timeout:
+                return False
+            if self.reinit_count < self.max_retries:
+                self.reinit_count += 1
+                self.tempstore_timeout = GLib.timeout_add_seconds(5, self.retry_init_tempstore)
+            else:
+                logging.error("Max retries reached. Stopping attempts to initialize tempstore.")
+                self.remove_tempstore_timeout()
+            return False
+
         server_config = self.apiclient.send_request("server/config")
         if server_config:
             try:
@@ -1049,26 +1062,42 @@ class KlipperScreen(Gtk.Window):
         self.base_panel.show_heaters(True)
         self.base_panel.show_estop(True)
 
+    def remove_tempstore_timeout(self):
+        GLib.source_remove(self.tempstore_timeout)
+        self.tempstore_timeout = None
+        self.reinit_count = 0
+
+    def retry_init_tempstore(self):
+        self.remove_tempstore_timeout()
+        return self.init_tempstore()
+
     def show_keyboard(self, entry=None, event=None):
-        if self.keyboard is not None:
-            return
-
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box.set_size_request(self.gtk.content_width, self.gtk.keyboard_height)
-        box.set_vexpand(False)
-
-        if self._config.get_main_config().getboolean("use-matchbox-keyboard", False):
-            return self._show_matchbox_keyboard(box)
         if entry is None:
             logging.debug("Error: no entry provided for keyboard")
             return
-        box.get_style_context().add_class("keyboard_box")
-        box.add(Keyboard(self, self.remove_keyboard, entry=entry))
-        self.keyboard = {"box": box}
-        self.base_panel.content.pack_end(box, False, False, 0)
+
+        if self.keyboard is not None:
+            self.remove_keyboard()
+            entry.grab_focus()
+        kbd_grid = Gtk.Grid()
+        kbd_grid.set_size_request(self.gtk.content_width, self.gtk.keyboard_height)
+        kbd_grid.set_vexpand(False)
+
+        if self._config.get_main_config().getboolean("use-matchbox-keyboard", False):
+            return self._show_matchbox_keyboard(kbd_grid)
+        purpose = entry.get_input_purpose()
+        kbd_width = 1
+        if not self.vertical_mode and purpose in (Gtk.InputPurpose.DIGITS, Gtk.InputPurpose.NUMBER):
+            kbd_grid.set_column_homogeneous(True)
+            kbd_width = 2 if purpose == Gtk.InputPurpose.DIGITS else 3
+        kbd_grid.attach(Gtk.Box(), 0, 0, 1, 1)
+        kbd_grid.attach(Keyboard(self, self.remove_keyboard, entry=entry), 1, 0, kbd_width, 1)
+        kbd_grid.attach(Gtk.Box(), kbd_width + 1, 0, 1, 1)
+        self.keyboard = {"box": kbd_grid}
+        self.base_panel.content.pack_end(kbd_grid, False, False, 0)
         self.base_panel.content.show_all()
 
-    def _show_matchbox_keyboard(self, box):
+    def _show_matchbox_keyboard(self, kbd_grid):
         env = os.environ.copy()
         usrkbd = os.path.expanduser("~/.matchbox/keyboard.xml")
         if os.path.isfile(usrkbd):
@@ -1082,8 +1111,8 @@ class KlipperScreen(Gtk.Window):
         logging.debug(f"PID {p.pid}")
 
         keyboard = Gtk.Socket()
-        box.get_style_context().add_class("keyboard_matchbox")
-        box.pack_start(keyboard, True, True, 0)
+        kbd_grid.get_style_context().add_class("keyboard_matchbox")
+        kbd_grid.attach(keyboard, 0, 0, 1, 1)
         self.base_panel.content.pack_end(box, False, False, 0)
 
         self.show_all()
@@ -1096,13 +1125,16 @@ class KlipperScreen(Gtk.Window):
         }
         return
 
-    def remove_keyboard(self, widget=None, event=None):
+    def remove_keyboard(self, entry=None, event=None):
         if self.keyboard is None:
             return
         if 'process' in self.keyboard:
             os.kill(self.keyboard['process'].pid, SIGTERM)
         self.base_panel.content.remove(self.keyboard['box'])
         self.keyboard = None
+        if entry:
+            entry.set_sensitive(False)  # Move the focus
+            entry.set_sensitive(True)
 
     def _key_press_event(self, widget, event):
         keyval_name = Gdk.keyval_name(event.keyval)
