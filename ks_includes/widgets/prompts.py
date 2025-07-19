@@ -113,7 +113,7 @@ class Prompt:
         scroll.add(self.scroll_box)
 
         content = Gtk.Grid()
-        if self.screen.windowed:
+        if not self.screen.get_resizable():
             content.attach(title, 0, 0, 1, 1)
             content.attach(close, 1, 0, 1, 1)
         content.attach(scroll, 0, 1, 2, 1)
@@ -126,7 +126,7 @@ class Prompt:
         )
         self.prompt.connect("key-press-event", self._key_press_event)
         self.prompt.connect("delete-event", self.close)
-        self.screen.wake_screen()
+        self.screen.close_screensaver()
 
     def response(self, dialog, response_id):
         for button in self.buttons:

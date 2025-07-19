@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import ast
 import argparse
 import gc
 import json
@@ -66,16 +67,17 @@ class KlipperScreen(Gtk.Window):
     panels = {}
     popup_message = None
     screensaver = None
-    printers = printer = None
+    printers = None
+    printer = None
     updating = False
     _ws = None
     screensaver_timeout = None
     reinit_count = 0
     max_retries = 4
-    initialized = initializing = False
+    initialized = False
+    initializing = False
     popup_timeout = None
     wayland = False
-    windowed = False
     notification_log = []
     prompt = None
     tempstore_timeout = None
@@ -133,7 +135,6 @@ class KlipperScreen(Gtk.Window):
             if mon_n > 0:
                 logging.error("Monitor selection is only supported for fullscreen")
             self.set_resizable(True)
-            self.windowed = True
         else:
             self.width = monitor.get_geometry().width
             self.height = monitor.get_geometry().height
@@ -288,6 +289,9 @@ class KlipperScreen(Gtk.Window):
     def show_panel(self, panel, title=None, remove_all=False, panel_name=None, **kwargs):
         if panel_name is None:
             panel_name = panel
+        if self._cur_panels and panel_name == self._cur_panels[-1]:
+            logging.error("Panel is already is in view")
+            return
         try:
             if remove_all:
                 self._remove_all_panels()
@@ -505,6 +509,7 @@ class KlipperScreen(Gtk.Window):
         menuitems = self._config.get_menu_items(menu, name)
         if len(menuitems) != 0:
             self.show_panel("menu", disname, panel_name=name, items=menuitems)
+            logging.info(f"menu, {disname}, panel_name={name}, items={menuitems}")
         else:
             logging.info("No items in menu")
 
@@ -694,7 +699,7 @@ class KlipperScreen(Gtk.Window):
     # def state_paused(self):
         # self.state_printing()
         # if self._config.get_main_config().getboolean('auto_open_extrude', fallback=True):
-            # self.show_panel("extrude", _("Extrude"))
+            # self.show_panel("extrude")
 
 #Begin VSYS
     def state_paused(self):
@@ -801,14 +806,8 @@ class KlipperScreen(Gtk.Window):
         elif action == "notify_gcode_response" and self.printer.state not in ["error", "shutdown"]:
             if not (data.startswith("B:") or data.startswith("T:")):
                 if data.startswith("// action:"):
-                    action = data[10:]
-                    if action.startswith('prompt_begin'):
-                        if self.prompt is not None:
-                            self.prompt.end()
-                        self.prompt = Prompt(self)
-                    if self.prompt is None:
-                        return
-                    self.prompt.decode(action)
+                    self.process_action(data[10:])
+                    return
                 elif data.startswith("echo: "):
                     self.show_popup_message(data[6:], 1)
 #begin VSYS
@@ -817,8 +816,12 @@ class KlipperScreen(Gtk.Window):
 #end VSYS
                 elif data.startswith("!! "):
                     self.show_popup_message(data[3:], 3)
-                elif "unknown" in data.lower() and \
-                        not ("TESTZ" in data or "MEASURE_AXES_NOISE" in data or "ACCELEROMETER_QUERY" in data):
+                elif (
+                    "unknown" in data.lower()
+                    and "TESTZ" not in data
+                    and "MEASURE_AXES_NOISE" not in data
+                    and "ACCELEROMETER_QUERY" not in data
+                ):
                     self.show_popup_message(data)
                 elif "SAVE_CONFIG" in data and self.printer.state == "ready":
                     script = {"script": "SAVE_CONFIG"}
@@ -830,10 +833,82 @@ class KlipperScreen(Gtk.Window):
                     )
         self.process_update(action, data)
 
+
+    def process_action(self, action):
+        if action.startswith("prompt"):
+            if action.startswith("prompt_begin"):
+                if self.prompt is not None:
+                    self.prompt.end()
+                self.prompt = Prompt(self)
+            if self.prompt is None:
+                return
+            self.prompt.decode(action)
+        if action.startswith("ks_show"):
+            self.parse_ks_action(action[8:].strip())
+
+    def parse_ks_action(self, action):
+        action = action.split(" ", 1)
+        if len(action) == 2:
+            panel, params = action
+            key, value = params.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+            params = {key: ast.literal_eval(value)}
+            self.show_panel(panel, **params)
+        else:
+            self.show_panel(*action)
+
     def process_update(self, *args):
         self.base_panel.process_update(*args)
         if self._cur_panels and hasattr(self.panels[self._cur_panels[-1]], "process_update"):
             self.panels[self._cur_panels[-1]].process_update(*args)
+
+    def confirm_save(self, widget):
+        buttons = [
+            {"name": _("Save"), "response": Gtk.ResponseType.OK, "style": 'dialog-info'},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": 'dialog-error'}
+        ]
+        label = Gtk.Label(label=_("Save configuration?") + "\n\n" + _("Klipper will reboot"),
+                          hexpand=True, vexpand=True,
+                          halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER,
+                          wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+        grid = Gtk.Grid()
+        grid.attach(label, 0, 3, 2, 1)
+        offset = self.printer.get_stat("gcode_move", "homing_origin")
+        zoffset = float(offset[2]) if offset else 0
+        if zoffset != 0:
+            sign = "+" if zoffset > 0 else "-"
+            msg = f"Apply {sign}{abs(zoffset)} offset?"
+            zlabel = Gtk.Label(label=msg, hexpand=True, vexpand=True, wrap=True)
+            grid.attach(zlabel, 0, 1, 2, 1)
+            if "Z_OFFSET_APPLY_PROBE" in self.printer.available_commands:
+                apply_probe = self.gtk.Button(label=_("Save Z") + "\n" + "Probe", style="color1")
+                apply_probe.set_vexpand(False)
+                apply_probe.set_size_request(-1, self.gtk.dialog_buttons_height)
+                apply_probe.connect("clicked", self.save, "Z_OFFSET_APPLY_PROBE")
+                grid.attach(apply_probe, 0, 2, 1, 1)
+            if "Z_OFFSET_APPLY_ENDSTOP" in self.printer.available_commands:
+                apply_end = self.gtk.Button(label=_("Save Z") + "\n" + "Endstop", style="color2")
+                apply_end.set_vexpand(False)
+                apply_end.set_size_request(-1, self.gtk.dialog_buttons_height)
+                apply_end.connect("clicked", self.save, "Z_OFFSET_APPLY_ENDSTOP")
+                grid.attach(apply_end, 1, 2, 1, 1)
+        if self.confirm is not None:
+            self.gtk.remove_dialog(self.confirm)
+        self.confirm = self.gtk.Dialog(
+            "KlipperScreen", buttons, grid, self.save
+        )
+
+    def save(self, dialog, response_id):
+        self.gtk.remove_dialog(dialog)
+        if response_id == Gtk.ResponseType.OK:
+            self._ws.klippy.gcode_script("SAVE_CONFIG")
+        if response_id == "Z_OFFSET_APPLY_PROBE":
+            self._ws.klippy.gcode_script("Z_OFFSET_APPLY_PROBE")
+            self._ws.klippy.gcode_script("SAVE_CONFIG")
+        if response_id == "Z_OFFSET_APPLY_ENDSTOP":
+            self._ws.klippy.gcode_script("Z_OFFSET_APPLY_ENDSTOP")
+            self._ws.klippy.gcode_script("SAVE_CONFIG")
 
     def _confirm_send_action(self, widget, text, method, params=None):
         buttons = [
@@ -1017,6 +1092,7 @@ class KlipperScreen(Gtk.Window):
             return self._init_printer("Error getting printer object data")
 
         self.files.set_gcodes_path()
+        self.power_devices(None, self._config.get_main_config().get("screen_on_devices", ""), on=True)
 
         logging.info("Printer initialized")
         self.initialized = True
@@ -1113,13 +1189,13 @@ class KlipperScreen(Gtk.Window):
         keyboard = Gtk.Socket()
         kbd_grid.get_style_context().add_class("keyboard_matchbox")
         kbd_grid.attach(keyboard, 0, 0, 1, 1)
-        self.base_panel.content.pack_end(box, False, False, 0)
+        self.base_panel.content.pack_end(kbd_grid, False, False, 0)
 
         self.show_all()
         keyboard.add_id(xid)
 
         self.keyboard = {
-            "box": box,
+            "box": kbd_grid,
             "process": p,
             "socket": keyboard
         }

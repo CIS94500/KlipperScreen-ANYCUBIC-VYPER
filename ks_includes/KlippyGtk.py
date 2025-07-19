@@ -176,7 +176,7 @@ class KlippyGtk:
         dialog = Gtk.Dialog(title=title, modal=True, transient_for=self.screen,
                             default_width=self.width, default_height=self.height)
         dialog.set_size_request(self.width, self.height)
-        if not self.screen.windowed:
+        if not self.screen.get_resizable():
             dialog.fullscreen()
 
         if buttons:
@@ -227,6 +227,8 @@ class KlippyGtk:
             return
         if self.screen.updating:
             return
+        if dialog == self.screen.confirm:
+            self.screen.confirm = None
         dialog.destroy()
         if dialog in self.screen.dialogs:
             logging.info("Removing Dialog")

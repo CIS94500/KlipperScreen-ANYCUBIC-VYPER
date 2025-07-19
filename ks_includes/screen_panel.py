@@ -1,10 +1,9 @@
-import logging
 import datetime
+import logging
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
-
 
 class ScreenPanel:
     _screen = None
@@ -149,7 +148,7 @@ class ScreenPanel:
         hours = seconds // 3600
         hour_units = ngettext("hour", "hours", hours)
         seconds %= 3600
-        minutes = round(seconds / 60)
+        minutes = seconds // 60
         min_units = ngettext("minute", "minutes", minutes)
         seconds %= 60
         sec_units = ngettext("second", "seconds", seconds)
