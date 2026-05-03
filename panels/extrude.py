@@ -177,7 +177,8 @@ class Panel(ScreenPanel):
                 self.labels[x]['label'].set_ellipsize(Pango.EllipsizeMode.END)
                 self.labels[x]['switch'].set_property("width-request", round(self._gtk.font_size * 2))
                 self.labels[x]['switch'].set_property("height-request", round(self._gtk.font_size))
-                self.labels[x]['switch'].connect("notify::active", self.enable_disable_fs, name, x)
+                handler_id = self.labels[x]['switch'].connect("notify::active", self.enable_disable_fs, name, x)
+                self.labels[x]['handler_id'] = handler_id
                 self.labels[x]['box'].pack_start(self.labels[x]['label'], True, True, 5) #VSYS
                 self.labels[x]['box'].pack_start(self.labels[x]['switch'], False, False, 0) #VSYS
                 self.labels[x]['box'].get_style_context().add_class("filament_sensor")
@@ -252,6 +253,14 @@ class Panel(ScreenPanel):
             if x in data and x in self.labels:
                 if 'enabled' in data[x]:
                     self.labels[x]['switch'].set_active(data[x]['enabled'])
+                    switch = self.labels[x]['switch']
+                    handler_id = self.labels[x].get('handler_id')
+                    if handler_id is not None:
+                        switch.handler_block(handler_id)
+                        switch.set_active(data[x]['enabled'])
+                        switch.handler_unblock(handler_id)
+                    else:
+                        switch.set_active(data[x]['enabled'])
                 if 'filament_detected' in data[x]:
                     if self._printer.get_stat(x, "enabled"):
                         if data[x]['filament_detected']:
