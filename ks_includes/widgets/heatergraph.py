@@ -22,8 +22,9 @@ class HeaterGraph(Gtk.DrawingArea):
         self.connect('draw', self.draw_graph)
         self.add_events(Gdk.EventMask.TOUCH_MASK)
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.connect('button_press_event', screen.reset_screensaver_timeout)
-        self.connect('button_press_event', self.event_cb)
+        self.connect('button_release_event', self.event_cb)
         self.font_size = round(font_size * 0.75)
         self.fullscreen = fullscreen
         if fullscreen:
@@ -82,6 +83,8 @@ class HeaterGraph(Gtk.DrawingArea):
             logging.info("Tempstore not initialized!")
             self._screen.init_tempstore()
             return
+        Gtk.render_background(da.get_style_context(), ctx, 0, 0,
+                              da.get_allocated_width(), da.get_allocated_height())
         x = round(self.font_size * 2.75)
         y = 10
         width = da.get_allocated_width() - 15

@@ -105,7 +105,7 @@ class Panel(ScreenPanel):
 
     def activate(self):
         self.check_power_status()
-        self._screen.base_panel.show_macro_shortcut(False)
+        self._screen.base_panel.show_shutdown_shortcut(self._config.get_main_config().getboolean('side_shutdown_shortcut', True))
         self._screen.base_panel.show_heaters(False)
         self._screen.base_panel.show_estop(False)
 

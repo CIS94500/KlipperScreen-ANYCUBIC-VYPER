@@ -20,6 +20,8 @@ class Panel(ScreenPanel):
             self.labels[name] = self._gtk.Button("printer", name, f"color{1 + i % 4}", scale=scale)
             scale *= self._gtk.img_scale
             pixbuf = self._gtk.PixbufFromIcon(f"../../printers/{name}", scale, scale)
+            if pixbuf is None:
+                pixbuf = self._gtk.PixbufFromIcon("../../printers/generic", scale, scale)
             if pixbuf is not None:
                 image = find_widget(self.labels[name], Gtk.Image)
                 image.set_from_pixbuf(pixbuf)

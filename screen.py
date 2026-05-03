@@ -26,10 +26,12 @@ from ks_includes.KlippyRest import KlippyRest
 from ks_includes.files import KlippyFiles
 from ks_includes.KlippyGtk import KlippyGtk
 from ks_includes.printer import Printer
+from ks_includes.spoolman_api import SpoolmanAPI
 from ks_includes.widgets.keyboard import Keyboard
 from ks_includes.widgets.prompts import Prompt
 from ks_includes.config import KlipperScreenConfig
 from panels.base_panel import BasePanel
+
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
@@ -49,12 +51,6 @@ def set_text_direction(lang=None):
         return False
     Gtk.Widget.set_default_direction(Gtk.TextDirection.LTR)
     return True
-
-
-def state_execute(callback):
-    callback()
-    return False
-
 
 class KlipperScreen(Gtk.Window):
     """ Class for creating a screen for Klipper via HDMI """
@@ -167,6 +163,15 @@ class KlipperScreen(Gtk.Window):
         self.show_cursor = show
         self.gtk.set_cursor(show, window=self.get_window())
 
+    def state_execute(self, state, callback):
+        if 'printer_select' in self._cur_panels:
+            logging.debug(f"Connected printer changed {state}")
+            return False
+        for warning in self.printer.warnings:
+            self.show_popup_message(f"Klipper:\n{warning['message']}", 2)
+        callback()
+        return False
+        
     def initial_connection(self):
         self.printers = self._config.get_printers()
         state_callbacks = {
@@ -179,7 +184,7 @@ class KlipperScreen(Gtk.Window):
             "shutdown": self.state_shutdown
         }
         for printer in self.printers:
-            printer["data"] = Printer(state_execute, state_callbacks, self.process_busy_state)
+            printer["data"] = Printer(self.state_execute, state_callbacks, self.process_busy_state)
         default_printer = self._config.get_main_config().get('default_printer')
         logging.debug(f"Default printer: {default_printer}")
         if [True for p in self.printers if default_printer in p]:
@@ -220,6 +225,8 @@ class KlipperScreen(Gtk.Window):
         )
 
         self.printer_initializing(_("Connecting to %s") % name, remove=True)
+        
+        self.spoolman_api = SpoolmanAPI(self.apiclient)
 
         self._ws = KlippyWebsocket(self,
                                    {
@@ -238,7 +245,7 @@ class KlipperScreen(Gtk.Window):
         requested_updates = {
             "objects": {
                 "bed_mesh": ["profile_name", "mesh_max", "mesh_min", "probed_matrix", "profiles"],
-                "configfile": ["config"],
+                "configfile": ["config", "warnings"],
                 "display_status": ["progress", "message"],
                 "fan": ["speed"],
                 "gcode_move": ["extrude_factor", "gcode_position", "homing_origin", "speed_factor", "speed"],
@@ -526,9 +533,11 @@ class KlipperScreen(Gtk.Window):
         gc.collect()
 
     def _remove_current_panel(self):
-        self.base_panel.remove(self.panels[self._cur_panels[-1]].content)
+        if not self._cur_panels:
+            return
         if hasattr(self.panels[self._cur_panels[-1]], "deactivate"):
             self.panels[self._cur_panels[-1]].deactivate()
+        self.base_panel.remove(self.panels[self._cur_panels[-1]].content)
 
     def _menu_go_back(self, widget=None, home=False):
         logging.info(f"#### Menu go {'home' if home else 'back'}")
@@ -743,8 +752,8 @@ class KlipperScreen(Gtk.Window):
         msg = msg if "ready" not in msg else ""
         self.printer_initializing(_("Klipper has shutdown") + "\n\n" + msg, remove=True)
 
-    def toggle_macro_shortcut(self, value):
-        self.base_panel.show_macro_shortcut(value)
+    def toggle_shutdown_shortcut(self, value):
+        self.base_panel.show_shutdown_shortcut(value)
 
     def change_language(self, widget, lang):
         self._config.install_language(lang)
@@ -833,8 +842,22 @@ class KlipperScreen(Gtk.Window):
                         "printer.gcode.script",
                         script
                     )
+        elif action == "notify_active_spool_set":
+            spool_id = data["spool_id"] if "spool_id" in data else self.spoolman_api.get_active_spool_id()
+            self.update_spool_data(spool_id)
         self.process_update(action, data)
 
+    def update_spool_data(self, spool_id=None):
+        if not spool_id:
+            spool_id = self.spoolman_api.get_active_spool_id()
+        if not spool_id or not isinstance(spool_id, int):
+            self.printer.set_active_spool(spool_id=None)
+            return
+        spool_data = self.spoolman_api.get_spool_details(spool_id)
+        if spool_data is None:
+            self.printer.set_active_spool(spool_id=spool_id)
+            return
+        self.printer.set_active_spool(spool_id=spool_id, spool_data=spool_data)
 
     def process_action(self, action):
         if action.startswith("prompt"):
@@ -1027,6 +1050,7 @@ class KlipperScreen(Gtk.Window):
                 self.printer.configure_cameras(cameras['result']['webcams'])
         if "spoolman" in server_info["components"]:
             self.printer.enable_spoolman()
+            self.update_spool_data(self.spoolman_api.get_active_spool_id())
 
     def init_klipper(self, server_info=None):
         if self.reinit_count > self.max_retries or 'printer_select' in self._cur_panels:
@@ -1136,7 +1160,7 @@ class KlipperScreen(Gtk.Window):
         return False
 
     def base_panel_show_all(self):
-        self.base_panel.show_macro_shortcut(self._config.get_main_config().getboolean('side_macro_shortcut', True))
+        self.base_panel.show_shutdown_shortcut(self._config.get_main_config().getboolean('side_shutdown_shortcut', True))
         self.base_panel.show_heaters(True)
         self.base_panel.show_estop(True)
 

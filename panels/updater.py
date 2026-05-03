@@ -6,7 +6,6 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
 from ks_includes.screen_panel import ScreenPanel
 
-
 class Panel(ScreenPanel):
     def __init__(self, screen, title):
         title = title or _("Update")
@@ -20,11 +19,11 @@ class Panel(ScreenPanel):
         self.refresh.connect("clicked", self.refresh_updates)
         self.refresh.set_vexpand(False)
 
-        reboot = self._gtk.Button("shutdown", _("Restart"), "color3")
-        reboot.connect("clicked", self.reboot_choice) #VSYS
-        reboot.set_vexpand(False)
-        shutdown = self._gtk.Button("emergency", _("Shutdown"), "color4")
-        shutdown.connect("clicked", self.reboot_poweroff, "poweroff")
+        # reboot = self._gtk.Button("shutdown", _("Restart"), "color3")
+        # reboot.connect("clicked", self.reboot_choice) #VSYS
+        # reboot.set_vexpand(False)
+        shutdown = self._gtk.Button("shutdown", _("Restart"), "color4")
+        shutdown.connect("clicked", self.open_shutdown_panel)
         shutdown.set_vexpand(False)
 
         self.update_msg = Gtk.Label(
@@ -42,14 +41,18 @@ class Panel(ScreenPanel):
         # self.main_grid.attach(reboot, 2, 2, 1, 1)
         # self.main_grid.attach(shutdown, 3, 2, 1, 1)
         # self.content.add(self.main_grid)
-        
+
         self.main_grid = Gtk.Grid(column_homogeneous=True)
         self.main_grid.attach(self.scroll, 0, 0, 4, 2)
-        self.main_grid.attach(self.update_all, 0, 2, 1, 1)
-        self.main_grid.attach(self.refresh, 1, 2, 2, 1)
-        self.main_grid.attach(reboot, 3, 2, 1, 1)
+        if self._config.get_main_config().getboolean('side_shutdown_shortcut', True):
+            self.main_grid.attach(self.refresh, 0, 2, 2, 1)
+            self.main_grid.attach(self.update_all, 2, 2, 2, 1)
+        else:
+            self.main_grid.attach(self.refresh, 0, 2, 1, 1)
+            self.main_grid.attach(self.update_all, 1, 2, 2, 1)
+            self.main_grid.attach(shutdown, 3, 2, 1, 1)
         self.content.add(self.main_grid)
-        
+
     def activate(self):
         self._screen._ws.send_method("machine.update.status", callback=self.get_updates)
 
@@ -377,53 +380,5 @@ class Panel(ScreenPanel):
         self.labels[f"{p}_status"].get_style_context().add_class("update")
         self.labels[f"{p}_status"].set_sensitive(True)
 
-    def reboot_poweroff(self, widget, method):
-        label = Gtk.Label(wrap=True, hexpand=True, vexpand=True)
-        label.set_label(_("Are you sure you wish to reboot the system?"))
-        if method == "reboot":
-            label.set_label(_("Are you sure you wish to reboot the system?"))
-            title = _("Restart")
-        else:
-            label.set_label(_("Are you sure you wish to shutdown the system?"))
-            title = _("Shutdown")
-#begin VSYS
-        buttons = [
-            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
-        ]
-#end VSYS
-
-        self._gtk.Dialog(title, buttons, label, self.reboot_poweroff_confirm, method)
-
-    def reboot_poweroff_confirm(self, dialog, response_id, method):
-        self._gtk.remove_dialog(dialog)
-        if response_id == Gtk.ResponseType.OK:
-            if method == "reboot":
-                os.system("systemctl reboot -i")
-            else:
-                os.system("systemctl poweroff -i")
-        elif response_id == Gtk.ResponseType.APPLY:
-            if method == "reboot":
-                self._screen._ws.send_method("machine.reboot")
-            else:
-                self._screen._ws.send_method("machine.shutdown")
-
-#begin VSYS
-    def reboot_choice(self, widget):
-        label = Gtk.Label(wrap=True, hexpand=True, vexpand=True)
-        label.set_label(_("Are you sure you wish to reboot the system?"))
-        buttons = [
-            {"name": _("KlipperScreen"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
-            {"name": _("Computer"), "response": Gtk.ResponseType.APPLY, "style": "dialog-warning"},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
-        ]
-        self._gtk.Dialog(_("Restart"), buttons, label, self.reboot_choice_confirm)
-
-    def reboot_choice_confirm(self, dialog, response_id):
-        self._gtk.remove_dialog(dialog)
-
-        if response_id == Gtk.ResponseType.OK:
-            self._screen.restart_ks()
-        elif response_id == Gtk.ResponseType.APPLY:
-            self._screen._ws.send_method("machine.reboot")
-#end VSYS
+    def open_shutdown_panel(self, widget):
+        self._screen.show_panel("shutdown", _("System"))

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: KlipperScreen\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-04-26 23:35-0300\n"
-"PO-Revision-Date: 2023-04-18 16:58+0200\n"
+"PO-Revision-Date: 2026-04-14 01:21+0200\n"
 "Last-Translator: O. Robardet\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -16,10 +16,153 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.2\n"
+"X-Generator: Poedit 3.1.1\n"
 
-msgid "KlipperScreen"
-msgstr "Écran"
+msgid "No power devices configured"
+msgstr "Aucun périphérique configuré"
+
+msgid "Edit Spool"
+msgstr "Modifier la bobine"
+
+msgid "Active spool"
+msgstr "Bobine"
+
+msgid "Last used"
+msgstr "Dernière utilisation"
+
+msgid "Remaining weight"
+msgstr "Poids restant"
+
+msgid "Remaining length"
+msgstr "Longueur restante"
+
+msgid "Remaining weight (g)"
+msgstr "Poids restant (g)"
+
+msgid "Weight is required"
+msgstr "Le poids est requis"
+
+msgid "Weight: numbers only"
+msgstr "Poids : chiffres uniquement"
+
+msgid "Save spool weight?"
+msgstr "Enregistrer le poids de la bobine ?"
+
+msgid "Weight updated"
+msgstr "Poids mis à jour"
+
+msgid "Error updating weight"
+msgstr "Erreur lors de la mise à jour du poids"
+
+msgid "Screen"
+msgstr "écran"
+
+msgid "Edit Printer"
+msgstr "Modifier l'imprimante"
+
+msgid "Save printer configuration ?"
+msgstr "Enregistrer la configuration de l'imprimante ?"
+
+msgid "Delete printer configuration ?"
+msgstr "Supprimer la configuration de l'imprimante ?"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Extrude distances"
+msgstr "Distances d'extrusion"
+
+msgid "Extrude speeds"
+msgstr "Vitesses d'extrusion"
+
+msgid "Z babystep values"
+msgstr "Valeurs Z babystep"
+
+msgid "Test"
+msgstr "Tester"
+
+msgid "Save printer configuration?"
+msgstr "Enregistrer la configuration de l'imprimante ?"
+
+msgid "Confirm"
+msgstr "Confirmer"
+
+msgid "Name, host and port are required"
+msgstr "Le nom, l'hôte et le port sont requis"
+
+msgid "Port: numbers only"
+msgstr "Port : chiffres uniquement"
+
+msgid "Extrude distances: 4 numbers required"
+msgstr "Distances d'extrusion : 4 valeurs requises"
+
+msgid "Extrude speeds: 4 numbers required"
+msgstr "Vitesses d'extrusion : 4 valeurs requises"
+
+msgid "Z babystep: 2 numbers required"
+msgstr "Z babystep : 2 valeurs requises"
+
+msgid "Connection OK"
+msgstr "Connexion OK"
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "No wireless interface has been found"
+msgstr "Aucune interface sans fil n'a été trouvée"
+
+msgid "Forget"
+msgstr "Oublier"
+
+msgid "Remove network"
+msgstr "Supprimer réseau"
+
+#, python-format
+msgid "Do you want to forget or disconnect %s?"
+msgstr "Voulez-vous oublier ou déconnecter %s?"
+
+msgid "Disconnect"
+msgstr "Déconnecter"
+
+msgid "Connected"
+msgstr "Connecté"
+
+#, python-format
+msgid "Connecting to %s"
+msgstr "Connexion à %s"
+
+msgid "Network not found"
+msgstr "Réseau introuvable"
+
+msgid "Unknown security type"
+msgstr "Type de sécurité inconnu"
+
+msgid "Insufficient privileges"
+msgstr "Privilèges insuffisants"
+
+msgid "Invalid password"
+msgstr "Mot de passe invalide"
+
+msgid "Couldn't add network"
+msgstr "Impossible d'ajouter le réseau"
+
+msgid "Failed to delete connection"
+msgstr "Échec de la suppression de la connexion"
+
+msgid "Connecting"
+msgstr "Connexion en cours"
+
+msgid "Getting IP address"
+msgstr "Obtention de l'adresse IP"
+
+msgid "Network connected"
+msgstr "Réseau connecté"
+
+msgid "Network disconnected"
+msgstr "Réseau déconnecté"
+
+msgid "Connection failed"
+msgstr "Échec de la connexion"
 
 msgid "Computer"
 msgstr "Ordinateur"
@@ -207,6 +350,9 @@ msgstr "Calibration"
 msgid "Camera"
 msgstr "Caméra"
 
+msgid "Halt"
+msgstr "Arrêter"
+
 msgid "Can't set above the maximum:"
 msgstr "Impossible de définir au-dessus du maximum :"
 
@@ -245,13 +391,6 @@ msgstr "Impression terminée"
 
 msgid "Confirm Emergency Stop"
 msgstr "Confirmer l'arrêt d'urgence"
-
-msgid "Connected"
-msgstr "Connecté"
-
-#, python-format
-msgid "Connecting to %s"
-msgstr "Connexion à %s"
 
 msgid "Console"
 msgstr "Console"
@@ -446,9 +585,6 @@ msgstr "Interface"
 msgid "Invalid"
 msgstr "Invalide"
 
-msgid "Invalid password"
-msgstr "Mot de passe invalide"
-
 msgid "Invert X"
 msgstr "Inverser l'axe X"
 
@@ -459,8 +595,7 @@ msgid "Invert Z"
 msgstr "Inverser l'axe Z"
 
 msgid "It may take more than 5 minutes depending on the heater power."
-msgstr ""
-"Cela peut prendre plus de 5 minutes en fonction de la puissance du chauffage."
+msgstr "Cela peut prendre plus de 5 minutes en fonction de la puissance du chauffage."
 
 msgid "It's possible that the configuration is not correct"
 msgstr "Il est possible que la configuration ne soit pas correcte"
@@ -522,8 +657,8 @@ msgstr "Perte de connexion avec Moonraker"
 msgid "Lower Nozzle"
 msgstr "Rapprocher la buse"
 
-msgid "Macro shortcut on sidebar"
-msgstr "Macros sur la barre latérale"
+msgid "Shutdown shortcut on sidebar"
+msgstr "Afficher l'arrêt sur la barre latérale"
 
 msgid "Macros"
 msgstr "Macros"
@@ -602,9 +737,6 @@ msgstr "Macros non éligibles :"
 
 msgid "No mesh has been loaded"
 msgstr "Aucun maillage chargé"
-
-msgid "No wireless interface has been found"
-msgstr "Aucune interface sans fil n'a été trouvée"
 
 msgid "Not all screens support this"
 msgstr "Tous les écrans ne sont pas en prit en charge"
@@ -876,6 +1008,7 @@ msgstr "Total:"
 
 msgid "Unknown Heater"
 msgstr "Chauffe inconnue"
+
 msgid "Unload"
 msgstr "Décharger"
 
@@ -976,12 +1109,8 @@ msgstr[1] "secondes"
 #~ msgid "Bed screw configuration:"
 #~ msgstr "Configuration des vis du plateau:"
 
-#~ msgid ""
-#~ "Not supported for auto-detection, it needs to be configured in "
-#~ "klipperscreen.conf"
-#~ msgstr ""
-#~ "Non pris en charge pour la détection automatique, il doit être configuré "
-#~ "dans klipperscreen.conf"
+#~ msgid "Not supported for auto-detection, it needs to be configured in klipperscreen.conf"
+#~ msgstr "Non pris en charge pour la détection automatique, il doit être configuré dans klipperscreen.conf"
 
 #~ msgid "Unknown screw position"
 #~ msgstr "Position de vis inconnue"
@@ -1090,9 +1219,6 @@ msgstr[1] "secondes"
 
 #~ msgid "IPv6"
 #~ msgstr "IPv6"
-
-#~ msgid "Disconnect"
-#~ msgstr "Déconnecter"
 
 #~ msgid "Duration Only"
 #~ msgstr "Durée seulement"

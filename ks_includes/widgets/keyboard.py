@@ -34,10 +34,10 @@ class Keyboard(Gtk.Box):
         elif self.purpose == Gtk.InputPurpose.NUMBER:
             self.keys = [
                 [
-                    ["7", "8", "9", "⌫"],
-                    ["4", "5", "6", "+"],
-                    ["1", "2", "3", "-"],
-                    ["↓", "0", ".", "↓"]
+                    ["7", "8", "9", "+", "⌫"],
+                    ["4", "5", "6", "-", ","],
+                    ["1", "2", "3", "00", "."],
+                    ["↓", "0", "SP", "←", "→"]
                 ]
             ]
         elif language == "de":
@@ -137,6 +137,10 @@ class Keyboard(Gtk.Box):
                         self.shift.append(self.buttons[p][r][k])
                     elif key == "↓":
                         self.buttons[p][r][k] = screen.gtk.Button("arrow-down", scale=.6)
+                    elif key == "←":
+                        self.buttons[p][r][k] = screen.gtk.Button("arrow-left", scale=.6)
+                    elif key == "→":
+                        self.buttons[p][r][k] = screen.gtk.Button("arrow-right", scale=.6)
                     else:
                         self.buttons[p][r][k] = screen.gtk.Button(label=key, lines=1)
                     self.buttons[p][r][k].connect('button-press-event', self.repeat, key)
@@ -216,6 +220,16 @@ class Keyboard(Gtk.Box):
     def update_entry(self, widget, key):
         if key == "⌫":
             Gtk.Entry.do_backspace(self.entry)
+        elif key == "←":
+            self.entry.emit("move-cursor", Gtk.MovementStep.VISUAL_POSITIONS, -1, False)
+        elif key == "→":
+            self.entry.emit("move-cursor", Gtk.MovementStep.VISUAL_POSITIONS, 1, False)
+        elif key == "00":
+            self.entry.insert_text("00", -1)
+            self.entry.set_position(-1)
+        elif key == "SP":
+            self.entry.insert_text(" ", -1)
+            self.entry.set_position(-1)
         elif key == "↓":
             self.close_cb(entry=self.entry)
             return

@@ -17,8 +17,20 @@ class Panel(ScreenPanel):
 #Begin VSYS
         macros = self._printer.get_gcode_macros()
         self.macro_mesh_exist = any("_BED_LEVELING" in macro.upper() for macro in macros)
-        if not self.macro_mesh_exist:
-#End VSYS
+        if self.macro_mesh_exist:
+            label = Gtk.Label(wrap=True, hexpand=True, vexpand=True)
+            if "delta" in self._printer.get_config_section("printer")['kinematics']:
+                label.set_label(_("Please plug in leveling switch before auto-leveling."))
+            else:
+                label.set_label(_("Do you want to run the bed leveling ?"))
+
+            buttons = [
+                {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
+                {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
+            ]
+            self._gtk.Dialog(_("Bed Mesh"), buttons, label, self.mesh_choice_confirm)
+        else:
+#End VSYS            
             self.show_create = False
             self.active_mesh = None
             section = self._printer.get_config_section("bed_mesh")
@@ -58,23 +70,8 @@ class Panel(ScreenPanel):
                 grid.attach(scroll, 1, 2, 1, 1)
             self.labels['main_grid'] = grid
             self.content.add(self.labels['main_grid'])
+            
 #Begin VSYS
-        else:
-            self.macro_mesh(self)
-
-    def macro_mesh(self, widget):
-        label = Gtk.Label(wrap=True, hexpand=True, vexpand=True)
-        if "delta" in self._printer.get_config_section("printer")['kinematics']:
-            label.set_label(_("Please plug in leveling switch before auto-leveling."))
-        else:
-            label.set_label(_("Do you want to run the bed leveling ?"))
-        
-        buttons = [
-            {"name": _("Continue"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
-            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
-        ]
-        self._gtk.Dialog(_("Bed Mesh"), buttons, label, self.mesh_choice_confirm)
-
     def mesh_choice_confirm(self, dialog, response_id):
         self._gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:
@@ -83,6 +80,7 @@ class Panel(ScreenPanel):
         elif response_id == Gtk.ResponseType.CANCEL:
             self._screen._menu_go_back()
 #End VSYS
+
     def activate(self):
         if not self.macro_mesh_exist: #VSYS
             self.load_meshes()

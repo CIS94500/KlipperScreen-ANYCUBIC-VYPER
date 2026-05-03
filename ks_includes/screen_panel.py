@@ -118,28 +118,9 @@ class ScreenPanel:
         if callback is not None:
             callback(switch.get_active())
 
-    # @staticmethod
-    # def format_time(seconds):
-        # spc = "\u00A0"  # Non breakable space
-        # if seconds is None or seconds < 1:
-            # return "-"
-        # days = seconds // 86400
-        # day_units = ngettext("day", "days", days)
-        # seconds %= 86400
-        # hours = seconds // 3600
-        # hour_units = ngettext("hour", "hours", hours)
-        # seconds %= 3600
-        # minutes = round(seconds / 60)
-        # min_units = ngettext("minute", "minutes", minutes)
-        # seconds %= 60
-        # sec_units = ngettext("second", "seconds", seconds)
-        # return f"{f'{days:2.0f}{spc}{day_units}{spc}' if days > 0 else ''}" \
-               # f"{f'{hours:2.0f}{spc}{hour_units}{spc}' if hours > 0 else ''}" \
-               # f"{f'{minutes:2.0f}{spc}{min_units}{spc}' if minutes > 0 and days == 0 else ''}" \
-               # f"{f'{seconds:2.0f}{spc}{sec_units}' if days == 0 and hours == 0 and minutes == 0 else ''}"
-               
     @staticmethod
     def format_time(seconds):
+        spc = "\u00A0"  # Non breakable space
         if seconds is None or seconds < 1:
             return "-"
         days = seconds // 86400
@@ -152,10 +133,10 @@ class ScreenPanel:
         min_units = ngettext("minute", "minutes", minutes)
         seconds %= 60
         sec_units = ngettext("second", "seconds", seconds)
-        return f"{f'{days:2.0f} {day_units} ' if days > 0 else ''}" \
-               f"{f'{hours:2.0f} {hour_units} ' if hours > 0 else ''}" \
-               f"{f'{minutes:2.0f} {min_units} ' if minutes > 0 and days == 0 else ''}" \
-               f"{f'{seconds:2.0f} {sec_units}' if days == 0 and hours == 0 and minutes == 0 else ''}"
+        return f"{f'{days:2.0f}{spc}{day_units}{spc}' if days > 0 else ''}" \
+               f"{f'{hours:2.0f}{spc}{hour_units}{spc}' if hours > 0 else ''}" \
+               f"{f'{minutes:2.0f}{spc}{min_units}{spc}' if minutes > 0 and days == 0 else ''}" \
+               f"{f'{seconds:2.0f}{spc}{sec_units}' if days == 0 and hours == 0 and minutes == 0 else ''}"
 
     def format_eta(self, total, elapsed):
         if total is None:
@@ -181,7 +162,7 @@ class ScreenPanel:
             unit = 1024 ** i
             if size < unit:
                 return f"{(1024 * size / unit):.1f} {suffix}"
-#ATTENTE NETWORK VSYS
+
     @staticmethod
     def format_speed(bitrate):
         bitrate = float(bitrate)
@@ -190,7 +171,7 @@ class ScreenPanel:
             unit = 1000 ** i
             if bitrate < unit:
                 return f"{(1000 * bitrate / unit):.0f} {suffix}"
-#END NETWORK VSYS
+
     @staticmethod
     def prettify(name: str):
         name = name.replace("_", " ")
@@ -279,8 +260,32 @@ class ScreenPanel:
             setting = {opt_name: scale}
         elif option['type'] == "printer":
             box = Gtk.Box(vexpand=False)
-            label = Gtk.Label(f"{option['moonraker_host']}:{option['moonraker_port']}")
+            label = Gtk.Label(f"{option['moonraker_host']}:{option['moonraker_port']}" + " ")
             box.add(label)
+            if 'edit_callback' in option:
+                edit = self._gtk.Button("settings", scale=0.7, style="color3")
+                edit.connect("clicked", option['edit_callback'], opt_name)
+                edit.set_hexpand(False)
+                edit.set_halign(Gtk.Align.END)
+                box.add(edit)
+            if 'delete_callback' in option:
+                delete = self._gtk.Button("delete", scale=0.7, style="color2")
+                delete.connect("clicked", option['delete_callback'], opt_name)
+                delete.set_hexpand(False)
+                delete.set_halign(Gtk.Align.END)
+                box.add(delete)
+            if 'move_up_callback' in option:
+                up = self._gtk.Button("arrow-up", scale=0.7, style="color4")
+                up.connect("clicked", option['move_up_callback'], opt_name)
+                up.set_hexpand(False)
+                up.set_halign(Gtk.Align.END)
+                box.add(up)
+            if 'move_down_callback' in option:
+                down = self._gtk.Button("arrow-down", scale=0.7, style="color4")
+                down.connect("clicked", option['move_down_callback'], opt_name)
+                down.set_hexpand(False)
+                down.set_halign(Gtk.Align.END)
+                box.add(down)
             row_box.add(box)
         elif option['type'] == "menu":
             open_menu = self._gtk.Button("settings", style="color3")
@@ -300,7 +305,11 @@ class ScreenPanel:
             "row": row_box
         }
 
-        opts = sorted(list(opt_array), key=lambda x: opt_array[x]['name'].casefold())
+        if option.get('type') == 'printer':
+            opts = list(opt_array)  # pas de tri pour les printers
+        else:
+            opts = sorted(list(opt_array), key=lambda x: opt_array[x]['name'].casefold())
+
         pos = opts.index(opt_name)
 
         self.labels[boxname].insert_row(pos)

@@ -2,11 +2,14 @@
 import logging
 import os
 import pathlib
+from functools import lru_cache
+
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, GdkPixbuf, Gio, Gtk, Pango
 from ks_includes.widgets.scroll import CustomScrolledWindow
+
 
 def find_widget(widget, wanted_type):
     # Returns a widget of wanted_type or None
@@ -119,15 +122,21 @@ class KlippyGtk:
     def PixbufFromIcon(self, filename, width=None, height=None):
         width = width if width is not None else self.img_width
         height = height if height is not None else self.img_height
-        filename = os.path.join(self.themedir, filename)
+        return self._PixbufFromIcon(filename, self.themedir, int(width), int(height))
+
+    @staticmethod
+    @lru_cache(maxsize=500)
+    def _PixbufFromIcon(filename, themedir, width, height):
+        filename = os.path.join(themedir, filename)
         for ext in ["svg", "png"]:
             file = f"{filename}.{ext}"
-            pixbuf = self.PixbufFromFile(file, int(width), int(height)) if os.path.exists(file) else None
+            pixbuf = KlippyGtk.PixbufFromFile(file, width, height) if os.path.exists(file) else None
             if pixbuf is not None:
                 return pixbuf
         return None
 
     @staticmethod
+    @lru_cache(maxsize=500)
     def PixbufFromFile(filename, width=-1, height=-1):
         try:
             return GdkPixbuf.Pixbuf.new_from_file_at_size(filename, int(width), int(height))
@@ -162,12 +171,39 @@ class KlippyGtk:
                 scale = scale * 1.4
             width = height = self.img_scale * scale
             b.set_image(self.Image(image_name, width, height))
+            spinner = Gtk.Spinner(width_request=width, height_request=height, no_show_all=True)
+            spinner.hide()
+            box = find_widget(b, Gtk.Box)
+            if box:
+                box.add(spinner)
+
         if label is not None:
             format_label(b, lines)
         if style is not None:
             b.get_style_context().add_class(style)
         b.connect("clicked", self.screen.reset_screensaver_timeout)
         return b
+
+    @staticmethod
+    def Button_busy(widget, busy):
+        spinner = find_widget(widget, Gtk.Spinner)
+        image = find_widget(widget, Gtk.Image)
+        if busy:
+            widget.set_sensitive(False)
+            if image:
+                widget.set_always_show_image(False)
+                image.hide()
+            if spinner:
+                spinner.start()
+                spinner.show()
+        else:
+            if image:
+                widget.set_always_show_image(True)
+                image.show()
+            if spinner:
+                spinner.stop()
+                spinner.hide()
+            widget.set_sensitive(True)
 
     def dialog_content_decouple(self, widget, event, dialog):
         self.remove_dialog(dialog)

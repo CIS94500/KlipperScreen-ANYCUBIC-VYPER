@@ -1,5 +1,6 @@
 import logging
 import os
+
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -8,6 +9,7 @@ from datetime import datetime
 from ks_includes.screen_panel import ScreenPanel
 from ks_includes.KlippyGtk import find_widget
 from ks_includes.widgets.flowboxchild_extended import PrintListItem
+
 
 def format_label(widget):
     label = find_widget(widget, Gtk.Label)
@@ -72,7 +74,7 @@ class Panel(ScreenPanel):
         self.labels['path'] = Gtk.Label(label=self.loading_msg, vexpand=True, no_show_all=True)
         self.labels['path'].show()
         self.thumbsize = self._gtk.img_scale * self._gtk.button_image_scale * 2.5
-        logging.info(f"Thumbsize: {self.thumbsize}")
+        logging.info(f"Thumbsize: {self.thumbsize:.1f}")
 
         self.flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE,
                                    column_spacing=0, row_spacing=0)
@@ -175,7 +177,8 @@ class Panel(ScreenPanel):
                 image_args = (path, icon, self.thumbsize / 2, True, "file")
                 delete.connect("clicked", self.confirm_delete_file, f"gcodes/{path}")
                 rename.connect("clicked", self.show_rename, f"gcodes/{path}")
-                action = self._gtk.Button("printer", style="color3")
+                action_icon = "printer" if self._printer.extrudercount > 0 else "load"
+                action = self._gtk.Button(action_icon, style="color3")
                 action.connect("clicked", self.confirm_print, path)
                 action.set_hexpand(False)
                 action.set_vexpand(False)
@@ -321,8 +324,9 @@ class Panel(ScreenPanel):
                 {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
             ]
         else:
+            action = _("Print") if self._printer.extrudercount > 0 else _("Start")
             buttons = [
-                {"name": _("Print"), "response": Gtk.ResponseType.OK, "style": "dialog-info"},
+                {"name": action, "response": Gtk.ResponseType.OK, "style": "dialog-info"},
                 {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL, "style": "dialog-error"}
             ]
 #End VSYS
@@ -361,7 +365,7 @@ class Panel(ScreenPanel):
 
         inside_box.pack_start(info_box, True, True, 0)
         main_box.pack_start(inside_box, True, True, 0)
-        self._gtk.Dialog(_("Print") + f' {filename}', buttons, main_box, self.confirm_print_response, filename)
+        self._gtk.Dialog(f'{action} {filename}', buttons, main_box, self.confirm_print_response, filename)
 
     def confirm_print_response(self, dialog, response_id, filename):
         self._gtk.remove_dialog(dialog)
@@ -407,6 +411,7 @@ class Panel(ScreenPanel):
     def get_file_info_extended(self, filename):
         fileinfo = self._screen.files.get_file_info(filename)
         info = ""
+        estimated = ""
         if "size" in fileinfo:
             info += _("Size") + f': <b>{self.format_size(fileinfo["size"])}</b>\n'
         if "modified" in fileinfo:
@@ -426,10 +431,19 @@ class Panel(ScreenPanel):
         if "first_layer_bed_temp" in fileinfo:
             info += f'    ' + _("Bed") + f': <b>{(fileinfo["first_layer_bed_temp"])}</b>' + _("°C") + '\n'
         if "filament_weight_total" in fileinfo:
-            info += _("Estimated Weight") + f': <b>{fileinfo["filament_weight_total"]}</b> ' + _("gr") + '\n'
-        if "filament_type" in fileinfo:
-            nameFila = f' - {(fileinfo["filament_name"]).strip()}' if "filament_name" in fileinfo else ""
-            info += _("Filament") + f': <b>{(fileinfo["filament_type"]).strip() + nameFila}</b>\n'
+            estimated = _("Estimated Weight") + f': <b>{fileinfo["filament_weight_total"]}</b> ' + _("gr") + '\n'
+        if self._printer.spoolman:
+            active = self._printer.active_spool or {}
+            spool_vendor = active.get("filament", {}).get("vendor", {}).get("name", "None")
+            spool_name = active.get("filament", {}).get("name", "None")
+            spool_material = active.get("filament", {}).get("material", "None")
+            remaining = active.get("remaining_weight", 0)
+            info += _("Active spool") + f': <b>{spool_vendor} - {spool_material}</b>\n    {spool_name}: <b>{remaining:.0f}</b> gr\n    {estimated}'
+        else:
+            info += estimated
+            if "filament_type" in fileinfo:
+                nameFila = f' - {(fileinfo["filament_name"]).strip()}' if "filament_name" in fileinfo else ""
+                info += _("Filament") + f': <b>{(fileinfo["filament_type"]).strip() + nameFila}</b>\n'
         if "nozzle_diameter" in fileinfo:
             info += _("Nozzle diameter") + f': <b>{fileinfo["nozzle_diameter"]}</b> ' + _("mm") + '\n'
         if "estimated_time" in fileinfo:

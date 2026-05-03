@@ -18,8 +18,8 @@ class Printer:
         self.tempdevcount = 0
         self.fancount = 0
         self.ledcount = 0
-        self.output_pin_count = 0
         self.pwm_tools_count = 0
+        self.output_pin_count = 0
         self.store_timeout = None
         self.tempstore = {}
         self.busy_cb = busy_cb
@@ -28,8 +28,12 @@ class Printer:
         self.cameras = []
         self.available_commands = {}
         self.spoolman = False
+        self.active_spool_id = None
+        self.active_spool = None
+        self.active_spool_checked = False
         self.temp_devices = self.sensors = None
         self.system_info = {}
+        self.warnings = []
 
     def reinit(self, printer_info, data):
         self.config = data['configfile']['config']
@@ -40,6 +44,7 @@ class Printer:
         self.fancount = 0
         self.ledcount = 0
         self.output_pin_count = 0
+        self.pwm_tools_count = 0
         self.busy = False
         self.tempstore.clear()
         self.tempstore_size = 1200
@@ -47,6 +52,10 @@ class Printer:
         self.temp_devices = self.sensors = None
         self.stop_tempstore_updates()
         self.system_info.clear()
+        self.warnings = []
+        self.active_spool_id = None
+        self.active_spool = None
+        self.active_spool_checked = False
 
         for x in self.config.keys():
             if x[:8] == "extruder":
@@ -122,8 +131,11 @@ class Printer:
             return
 
         for x in data:
-            if x == "configfile" and 'config' in data[x]:
-                self.config.update(data[x]['config'])
+            if x == "configfile":
+                if 'config' in data[x]:
+                    self.config.update(data[x]['config'])
+                if 'warnings' in data[x]:
+                    self.warnings = data[x]['warnings']
             if x not in self.data:
                 self.data[x] = {}
             self.data[x].update(data[x])
@@ -169,7 +181,7 @@ class Printer:
             self.state = state
         if self.state_callbacks[state] is not None:
             logging.debug(f"Adding callback for state: {state}")
-            GLib.idle_add(self.state_cb, self.state_callbacks[state])
+            GLib.idle_add(self.state_cb, state, self.state_callbacks[state])
 
     def configure_power_devices(self, data):
         self.power_devices = {}
@@ -436,3 +448,7 @@ class Printer:
     def enable_spoolman(self):
         logging.info("Enabling Spoolman")
         self.spoolman = True
+
+    def set_active_spool(self, spool_id=None, spool_data=None):
+        self.active_spool_id = spool_id
+        self.active_spool = spool_data

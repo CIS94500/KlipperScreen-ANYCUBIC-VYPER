@@ -1,4 +1,6 @@
+import datetime
 import logging
+
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -23,7 +25,7 @@ class Panel(ScreenPanel):
             if 'system_info' in self.sysinfo:
                 screen.printer.system_info = self.sysinfo['system_info']
                 self.sysinfo = self.sysinfo['system_info']
-        # logging.debug(self.sysinfo)
+        logging.debug(self.sysinfo)
         if self.sysinfo:
             self.content.add(self.create_layout())
         else:
@@ -86,6 +88,11 @@ class Panel(ScreenPanel):
         self.current_row += 1
 
     def populate_info(self):
+        self.add_label_to_grid(self.prettify("date"), 0, bold=True)
+        self.labels["date"] = Gtk.Label(label="", xalign=0)
+        self.grid.attach(self.labels["date"], 1, self.current_row - 1, 1, 1)
+        self.add_label_to_grid("", 0)
+
         for category, data in self.sysinfo.items():
             if category == "python":
                 self.add_label_to_grid(self.prettify(category), 0, bold=True)
@@ -130,7 +137,7 @@ class Panel(ScreenPanel):
                             ):
                                 for _ip in sub_value:
                                     self.add_label_to_grid(
-                                        f"{self.prettify(sub_key)}: {_ip['address']}", 1
+                                        f"{_('IP Address')}: {_ip['address']}", 1
                                     )
                                 continue
                             self.add_label_to_grid(
@@ -138,6 +145,8 @@ class Panel(ScreenPanel):
                             )
                     else:
                         self.add_label_to_grid(f"{self.prettify(key)}: {value}", 1)
+            # Add empty line
+            self.add_label_to_grid("", 0)
 
     def process_update(self, action, data):
         if not self.sysinfo:
@@ -165,3 +174,5 @@ class Panel(ScreenPanel):
                 float(data["system_memory"]["used"])
                 / float(data["system_memory"]["total"])
             )
+            now = datetime.datetime.now().astimezone()
+            self.labels["date"].set_label(now.strftime("%a %b %e %H:%M:%S %Z %Y"))

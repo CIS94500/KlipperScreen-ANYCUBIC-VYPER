@@ -49,7 +49,11 @@ class KlippyRest:
 
     def send_request(self, method, json=True, timeout=4):
         return self._do_request(method, "get", json_response=json, timeout=timeout)
-
+        
+    # def send_request(self, method, json=True, timeout=4):
+        # res = self._do_request(method, "get", json_response=json, timeout=timeout)
+        # return self.process_response(res) if json else res
+        
     @staticmethod
     def format_status(status):
         try:

@@ -147,7 +147,6 @@ class Panel(ScreenPanel):
                     "type": "binary",
                     "tooltip": _("This will affect screw positions and mesh graph"),
                     "value": "False",
-
                 }
             },
             {
@@ -157,7 +156,6 @@ class Panel(ScreenPanel):
                     "type": "binary",
                     "tooltip": _("This will affect screw positions and mesh graph"),
                     "value": "False",
-
                 }
             },
             {
